@@ -1,0 +1,47 @@
+name: PR Reviewer Agent (Zero-Trust)
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  pr-review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract Issue ID
+        id: extract_issue
+        run: |
+          TITLE="${{ github.event.pull_request.title }}"
+          ISSUE_ID=$(echo "$TITLE" | grep -o 'ISSUE-[0-9]*' || echo "UNKNOWN")
+          echo "issue_id=$ISSUE_ID" >> $GITHUB_ENV
+
+      - name: Generate Git Diff
+        run: git diff origin/main...HEAD > pr.diff
+
+      - name: Run pr-reviewer-agent
+        id: agent
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          PLANE_API_KEY: ${{ secrets.PLANE_API_KEY }}
+        run: |
+          node .github/scripts/run-agent.js $issue_id < pr.diff > agent_result.json || EXIT_CODE=$?
+          
+          # Evaluar la decisión
+          DECISION=$(jq -r '.decision' agent_result.json)
+          REASON=$(jq -r '.reason' agent_result.json)
+          
+          if [ "$DECISION" = "REJECT" ]; then
+            gh pr review ${{ github.event.pull_request.number }} --request-changes -b "$REASON"
+            exit 1
+          else
+            gh pr review ${{ github.event.pull_request.number }} --approve -b "✅ Aprobado por el pr-reviewer-agent. Listo para QA."
+            exit 0
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

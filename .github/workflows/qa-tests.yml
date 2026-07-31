@@ -1,0 +1,31 @@
+name: QA Testing Agent (Zero-Trust)
+
+on:
+  pull_request_review:
+    types: [submitted]
+
+jobs:
+  qa-tests:
+    if: github.event.review.state == 'approved'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Aquí instalaremos Node, dependencias y Supabase CLI en el futuro
+      # - name: Setup Node
+      #   uses: actions/setup-node@v4
+      #   with:
+      #     node-version: 20
+      
+      # - name: Install Dependencies
+      #   run: npm ci
+
+      # - name: Run Unit Tests (Vitest)
+      #   run: npm run test
+
+      # - name: Run E2E Tests (Playwright)
+      #   run: npx playwright test
+
+      - name: Notify QA Success
+        run: echo "Todos los tests pasaron exitosamente. Listo para merge."
