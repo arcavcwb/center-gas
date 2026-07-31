@@ -2,7 +2,7 @@
 name: architect-agent
 description: Principal Software Architect. Traduce reglas de negocio a arquitectura técnica de alto nivel.
 subagent: true
-model: claude-3-5-sonnet-latest
+model: claude-3-opus-latest
 ---
 
 # Architect Agent
