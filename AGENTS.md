@@ -58,3 +58,28 @@ El detalle completo de disparadores por fase está en `architecture.md`.
 ## Configuración de herramientas
 
 MCP servers del proyecto: `.agents/mcp_config.json`
+
+---
+
+## 🛡️ Master Workspace Rules (Center Gas)
+
+Estas reglas complementan la regla de cero asunción y deben ser respetadas inquebrantablemente por todos los agentes del Squad en cualquier sesión futura.
+
+### CORE PHILOSOPHY: "Plane for the Business, Git for the Code"
+- **Flujo de Plane Obligatorio:** No puedes implementar características no documentadas. Todas las tareas deben rastrearse hacia un ISSUE en Plane.
+
+### GOBERNANZA DE PLANE Y TRAZABILIDAD
+- Plane es la **Única Fuente de Verdad**.
+- **Reportes Técnicos:** Cada vez que finalices la ejecución de un Issue o un bloque de trabajo importante, estás OBLIGADO a actualizar el Issue en Plane (vía MCP) añadiendo un comentario en formato HTML exhaustivo con los detalles técnicos.
+- **Máquina de Estados:** Al terminar una tarea, siempre debes mover el estado del Issue en Plane al siguiente paso correspondiente.
+
+### ARQUITECTURA Y STACK TECNOLÓGICO HÍBRIDO
+El repositorio es un **Monorepo gestionado con pnpm**. Cualquier scaffolding o instalación debe usar `pnpm`.
+- **`apps/web` (Panel B2B):** EXCLUSIVAMENTE con **Next.js 15 (App Router)**, React, y Tailwind CSS.
+- **`apps/site` (Catálogo Móvil B2C):** EXCLUSIVAMENTE con **Astro 5** y **SolidJS** para islas interactivas.
+- **`packages/contracts`:** Única fuente de verdad de modelado. Todo tipado y validación debe originarse en esquemas `Zod` exportados desde aquí.
+- **Backend (BaaS):** Supabase (PostgreSQL). Prohibido crear servidores Node/Express tradicionales.
+
+### PROTOCOLO ZERO-TRUST CI/CD
+- Todo código generado debe compilar estáticamente (`npm run build`).
+- Las decisiones arquitectónicas requieren un `implementation_plan.md` con aprobación explícita del humano (`request_feedback: true`) antes de ejecutar, a menos que se active el "God Mode".
