@@ -79,5 +79,5 @@ El trabajo de consultoría y planificación ya está completado y documentado ex
 ---
 
 <div align="center">
-  <p>Construido por <strong>Antigravity Squad</strong> bajo un enfoque <br/><i>"Plane for the Business, Git for the Code"</i></p>
+  <p>Construido por <strong>arcavcwb</strong> y el <strong>Antigravity Squad</strong> bajo un enfoque <br/><i>"Plane for the Business, Git for the Code"</i></p>
 </div>
