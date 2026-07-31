@@ -1,0 +1,16 @@
+graph LR
+    subgraph "Entorno de Desarrollo (Dev)"
+        Local[Localhost / Astro Dev]
+        Supa_Dev[Supabase Project Dev]
+    end
+
+    subgraph "Entorno de Producción (Prod)"
+        Vercel[Vercel / Cloudflare Pages]
+        Supa_Prod[Supabase Project Prod]
+        VPS_n8n[VPS n8n + WHAM]
+    end
+
+    Local -->|Push a branch main| GitHub[GitHub Repo]
+    GitHub -->|Auto Deploy Trigger| Vercel
+    Vercel -->|Conexión Segura HTTPS| Supa_Prod
+    VPS_n8n <-->|Webhooks REST| Supa_Prod

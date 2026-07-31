@@ -1,0 +1,29 @@
+{
+  "mcpServers": {
+    "plane": {
+      "command": "npx",
+      "args": ["-y", "@makeplane/plane-mcp-server"],
+      "env": {
+        "PLANE_API_KEY": "plane_api_512377479beb4978a69cce11b70cac71",
+        "PLANE_WORKSPACE_SLUG": "lead-flow",
+        "PLANE_BASE_URL": "https://api.plane.so"
+      }
+    },
+    "n8n": {
+      "command": "npx",
+      "args": ["-y", "n8n-mcp"],
+      "env": {
+        "N8N_API_URL": "http://localhost:5678/api/v1",
+        "N8N_API_KEY": "PENDIENTE_DE_CONFIGURAR"
+      }
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp"]
+    },
+    "devops-helper": {
+      "command": "npx",
+      "args": ["-y", "@rideRTD/RTD-DevOps"]
+    }
+  }
+}

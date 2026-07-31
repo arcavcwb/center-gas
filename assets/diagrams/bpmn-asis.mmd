@@ -1,0 +1,23 @@
+flowchart TD
+    subgraph Cliente
+        C1(Necesita Gas/Agua) --> C2(Envía mensaje por WhatsApp)
+        C3(Responde producto, dirección y pago) --> C4(Espera llegada)
+        C4 --> C5(Recibe y paga)
+    end
+
+    subgraph Propietario
+        P1(Lee mensaje cuando tiene tiempo) --> P2(Pregunta detalles del pedido)
+        P2 --> P3(Anota dirección y pago)
+        P3 --> P4(Instruye verbalmente/audio al Motoboy)
+    end
+
+    subgraph Motoboy
+        M1(Recibe dirección de entrega) --> M2(Conduce al destino)
+        M2 --> M3(Cobro y entrega física)
+        M3 --> M4(Rinde cuentas al dueño)
+    end
+
+    C2 --> P1
+    P2 --> C3
+    P4 --> M1
+    M3 --> C5

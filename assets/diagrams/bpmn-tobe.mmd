@@ -1,0 +1,29 @@
+flowchart TD
+    subgraph Cliente
+        C1(Inicia pedido) --> C2(Confirma menú rápido y dirección guardada)
+        C2 --> C3(Recibe y paga)
+    end
+
+    subgraph Sistema Digital
+        S1(Reconoce cliente por teléfono) --> S2(Registra pedido en BD)
+        S2 --> S3(Actualiza estado a Nuevo/Asignado)
+        S3 --> S4(Notifica avance al cliente)
+        S4 --> S5(Suma puntos al CRM/Fidelidad)
+    end
+
+    subgraph Propietario
+        P1(Monitorea tablero de control)
+        P2(Gestiona solo excepciones/dudas)
+    end
+
+    subgraph Motoboy
+        M1(Recibe orden estructurada en su vista) --> M2(Viaja con dirección exacta)
+        M2 --> M3(Marca Entregado en el sistema)
+    end
+
+    C1 --> S1
+    S1 --> C2
+    C2 --> S2
+    S3 --> M1
+    M3 --> C3
+    M3 --> S5

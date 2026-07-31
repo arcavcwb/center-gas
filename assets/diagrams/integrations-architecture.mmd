@@ -1,0 +1,22 @@
+graph LR
+    subgraph WhatsApp / Meta
+        WA[Usuario WhatsApp]
+    end
+
+    subgraph Gateway de Mensajería
+        WHAM[WHAM / Evolution API]
+    end
+
+    subgraph Orquestador de Flujos
+        N8N[n8n Workflow Engine]
+    end
+
+    subgraph Backend / BD
+        SUPA[Supabase REST / Realtime API]
+    end
+
+    WA <-->|Mensaje/Notificación| WHAM
+    WHAM -->|POST Webhook: Mensaje Entrante| N8N
+    N8N -->|POST API: Crear/Consultar| SUPA
+    SUPA -->|Database Webhook: Pedido Cambió Estado| N8N
+    N8N -->|POST API: Enviar Mensaje| WHAM

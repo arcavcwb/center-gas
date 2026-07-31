@@ -1,0 +1,78 @@
+erDiagram
+    CLIENTES ||--o{ DIRECCIONES : posee
+    CLIENTES ||--o{ PEDIDOS : realiza
+    CLIENTES ||--o{ HISTORIAL_FIDELIDAD : acumula
+    REPARTIDORES ||--o{ PEDIDOS : entrega
+    PEDIDOS ||--|{ ITEMS_PEDIDO : contiene
+    PRODUCTOS ||--|{ ITEMS_PEDIDO : incluye
+
+    CLIENTES {
+        uuid id PK
+        string telefono UK
+        string nombre
+        enum tipo_cliente
+        int contador_fidelidad_p13
+        int contador_fidelidad_agua
+        timestamp created_at
+    }
+
+    DIRECCIONES {
+        uuid id PK
+        uuid cliente_id FK
+        string calle
+        string numero
+        string complemento
+        string barrio
+        boolean es_principal
+    }
+
+    PRODUCTOS {
+        uuid id PK
+        string codigo UK
+        string nombre
+        decimal precio_unitario
+        enum categoria
+        boolean requiere_envase
+        boolean activo
+    }
+
+    REPARTIDORES {
+        uuid id PK
+        uuid user_id FK
+        string nombre
+        string telefono
+        boolean activo
+    }
+
+    PEDIDOS {
+        uuid id PK
+        string codigo_pedido UK
+        uuid cliente_id FK
+        uuid direccion_id FK
+        uuid repartidor_id FK
+        enum estado
+        enum metodo_pago
+        decimal subtotal
+        decimal descuento
+        decimal total
+        timestamp fecha_creacion
+        timestamp fecha_entrega
+    }
+
+    ITEMS_PEDIDO {
+        uuid id PK
+        uuid pedido_id FK
+        uuid producto_id FK
+        int cantidad
+        decimal precio_unitario
+        decimal subtotal
+    }
+
+    HISTORIAL_FIDELIDAD {
+        uuid id PK
+        uuid cliente_id FK
+        uuid pedido_id FK
+        string producto_tipo
+        int cambio_contador
+        timestamp fecha
+    }

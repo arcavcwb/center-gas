@@ -1,0 +1,30 @@
+graph TD
+    subgraph "Capa de Presentación (Frontend - Astro + SolidJS)"
+        C[Catálogo Cliente]
+        P[Panel Despacho Dueño]
+        R[Vista Repartidores]
+    end
+
+    subgraph "Capa de Mensajería & Canales"
+        WA[WhatsApp App] <-->|Eventos de Chat| WHAM[WHAM / Evolution API]
+        WHAM <-->|Webhooks HTTP| N8N[n8n Automation Engine]
+    end
+
+    subgraph "Capa de Servicios Backend (Supabase BaaS)"
+        S_API[Supabase Auto-REST API]
+        S_RT[Supabase Realtime Engine]
+        S_AUTH[Supabase Auth]
+    end
+
+    subgraph "Capa de Persistencia"
+        DB[(PostgreSQL Database)]
+    end
+
+    C -->|Consultas HTTP| S_API
+    P -->|Suscripción Realtime| S_RT
+    R -->|Actualización de Estado| S_API
+
+    N8N -->|Lectura / Escritura SQL/REST| S_API
+    S_API --> DB
+    S_RT --> DB
+    S_AUTH --> DB
