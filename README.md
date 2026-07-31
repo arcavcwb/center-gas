@@ -51,32 +51,42 @@ Este repositorio no es un proyecto de software tradicional. Es gobernado y desar
 
 ```mermaid
 graph TD
-    subgraph "Capa de Presentación (Frontend - Astro + SolidJS)"
-        C[Catálogo Cliente]
-        P[Panel Despacho Dueño]
-        R[Vista Repartidores]
+    %% Custom Premium Styles (Nano Banana Level 🍌)
+    classDef frontend fill:#3b82f6,stroke:#1d4ed8,stroke-width:2px,color:#fff,rx:8,ry:8;
+    classDef astro fill:#f97316,stroke:#c2410c,stroke-width:2px,color:#fff,rx:8,ry:8;
+    classDef whatsapp fill:#25d366,stroke:#166534,stroke-width:2px,color:#fff,rx:8,ry:8;
+    classDef n8n fill:#ea580c,stroke:#9a3412,stroke-width:2px,color:#fff,rx:8,ry:8;
+    classDef supabase fill:#10b981,stroke:#047857,stroke-width:2px,color:#fff,rx:8,ry:8;
+    classDef database fill:#6366f1,stroke:#4338ca,stroke-width:2px,color:#fff,rx:8,ry:8;
+    classDef banana fill:#facc15,stroke:#ca8a04,stroke-width:3px,color:#1e293b,rx:10,ry:10,stroke-dasharray: 4 4;
+
+    subgraph "📱 Capa de Presentación (Frontend)"
+        C[🛒 Catálogo Cliente<br>Astro + SolidJS]:::astro
+        P[💻 Panel Dueño<br>Next.js 15]:::frontend
+        R[🛵 Vista Repartidores<br>Next.js 15]:::frontend
     end
 
-    subgraph "Capa de Mensajería & Canales"
-        WA[WhatsApp App] <-->|Eventos de Chat| WHAM[WHAM / Evolution API]
-        WHAM <-->|Webhooks HTTP| N8N[n8n Automation Engine]
+    subgraph "💬 Capa de Mensajería & Orquestación"
+        WA[🟢 WhatsApp App]:::whatsapp <-->|Eventos de Chat| WHAM[🔌 Evolution API]:::whatsapp
+        WHAM <-->|Webhooks HTTP| N8N[🤖 n8n Automation Engine]:::n8n
     end
 
-    subgraph "Capa de Servicios Backend (Supabase BaaS)"
-        S_API[Supabase Auto-REST API]
-        S_RT[Supabase Realtime Engine]
-        S_AUTH[Supabase Auth]
+    subgraph "⚡ Capa de Servicios (Supabase BaaS)"
+        S_API[🚀 Auto-REST API]:::supabase
+        S_RT[⚡ Realtime Engine]:::banana
+        S_AUTH[🛡️ Auth & RLS]:::supabase
     end
 
-    subgraph "Capa de Persistencia"
-        DB[(PostgreSQL Database)]
+    subgraph "🗄️ Capa de Persistencia"
+        DB[(PostgreSQL Database)]:::database
     end
 
+    %% Relaciones
     C -->|Consultas HTTP| S_API
-    P -->|Suscripción Realtime| S_RT
-    R -->|Actualización de Estado| S_API
+    P -->|Suscripción en Vivo| S_RT
+    R -->|Mutaciones SQL| S_API
 
-    N8N -->|Lectura / Escritura SQL/REST| S_API
+    N8N -->|Lectura/Escritura SQL| S_API
     S_API --> DB
     S_RT --> DB
     S_AUTH --> DB
