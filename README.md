@@ -1,4 +1,10 @@
 <div align="center">
+  🌎 <b>Español</b> | <a href="README.pt-br.md">Português do Brasil</a> | <a href="README.en.md">English</a>
+</div>
+
+---
+
+<div align="center">
   <img src="https://raw.githubusercontent.com/arcavcwb/center-gas/main/assets/diagrams/system-architecture.svg" alt="Center Gás Curitiba" width="120" height="120" />
   
   # Center Gás Curitiba
