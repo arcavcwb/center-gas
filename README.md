@@ -1,94 +1,83 @@
-# Center Gás Curitiba - Plataforma de Transformación Digital
+<div align="center">
+  <img src="https://raw.githubusercontent.com/arcavcwb/center-gas/main/assets/diagrams/system-architecture.svg" alt="Center Gás Curitiba" width="120" height="120" />
+  
+  # Center Gás Curitiba
+  **Plataforma de Transformación Digital & Logística de Última Milla**
+  
+  [![Status](https://img.shields.io/badge/Status-Development-blue?style=for-the-badge)](https://github.com/arcavcwb/center-gas)
+  [![Architecture](https://img.shields.io/badge/Architecture-Hybrid_Monorepo-orange?style=for-the-badge)](#)
+  [![Governance](https://img.shields.io/badge/Governance-Zero_Trust_Agentic-red?style=for-the-badge)](docs/15-agentic-flow-manual.md)
+  [![AI Models](https://img.shields.io/badge/AI-Opus_|_Sonnet_|_Gemini-blueviolet?style=for-the-badge)](#)
+</div>
 
-## Resumen del Proyecto
-Center Gás Curitiba es una empresa de entrega de gas y agua a nivel local (barrio). Actualmente, la operación es completamente manual y depende en gran medida del propietario para recibir pedidos vía WhatsApp, capturar direcciones, definir métodos de pago y asignar rutas de entrega a los repartidores.
+---
 
-Este proyecto tiene como objetivo transformar el negocio en una operación estructurada y habilitada digitalmente. El enfoque principal es **reducir el trabajo manual repetitivo** en lugar de reemplazar al personal, brindando una experiencia de pedido optimizada para los clientes y un flujo operativo automatizado para el dueño y los repartidores.
+## 🚀 La Visión
+Center Gás Curitiba es una empresa local de entrega de gas (P13) y agua (20L). Esta plataforma tiene como misión **transformar una operación manual vía WhatsApp** en un ecosistema digital automatizado, reduciendo el ingreso manual de datos, mejorando la experiencia del cliente y brindando telemetría en tiempo real al propietario y repartidores.
 
-## Objetivos
-- **Digitalizar el proceso de pedidos** a través de WhatsApp y un catálogo web de autoservicio.
-- **Eliminar el ingreso repetitivo de datos** (ej., preguntar por la dirección en cada pedido).
-- **Crear un panel de gestión centralizado** para el despacho y control operativo.
-- **Implementar mecanismos automatizados de retención de clientes** (CRM y Fidelidad).
-- **Mantener la simplicidad del negocio** sin sobre-ingeniar la solución tecnológica.
+---
 
-## Flujo de Trabajo de Documentación
-Este repositorio sigue una estrategia de documentación incremental y estrictamente ordenada, modelada a partir de las mejores prácticas de consultoría (McKinsey, Thoughtworks, Shopify).
+## 🤖 El Squad Agéntico (Zero-Trust)
+Este repositorio no es un proyecto de software tradicional. Es gobernado y desarrollado por un **Squad de 10 Agentes de IA autónomos** orquestados bajo una filosofía estricta de **Cero Confianza (Zero-Trust)**.
 
-1. **Documento por Documento:** Trabajamos en un documento a la vez.
-2. **Basado en Revisiones:** Ninguna fase comienza hasta que el documento anterior haya sido completamente revisado y aprobado.
-3. **Sin Suposiciones:** Las ambigüedades deben ser listadas como "Preguntas Abiertas".
-4. **Única Fuente de Verdad:** Los documentos deben referenciarse entre sí, evitando la duplicación de información.
+### El Triángulo de Gobernanza
+- 📋 **Plane (Fuente de Verdad):** Donde vive el negocio, los requerimientos (Issue) y la bitácora de los agentes.
+- 🔀 **Git/GitHub (Juez Incorruptible):** Donde el código es auditado automáticamente antes de llegar a Producción.
+- 👤 **El Humano (Autoridad Final):** Quien define reglas, abre las puertas (Gates) y toma decisiones estratégicas.
 
-## Estructura de Carpetas
-```
+### Nuestros 10 Agentes
+| Especialidad | Agente (ID) | Modelo Asignado |
+|---|---|---|
+| 🏛️ **Arquitectura** | `@architect-agent` | 👑 `claude-3-opus` |
+| 🛡️ **Seguridad / Review** | `@pr-reviewer-agent` | ⚡ `gemini-3.6-flash` |
+| 🧪 **QA & Testing** | `@qa-agent` | 🟠 `claude-3.5-sonnet` |
+| 💻 **Frontend Dev** | `@frontend-dev-agent` | 🧠 `gemini-3.1-pro` |
+| 💾 **Backend & DB** | `@backend-dev-agent` | 🧠 `gemini-3.1-pro` |
+| 🎨 **UI/UX Design** | `@designer-agent` | ⚡ `gemini-3.6-flash` |
+| 📈 **Product Owner** | `@po-agent` | ⚡ `gemini-3.6-flash` |
+| ⏱️ **Scrum Master** | `@scrum-master-agent` | ⚡ `gemini-3.6-flash` |
+| ⚙️ **DevOps & CI/CD** | `@devops-agent` | 🧠 `gemini-3.1-pro` |
+| 🤖 **Automatización** | `@automation-agent` | 🧠 `gemini-3.1-pro` |
+
+> 📖 **Lectura Recomendada:** Conoce los detalles de esta orquestación en el [Manual de Flujo Agéntico (docs/15)](docs/15-agentic-flow-manual.md).
+
+---
+
+## 🏗️ Arquitectura Técnica (Stack)
+- **Frontend App (Cliente):** `Astro` + `SolidJS` (Enfocado en velocidad extrema y bajo JS).
+- **Frontend Dashboard (Admin/Repartidor):** `Next.js 15` (App Router) + `TailwindCSS` (Shadcn/UI).
+- **Backend & Autenticación:** `Supabase` (PostgreSQL, RLS, Edge Functions, Realtime).
+- **Automatizaciones (WhatsApp/CRM):** `n8n` (Workflows).
+
+---
+
+## 📁 Estructura del Repositorio
+```text
 center-gas-platform/
-├── README.md
-├── docs/
-│   ├── 00-project-charter.md
-│   ├── 01-business-discovery.md
-│   ├── 02-current-state-analysis.md
-│   ├── 03-business-processes.md
-│   ├── 04-business-rules.md
-│   ├── 05-product-vision.md
-│   ├── 06-prd.md
-│   ├── 07-ui-ux.md
-│   ├── 08-technical-architecture.md
-│   ├── 09-database-design.md
-│   ├── 10-integrations.md
-│   ├── 11-roadmap.md
-│   └── 12-deployment.md
-└── assets/
-    ├── screenshots/
-    ├── wireframes/
-    ├── diagrams/
-    └── prompts/
+├── .agents/                 # 🤖 Configuración del Squad (agy CLI) y Skills
+├── .github/                 # ⚙️ CI/CD Workflows (Zero-Trust pipelines)
+├── apps/                    # 💻 Código Frontend (Next.js, Astro) [Próximamente]
+├── packages/                # 📦 Contratos Zod compartidos [Próximamente]
+├── supabase/                # 🗄️ Migraciones SQL y RLS [Próximamente]
+├── docs/                    # 📚 Documentación estructurada (00 a 15)
+└── plane/                   # 📋 Espejos de la estructura de Plane
 ```
 
-## Fases del Proyecto
-El proyecto se divide estrictamente en las siguientes fases secuenciales:
-1. **Acta de Constitución (Project Charter)** (Definición del mandato)
-2. **Descubrimiento de Negocio** (Entender el modelo de negocio)
-3. **Análisis del Estado Actual** (Análisis de cuellos de botella)
-4. **Procesos de Negocio** (Documentación de flujos AS-IS / TO-BE)
-5. **Reglas de Negocio** (Definición de reglas operativas)
-6. **Visión del Producto** (Establecer la dirección estratégica del producto)
-7. **PRD** (Documento de Requisitos del Producto)
-8. **UI/UX** (Pautas de Interfaz y Experiencia de Usuario)
-9. **Arquitectura Técnica** (Definición del stack: Astro, Supabase, n8n, etc.)
-10. **Diseño de Base de Datos** (Modelado de datos)
-11. **Integraciones** (WhatsApp API / WHAM)
-12. **Hoja de Ruta (Roadmap)** (Cronograma de ejecución)
-13. **Despliegue (Deployment)** (Estrategia de lanzamiento)
+---
 
-## Seguimiento de Estado
+## 🗺️ Mapa de Documentación
+El trabajo de consultoría y planificación ya está completado y documentado exhaustivamente. Ningún agente asume información; todo proviene de aquí:
 
-| Fase | Documento | Estado | Versión | Pendientes |
-|---|---|---|---|---|
-| Fase 1 | 00-project-charter.md | ✅ En Revisión | v1.0 | Confirmar baseline de métricas AS-IS con propietario |
-| Fase 2 | 01-business-discovery.md | ✅ En Revisión | v1.0 | Confirmar volumen diario de pedidos |
-| Fase 3 | 02-current-state-analysis.md | ✅ En Revisión | v1.0 | Definir métricas de línea base |
-| Fase 4 | 03-business-processes.md | ✅ En Revisión | v1.0 | Diseñar flujo de cliente nuevo y entrega fallida |
-| Fase 5 | 04-business-rules.md | 🔄 Actualizado | v1.1 | Confirmar precio casco P13/Agua y barrios cubiertos (BR-002, BR-005) |
-| Fase 6 | 05-product-vision.md | ✅ En Revisión | v1.0 | — |
-| Fase 7 | 06-prd.md | 🔄 Actualizado | v1.1 | Definir mecanismo de seguridad del link cliente |
-| Fase 8 | 07-ui-ux.md | ✅ En Revisión | v1.0 | Agregar wireframes de error, cliente nuevo y pedido en camino |
-| Fase 9 | 08-technical-architecture.md | ✅ En Revisión | v1.0 | Definir estrategia CORS y entorno Staging |
-| Fase 10 | 09-database-design.md | ✅ Auditado | v1.2-Enterprise | — |
-| Fase 11 | 10-integrations.md | ✅ En Revisión | v1.0 | Definir manejo de mensajes no-texto (audio, imagen) en WF-01 |
-| Fase 12 | 11-roadmap.md | ✅ En Revisión | v1.0 | Agregar buffers entre sprints |
-| Fase 13 | 12-deployment.md | ✅ En Revisión | v1.0 | Definir entorno Staging y monitoreo de producción |
+| Doc | Descripción | Estado |
+|---|---|---|
+| `docs/00` a `docs/05` | Análisis de Negocio (AS-IS, TO-BE, Reglas) | ✅ Auditado |
+| `docs/06-prd.md` | Product Requirements Document | ✅ Validado |
+| `docs/08-technical-architecture.md` | Decisiones Técnicas (Stack) | ✅ Validado |
+| `docs/09-database-design.md` | Esquema relacional Supabase | ✅ Auditado |
+| `docs/15-agentic-flow-manual.md` | Protocolo de Handoffs de Agentes | 👑 **Core** |
 
-## Elementos Pendientes de Validación con el Propietario
+---
 
-Los siguientes datos deben confirmarse con el dueño del negocio **antes de iniciar el Sprint 1**:
-
-| # | Dato Requerido | Regla de Negocio | Urgencia |
-|---|---|---|---|
-| 1 | Precio exacto del casco P13 (cilindro vacío) | BR-002 | 🔴 Bloquea Sprint 1 |
-| 2 | Precio exacto del botéllón vacío Agua 20L | BR-002 | 🔴 Bloquea Sprint 1 |
-| 3 | Lista de barrios / zonas de cobertura exactas | BR-005 | 🔴 Bloquea Sprint 3 |
-| 4 | Volumen diario estimado de pedidos | Capacidad | 🟡 Importante para dimensionamiento |
-| 5 | Horarios reales de atención confirmados | BR-006 | 🟡 Importante |
-| 6 | Valor de comisión por entrega completada | BR-008 | 🟡 Importante |
-| 7 | ¿Comisión de combo (Gas+Agua) por bulto o por dirección? | BR-008 | 🟡 Importante |
+<div align="center">
+  <p>Construido por <strong>Antigravity Squad</strong> bajo un enfoque <br/><i>"Plane for the Business, Git for the Code"</i></p>
+</div>
