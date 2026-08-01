@@ -18,13 +18,17 @@ export function KanbanBoard() {
     const fetchOrders = async () => {
       const { data, error } = await supabase
         .from('orders')
-        .select('*')
+        .select(`
+          *,
+          customer:customers (full_name, phone, address),
+          items:order_items (*)
+        `)
         .neq('status', 'cancelado')
         .neq('status', 'entregado')
         .order('created_at', { ascending: true });
       
       if (data && !error) {
-        setOrders(data as Order[]);
+        setOrders(data as any[]);
       }
     };
 
@@ -67,11 +71,7 @@ export function KanbanBoard() {
     setCancelingOrderId(null);
   };
 
-  const handleCreateManualOrder = async (orderData: Partial<Order>) => {
-    // Optimistic insert (mocking ID for UI)
-    const optimisticOrder = { ...orderData, id: Math.random().toString() } as Order;
-    setOrders(prev => [...prev, optimisticOrder]);
-    
+  const handleCreateManualOrder = () => {
     setIsNewOrderModalOpen(false);
   };
 

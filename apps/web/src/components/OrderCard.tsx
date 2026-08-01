@@ -18,7 +18,8 @@ export function OrderCard({ order, onUpdateStatus, onCancelRequest }: OrderCardP
       <div className="flex justify-between items-start">
         <div>
           <span className="font-bold text-gray-800">#{order.display_id}</span>
-          <p className="text-sm text-gray-500">{order.customer_id.slice(0, 8)}...</p>
+          <p className="text-sm font-semibold text-gray-700 mt-1">{(order as any).customer?.full_name || order.customer_id}</p>
+          <p className="text-xs text-gray-500">{(order as any).customer?.address || 'Sin dirección'}</p>
         </div>
         <div className="text-right">
           <span className="font-bold text-orange-600">R$ {order.total_amount.toFixed(2)}</span>

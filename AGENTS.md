@@ -53,6 +53,11 @@ Fase 0 (humano) → scrum-master-agent → architect-agent → [Aprobación Huma
   pr-reviewer-agent (Auditoría de PR) → qa-agent (Tests) → Merge a main → devops-agent
 ```
 
+### Protocolo Ágil de Ejecución (Sprints)
+- Antes de iniciar la codificación de un Issue, el Squad **debe asignarlo al Sprint Activo (Cycle)** en Plane, usando la herramienta MCP (`add_cycle_issues`).
+- Jamás se deben cerrar tickets en el vacío (huérfanos de un Sprint), pues esto distorsiona las gráficas de velocidad (Burndown) del negocio.
+- **Asignación Obligatoria:** Si se trabaja en un ticket, el Agente debe auto-asignarlo o al menos garantizar su vinculación al ciclo vigente.
+
 El detalle completo de disparadores por fase está en `architecture.md`.
 
 ## Configuración de herramientas

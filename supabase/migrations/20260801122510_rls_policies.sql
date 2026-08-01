@@ -10,7 +10,7 @@ ALTER TABLE order_status_history ENABLE ROW LEVEL SECURITY;
 ALTER TABLE system_config ENABLE ROW LEVEL SECURITY;
 
 -- Funciones Auxiliares para Roles
-CREATE OR REPLACE FUNCTION auth.is_owner() RETURNS BOOLEAN AS $$
+CREATE OR REPLACE FUNCTION public.is_owner() RETURNS BOOLEAN AS $$
 BEGIN
   RETURN EXISTS (
     SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'owner'
@@ -18,7 +18,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
-CREATE OR REPLACE FUNCTION auth.is_driver() RETURNS BOOLEAN AS $$
+CREATE OR REPLACE FUNCTION public.is_driver() RETURNS BOOLEAN AS $$
 BEGIN
   RETURN EXISTS (
     SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'driver'
@@ -31,29 +31,29 @@ CREATE POLICY "Profiles son legibles por todos los usuarios autenticados" ON pro
 FOR SELECT TO authenticated USING (true);
 
 CREATE POLICY "Solo owner puede crear/modificar perfiles" ON profiles
-FOR ALL TO authenticated USING (auth.is_owner());
+FOR ALL TO authenticated USING (public.is_owner());
 
 -- Políticas para Neighborhoods
 CREATE POLICY "Barrios son legibles por todos (incluyendo anon)" ON neighborhoods
 FOR SELECT USING (is_active = true);
 
 CREATE POLICY "Solo owner puede administrar barrios" ON neighborhoods
-FOR ALL TO authenticated USING (auth.is_owner());
+FOR ALL TO authenticated USING (public.is_owner());
 
 -- Políticas para Products
 CREATE POLICY "Productos son legibles por todos (incluyendo anon)" ON products
 FOR SELECT USING (is_active = true);
 
 CREATE POLICY "Solo owner puede administrar productos" ON products
-FOR ALL TO authenticated USING (auth.is_owner());
+FOR ALL TO authenticated USING (public.is_owner());
 
 -- Políticas para Customers
 CREATE POLICY "Dueño lee y escribe customers" ON customers
-FOR ALL TO authenticated USING (auth.is_owner());
+FOR ALL TO authenticated USING (public.is_owner());
 
 -- Políticas para Orders
 CREATE POLICY "Dueños tienen control total sobre orders" ON orders
-FOR ALL TO authenticated USING (auth.is_owner());
+FOR ALL TO authenticated USING (public.is_owner());
 
 CREATE POLICY "Drivers ven sus propias ordenes" ON orders
 FOR SELECT TO authenticated USING (driver_id = auth.uid());
@@ -63,7 +63,7 @@ FOR UPDATE TO authenticated USING (driver_id = auth.uid());
 
 -- Políticas para Order Items
 CREATE POLICY "Dueños tienen control total sobre order items" ON order_items
-FOR ALL TO authenticated USING (auth.is_owner());
+FOR ALL TO authenticated USING (public.is_owner());
 
 CREATE POLICY "Drivers ven items de sus ordenes" ON order_items
 FOR SELECT TO authenticated USING (
@@ -72,7 +72,7 @@ FOR SELECT TO authenticated USING (
 
 -- Políticas para Order Status History
 CREATE POLICY "Dueños tienen control total sobre history" ON order_status_history
-FOR ALL TO authenticated USING (auth.is_owner());
+FOR ALL TO authenticated USING (public.is_owner());
 
 CREATE POLICY "Drivers ven history de sus ordenes" ON order_status_history
 FOR SELECT TO authenticated USING (

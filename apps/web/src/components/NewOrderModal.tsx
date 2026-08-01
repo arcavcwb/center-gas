@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
-import type { Order } from '@center-gas/contracts';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 
 interface NewOrderModalProps {
-  onConfirm: (orderData: Partial<Order>) => void;
+  onConfirm: () => void;
   onCancel: () => void;
 }
 
@@ -15,25 +15,73 @@ export function NewOrderModal({ onConfirm, onCancel }: NewOrderModalProps) {
   const [paymentMethod, setPaymentMethod] = useState<'pix' | 'cash'>('pix');
   const [cashChange, setCashChange] = useState<number | ''>('');
   const [quantity, setQuantity] = useState(1);
+  const [productId, setProductId] = useState('');
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const PRICE_PER_UNIT = 100; // Mocked catalog price
-  const totalAmount = quantity * PRICE_PER_UNIT;
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // In a real app we'd validate with Zod here
-    onConfirm({
-      display_id: Math.floor(1000 + Math.random() * 9000).toString(),
-      customer_id: phone, // Mocking ID
-      status: 'nuevo',
-      payment_method: paymentMethod,
-      cash_change_for: paymentMethod === 'cash' && cashChange !== '' ? Number(cashChange) : null,
-      total_amount: totalAmount,
-      created_at: new Date().toISOString(),
-      // We store the manual text details as a hack inside customer_id for this mock UI
-      // since the contract doesn't explicitly store name/address in the order table directly
+  useEffect(() => {
+    supabase.from('products').select('*').eq('is_active', true).then(({ data }) => {
+      if (data) {
+        setProducts(data);
+        if (data.length > 0) setProductId(data[0].id);
+      }
     });
+  }, []);
+
+  const selectedProduct = products.find(p => p.id === productId);
+  const totalAmount = selectedProduct ? quantity * selectedProduct.price : 0;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedProduct) return;
+    setLoading(true);
+
+    try {
+      // 1. Upsert Customer by Phone
+      let customerId;
+      const { data: existing } = await supabase.from('customers').select('id').eq('phone', phone).single();
+      
+      if (existing) {
+        customerId = existing.id;
+        // Update name/address if empty previously
+        await supabase.from('customers').update({ name: customerName, address_line: address }).eq('id', customerId);
+      } else {
+        const { data: newCust, error: errCust } = await supabase.from('customers').insert({
+          phone,
+          name: customerName,
+          address_line: address
+        }).select().single();
+        if (errCust) throw errCust;
+        customerId = newCust.id;
+      }
+
+      // 2. Create Order
+      const displayId = Math.floor(1000 + Math.random() * 9000).toString();
+      const { data: newOrder, error: errOrder } = await supabase.from('orders').insert({
+        display_id: displayId,
+        customer_id: customerId,
+        status: 'nuevo',
+        payment_method: paymentMethod,
+        cash_change_for: paymentMethod === 'cash' && cashChange !== '' ? Number(cashChange) : null,
+        total_amount: totalAmount,
+      }).select().single();
+      if (errOrder) throw errOrder;
+
+      // 3. Create Order Item
+      await supabase.from('order_items').insert({
+        order_id: newOrder.id,
+        product_id: selectedProduct.id,
+        quantity,
+        unit_price: selectedProduct.price
+      });
+
+      onConfirm(); // Just close modal, Realtime handles the UI update!
+    } catch (error) {
+      console.error('Error creating order:', error);
+      alert('Error al crear el pedido.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -63,17 +111,25 @@ export function NewOrderModal({ onConfirm, onCancel }: NewOrderModalProps) {
 
           <div className="grid grid-cols-2 gap-4 pt-2">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Cantidad (P13)</label>
-              <select value={quantity} onChange={e => setQuantity(Number(e.target.value))} className="w-full border-2 border-gray-200 rounded-xl p-2.5 outline-none focus:border-orange-500">
-                {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}x Cilindro</option>)}
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Producto</label>
+              <select value={productId} onChange={e => setProductId(e.target.value)} className="w-full border-2 border-gray-200 rounded-xl p-2.5 outline-none focus:border-orange-500">
+                {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
             </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Pago</label>
-              <select value={paymentMethod} onChange={e => setPaymentMethod(e.target.value as 'pix' | 'cash')} className="w-full border-2 border-gray-200 rounded-xl p-2.5 outline-none focus:border-orange-500">
-                <option value="pix">PIX</option>
-                <option value="cash">Efectivo</option>
-              </select>
+            <div className="flex gap-2">
+              <div className="w-1/3">
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Cant</label>
+                <select value={quantity} onChange={e => setQuantity(Number(e.target.value))} className="w-full border-2 border-gray-200 rounded-xl p-2.5 outline-none focus:border-orange-500">
+                  {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
+                </select>
+              </div>
+              <div className="w-2/3">
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Pago</label>
+                <select value={paymentMethod} onChange={e => setPaymentMethod(e.target.value as 'pix' | 'cash')} className="w-full border-2 border-gray-200 rounded-xl p-2.5 outline-none focus:border-orange-500">
+                  <option value="pix">PIX</option>
+                  <option value="cash">Efectivo</option>
+                </select>
+              </div>
             </div>
           </div>
 
@@ -108,9 +164,10 @@ export function NewOrderModal({ onConfirm, onCancel }: NewOrderModalProps) {
             </button>
             <button 
               type="submit"
-              className="flex-1 px-4 py-3 bg-orange-600 text-white rounded-xl font-bold shadow-lg shadow-orange-500/30 hover:bg-orange-700 active:translate-y-0.5 transition-all"
+              disabled={loading}
+              className="flex-1 px-4 py-3 bg-orange-600 text-white rounded-xl font-bold shadow-lg shadow-orange-500/30 hover:bg-orange-700 active:translate-y-0.5 transition-all disabled:opacity-50"
             >
-              Cargar Pedido
+              {loading ? 'Creando...' : 'Cargar Pedido'}
             </button>
           </div>
         </form>
