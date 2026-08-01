@@ -7,5 +7,8 @@ export default defineConfig({
   integrations: [solidJs(), tailwind()],
   server: {
     port: 3001
+  },
+  vite: {
+    envDir: '../../'
   }
 });

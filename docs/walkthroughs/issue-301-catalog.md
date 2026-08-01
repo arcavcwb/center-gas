@@ -14,10 +14,12 @@ Se ha implementado el catálogo web (B2C) en `apps/site` usando Astro y SolidJS.
 - **`apps/site/tailwind.config.mjs` & `astro.config.mjs`**: Archivos de configuración para el framework.
 
 ## 🛠️ Decisiones Técnicas
-- **Autenticación diferida:** Para el MVP, el checkout captura directamente teléfono y dirección, obviando la validación JWT estricta de momento.
-- **SSR Mock:** Al no haber credenciales de Supabase inyectadas en `.env` (ISSUE-102 pendiente), la inserción en la BD ha sido implementada como una promesa simulada en el front que arroja el payload estructurado por consola.
+- **Autenticación diferida (Security Definer):** Como los usuarios B2C son anónimos, la política RLS bloquea `INSERT` a las tablas. Para evitar la carga de un servidor Node (SSR) en Astro, se implementó un *RPC en Supabase* (`create_b2c_order`) con `SECURITY DEFINER`.
+- **Lógica Transaccional:** El RPC recibe el payload desde el frontend, inserta el `customer`, calcula los precios de forma segura validando contra la BD (evitando spoofing de precios del cliente) e inserta la orden y sus items.
+- **Frontend Astro + Solid:** El componente `Catalog.tsx` fue actualizado para usar `@supabase/supabase-js`, renderizando productos directamente desde la BD y consumiendo el RPC para el checkout en tiempo real.
 
 ## ✅ Criterios de Aceptación (QA)
 - [x] Carga ultrarrápida (Islands architecture).
 - [x] Soporte para PIX y Efectivo con Troco.
 - [x] UI responsiva (mobile-first) con colores de la marca.
+- [x] Creación real de órdenes seguras (bypaseando RLS mediante RPC).
