@@ -37,9 +37,11 @@ const data = JSON.stringify({
   generationConfig: { responseMimeType: "application/json" }
 });
 
+const GEMINI_API_KEY_CLEAN = encodeURIComponent((GEMINI_API_KEY || '').trim());
+
 const options = {
   hostname: 'generativelanguage.googleapis.com',
-  path: `/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+  path: `/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY_CLEAN}`,
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
@@ -62,8 +64,10 @@ const req = https.request(options, (res) => {
       // Por simplicidad en este script, delegamos el post en bash usando 'gh' o curl.
       
       if (result.decision === 'REJECT') {
+        console.error("PR RECHAZADO por el Agente:\n" + result.reason);
         process.exit(1);
       } else {
+        console.log("✅ Aprobado por el pr-reviewer-agent. Listo para QA.");
         process.exit(0);
       }
     } catch (err) {

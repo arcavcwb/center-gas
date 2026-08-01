@@ -1,12 +1,12 @@
 name: QA Testing Agent (Zero-Trust)
 
 on:
-  pull_request_review:
-    types: [submitted]
+  pull_request:
+    branches:
+      - main
 
 jobs:
   qa-tests:
-    if: github.event.review.state == 'approved'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
