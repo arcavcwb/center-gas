@@ -27,3 +27,20 @@ export const OrderSchema = z.object({
 });
 
 export type Order = z.infer<typeof OrderSchema>;
+
+export const ProductSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  type: z.enum(['gas_refill', 'gas_full', 'water']),
+  price: z.number(),
+  image_url: z.string().url().optional(),
+});
+
+export type Product = z.infer<typeof ProductSchema>;
+
+export const CartItemSchema = z.object({
+  product: ProductSchema,
+  quantity: z.number().int().positive(),
+});
+
+export type CartItem = z.infer<typeof CartItemSchema>;
