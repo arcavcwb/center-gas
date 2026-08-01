@@ -72,6 +72,9 @@ Estas reglas complementan la regla de cero asunción y deben ser respetadas inqu
 - Plane es la **Única Fuente de Verdad**.
 - **Reportes Técnicos:** Cada vez que finalices la ejecución de un Issue o un bloque de trabajo importante, estás OBLIGADO a actualizar el Issue en Plane (vía MCP) añadiendo un comentario en formato HTML exhaustivo con los detalles técnicos.
 - **Máquina de Estados:** Al terminar una tarea, siempre debes mover el estado del Issue en Plane al siguiente paso correspondiente.
+- **Publicación Dual de Walkthroughs:** Al cerrar un Issue, debes generar un Walkthrough (resumen de entrega) y publicarlo en DOS lugares:
+  1. **Plane (comentario HTML):** Versión ejecutiva orientada a negocio — el "Qué y Por Qué" (valor entregado, decisiones, resultados). Sin rutas de archivos ni jerga técnica.
+  2. **Git (`docs/walkthroughs/`):** Versión técnica completa — el "Cómo" (archivos modificados, migraciones, contratos, comandos). Para contexto de agentes futuros.
 
 ### ARQUITECTURA Y STACK TECNOLÓGICO HÍBRIDO
 El repositorio es un **Monorepo gestionado con pnpm**. Cualquier scaffolding o instalación debe usar `pnpm`.
