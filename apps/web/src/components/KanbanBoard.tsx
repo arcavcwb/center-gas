@@ -3,11 +3,15 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { OrderCard } from './OrderCard';
+import { CancellationModal } from './CancellationModal';
+import { NewOrderModal } from './NewOrderModal';
 import type { Order } from '@center-gas/contracts';
 import { PhoneCall } from 'lucide-react';
 
 export function KanbanBoard() {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [cancelingOrderId, setCancelingOrderId] = useState<string | null>(null);
+  const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState(false);
 
   useEffect(() => {
     // Initial fetch (in a real app we would join customers etc.)
@@ -52,6 +56,25 @@ export function KanbanBoard() {
     await supabase.from('orders').update({ status: newStatus }).eq('id', orderId);
   };
 
+  const handleCancelOrder = async (reason: string) => {
+    if (!cancelingOrderId) return;
+    // Optimistic UI update
+    setOrders(prev => prev.map(o => o.id === cancelingOrderId ? { ...o, status: 'cancelado' } : o));
+    
+    // DB update (reason should be saved in real DB)
+    await supabase.from('orders').update({ status: 'cancelado' }).eq('id', cancelingOrderId);
+    console.log('Order cancelled, reason:', reason);
+    setCancelingOrderId(null);
+  };
+
+  const handleCreateManualOrder = async (orderData: Partial<Order>) => {
+    // Optimistic insert (mocking ID for UI)
+    const optimisticOrder = { ...orderData, id: Math.random().toString() } as Order;
+    setOrders(prev => [...prev, optimisticOrder]);
+    
+    setIsNewOrderModalOpen(false);
+  };
+
   const newOrders = orders.filter(o => o.status === 'nuevo' || o.status === 'confirmado');
   const activeOrders = orders.filter(o => o.status === 'asignado' || o.status === 'en_camino');
 
@@ -59,7 +82,10 @@ export function KanbanBoard() {
     <div className="p-6 bg-slate-50 min-h-screen">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-slate-800">Panel de Control B2B</h1>
-        <button className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition flex items-center gap-2">
+        <button 
+          onClick={() => setIsNewOrderModalOpen(true)}
+          className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition flex items-center gap-2"
+        >
           <PhoneCall size={18} />
           Ingresar Pedido Manual
         </button>
@@ -73,7 +99,7 @@ export function KanbanBoard() {
           </h2>
           <div className="flex flex-col gap-2">
             {newOrders.map(order => (
-              <OrderCard key={order.id} order={order} onUpdateStatus={handleUpdateStatus} />
+              <OrderCard key={order.id} order={order} onUpdateStatus={handleUpdateStatus} onCancelRequest={setCancelingOrderId} />
             ))}
             {newOrders.length === 0 && (
               <p className="text-slate-500 text-center py-8 text-sm">Sin pedidos nuevos.</p>
@@ -88,7 +114,7 @@ export function KanbanBoard() {
           </h2>
           <div className="flex flex-col gap-2">
             {activeOrders.map(order => (
-              <OrderCard key={order.id} order={order} onUpdateStatus={handleUpdateStatus} />
+              <OrderCard key={order.id} order={order} onUpdateStatus={handleUpdateStatus} onCancelRequest={setCancelingOrderId} />
             ))}
             {activeOrders.length === 0 && (
               <p className="text-slate-500 text-center py-8 text-sm">Sin pedidos activos.</p>
@@ -96,6 +122,21 @@ export function KanbanBoard() {
           </div>
         </div>
       </div>
+
+      {cancelingOrderId && (
+        <CancellationModal 
+          orderId={cancelingOrderId} 
+          onConfirm={handleCancelOrder} 
+          onCancel={() => setCancelingOrderId(null)} 
+        />
+      )}
+      
+      {isNewOrderModalOpen && (
+        <NewOrderModal 
+          onConfirm={handleCreateManualOrder} 
+          onCancel={() => setIsNewOrderModalOpen(false)} 
+        />
+      )}
     </div>
   );
 }

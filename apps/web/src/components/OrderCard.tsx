@@ -1,15 +1,16 @@
 'use client';
 
 import React from 'react';
-import { Truck, XCircle, CheckCircle } from 'lucide-react';
+import { XCircle, CheckCircle } from 'lucide-react';
 import type { Order } from '@center-gas/contracts';
 
 interface OrderCardProps {
   order: Order;
   onUpdateStatus: (orderId: string, newStatus: string) => void;
+  onCancelRequest: (orderId: string) => void;
 }
 
-export function OrderCard({ order, onUpdateStatus }: OrderCardProps) {
+export function OrderCard({ order, onUpdateStatus, onCancelRequest }: OrderCardProps) {
   const isNew = order.status === 'nuevo' || order.status === 'confirmado';
   
   return (
@@ -33,25 +34,30 @@ export function OrderCard({ order, onUpdateStatus }: OrderCardProps) {
 
       <div className="flex gap-2 mt-2">
         {isNew ? (
-          <button 
-            onClick={() => onUpdateStatus(order.id, 'asignado')}
-            className="flex-1 bg-blue-600 text-white py-2 rounded font-medium text-sm hover:bg-blue-700 transition flex items-center justify-center gap-1"
+          <select 
+            onChange={(e) => {
+              if (e.target.value) onUpdateStatus(order.id, 'asignado');
+            }}
+            defaultValue=""
+            className="flex-1 bg-white border-2 border-gray-200 text-gray-700 py-2 rounded-lg font-medium text-sm outline-none focus:border-blue-500"
           >
-            <Truck size={16} />
-            Asignar
-          </button>
+            <option value="" disabled>Seleccionar Motoboy...</option>
+            <option value="driver1">Carlos (Zona Norte)</option>
+            <option value="driver2">João (Zona Sur)</option>
+            <option value="driver3">Pedro (Centro)</option>
+          </select>
         ) : (
           <button 
             onClick={() => onUpdateStatus(order.id, 'entregado')}
-            className="flex-1 bg-green-600 text-white py-2 rounded font-medium text-sm hover:bg-green-700 transition flex items-center justify-center gap-1"
+            className="flex-1 bg-green-600 text-white py-2 rounded-lg font-medium text-sm hover:bg-green-700 transition flex items-center justify-center gap-1"
           >
             <CheckCircle size={16} />
             Entregado
           </button>
         )}
         <button 
-          onClick={() => onUpdateStatus(order.id, 'cancelado')}
-          className="bg-red-100 text-red-600 p-2 rounded hover:bg-red-200 transition"
+          onClick={() => onCancelRequest(order.id)}
+          className="bg-red-100 text-red-600 p-2 rounded-lg hover:bg-red-200 transition"
           aria-label="Cancelar Pedido"
         >
           <XCircle size={16} />
