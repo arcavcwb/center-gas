@@ -42,9 +42,9 @@ jobs:
           REASON=$(jq -r '.reason' agent_result.json)
           
           if [ "$DECISION" = "REJECT" ]; then
-            gh pr review ${{ github.event.pull_request.number }} --request-changes -b "$REASON"
+            gh pr review ${{ github.event.pull_request.number }} --comment -b "❌ PR RECHAZADO: $REASON"
             exit 1
           else
-            gh pr review ${{ github.event.pull_request.number }} --approve -b "✅ Aprobado por el pr-reviewer-agent. Listo para QA."
+            gh pr review ${{ github.event.pull_request.number }} --comment -b "✅ Aprobado por el pr-reviewer-agent. Listo para QA."
             exit 0
           fi

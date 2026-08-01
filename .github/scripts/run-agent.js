@@ -64,8 +64,10 @@ const req = https.request(options, (res) => {
       // Por simplicidad en este script, delegamos el post en bash usando 'gh' o curl.
       
       if (result.decision === 'REJECT') {
+        console.error("PR RECHAZADO por el Agente:\n" + result.reason);
         process.exit(1);
       } else {
+        console.log("✅ Aprobado por el pr-reviewer-agent. Listo para QA.");
         process.exit(0);
       }
     } catch (err) {
