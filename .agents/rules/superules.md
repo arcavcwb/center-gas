@@ -14,8 +14,10 @@ Máquina de Estados: Al terminar una tarea, siempre debes mover el estado del Is
 
 🚨 REGLA ESTRICTA ANTI-OLVIDO (IDE MEMORY ANCHOR) 🚨
 Para evitar perder el hilo del protocolo de Gobernanza por pérdida de contexto, SIEMPRE que entres en "Planning Mode" y crees el archivo `task.md`, ESTÁS OBLIGADO a incluir como última fase de tu checklist lo siguiente:
-- `[ ]` **Gobernanza (CRÍTICO):**
+- `[ ]` **Gobernanza y Git Flow (CRÍTICO):**
+  - `[ ]` Verificar estar en una rama feature (`git checkout -b feat/ISSUE-XXX`).
   - `[ ]` Ejecutar `git add .` y `git commit -m "..."`.
+  - `[ ]` Ejecutar `git push -u origin feat/ISSUE-XXX`.
   - `[ ]` Generar/Actualizar el `walkthrough.md` y subirlo a Git (`docs/walkthroughs/`).
   - `[ ]` Actualizar Plane (Estado + Comentario con Hash del commit).
 ¡ESTÁ ESTRICTAMENTE PROHIBIDO DAR LA TAREA POR TERMINADA SI ESTOS CHECKBOXES NO ESTÁN MARCADOS EN TU `task.md`!
