@@ -37,9 +37,11 @@ const data = JSON.stringify({
   generationConfig: { responseMimeType: "application/json" }
 });
 
+const GEMINI_API_KEY_CLEAN = encodeURIComponent((GEMINI_API_KEY || '').trim());
+
 const options = {
   hostname: 'generativelanguage.googleapis.com',
-  path: `/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+  path: `/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY_CLEAN}`,
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
