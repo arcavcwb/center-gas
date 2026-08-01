@@ -22,7 +22,7 @@ jobs:
         id: extract_issue
         run: |
           TITLE="${{ github.event.pull_request.title }}"
-          ISSUE_ID=$(echo "$TITLE" | grep -o 'ISSUE-[0-9]*' || echo "UNKNOWN")
+          ISSUE_ID=$(echo "$TITLE" | grep -o 'ISSUE-[0-9]*' | head -n 1 || echo "UNKNOWN")
           echo "issue_id=$ISSUE_ID" >> $GITHUB_ENV
 
       - name: Generate Git Diff
