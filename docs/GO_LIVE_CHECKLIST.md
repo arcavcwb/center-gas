@@ -33,12 +33,10 @@ Este checklist final garantiza que los sistemas B2B, B2C y la infraestructura as
   - En n8n, verificar que las variables/nodos HTTP hacia Evolution API tienen la URL y el API Key correcta de producción.
 - [ ] **Sincronización Supabase -> n8n:** Hacer un pedido de prueba y verificar que el trigger en PostgreSQL realmente disparó el webhook y llegó a n8n.
 
-## 4. Pruebas End-to-End en Producción (Smoke Tests)
-- [ ] Cargar la URL del catálogo de producción desde un móvil en 4G.
-- [ ] Hacer un pedido con un número de teléfono de pruebas.
-- [ ] Verificar que el pedido aparece inmediatamente en el Kanban del Administrador (Supabase Realtime).
-- [ ] Arrastrar el pedido a "Asignado" y confirmar que al Motoboy de prueba le suena la alerta.
-- [ ] Marcar el pedido como "Entregado" y validar que llegó el mensaje de WhatsApp al cliente agradeciendo su compra.
+## 4. Pruebas End-to-End Automatizadas (Staging / Local)
+- [ ] **Prohibición Estricta:** NUNCA realizar pedidos falsos o de prueba en la base de datos de producción (ensucia analíticas, métricas de retención y puede disparar costos de Evolution API).
+- [ ] Ejecutar localmente la suite de Playwright (`pnpm exec playwright test` en `apps/e2e`) apuntando a la base de datos local de Supabase.
+- [ ] Validar que los 3 flujos pasaron exitosamente (Cliente, Dueño, Motoboy) antes de desplegar el código a Vercel/Netlify.
 
 ---
 **Firma de Go-Live:** 
