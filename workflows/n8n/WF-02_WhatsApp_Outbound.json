@@ -1,0 +1,144 @@
+{
+  "name": "WF-02: WhatsApp Outbound Notifications",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "supabase-outbound-orders",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook-supabase",
+      "name": "Webhook Supabase",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [ 250, 300 ]
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.body.record.status }}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "en_camino",
+              "outputKey": "En Camino"
+            },
+            {
+              "value2": "entregado",
+              "outputKey": "Entregado"
+            }
+          ]
+        },
+        "fallbackOutput": 2
+      },
+      "id": "switch-status",
+      "name": "Estado del Pedido",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [ 450, 300 ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.EVOLUTION_API_URL }}/message/sendText/{{ $env.EVOLUTION_INSTANCE_NAME }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $env.EVOLUTION_API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "={{ $json.body.record.customer_phone }}"
+            },
+            {
+              "name": "text",
+              "value": "¡Excelente noticia! 🚚 Tu pedido #{{ $json.body.record.id }} va en camino. El motoboy fue notificado. Puedes tener listo el envase vacío si aplica."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "http-send-en-camino",
+      "name": "Enviar En Camino",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [ 700, 200 ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.EVOLUTION_API_URL }}/message/sendText/{{ $env.EVOLUTION_INSTANCE_NAME }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $env.EVOLUTION_API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "={{ $json.body.record.customer_phone }}"
+            },
+            {
+              "name": "text",
+              "value": "¡Tu pedido #{{ $json.body.record.id }} fue entregado con éxito! ✅ Gracias por elegir Center Gas. Esperamos verte pronto."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "http-send-entregado",
+      "name": "Enviar Entregado",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [ 700, 400 ]
+    }
+  ],
+  "connections": {
+    "Webhook Supabase": {
+      "main": [
+        [
+          {
+            "node": "Estado del Pedido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Estado del Pedido": {
+      "main": [
+        [
+          {
+            "node": "Enviar En Camino",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Enviar Entregado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
