@@ -73,6 +73,10 @@ Estas reglas complementan la regla de cero asunción y deben ser respetadas inqu
 ### CORE PHILOSOPHY: "Plane for the Business, Git for the Code"
 - **Flujo de Plane Obligatorio:** No puedes implementar características no documentadas. Todas las tareas deben rastrearse hacia un ISSUE en Plane.
 
+### AISLAMIENTO ESTRICTO DE CONTEXTO (WORKSPACE ISOLATION)
+- **Frontera de Proyecto:** Bajo NINGUNA circunstancia debes aplicar Knowledge Items (KIs), workflows, slash commands o reglas que hagan referencia a rutas fuera de `/home/arcav/projects/center-gas`.
+- Si el IDE inyecta KIs globales (ej. de `ag-kit` o `lead-flow`), ESTÁS OBLIGADO A IGNORARLOS si no pertenecen explícitamente a este repositorio. No se permite la contaminación cruzada de proyectos.
+
 ### GOBERNANZA DE PLANE Y TRAZABILIDAD
 - Plane es la **Única Fuente de Verdad**.
 - **Reportes Técnicos:** Cada vez que finalices la ejecución de un Issue o un bloque de trabajo importante, estás OBLIGADO a actualizar el Issue en Plane (vía MCP) añadiendo un comentario en formato HTML exhaustivo con los detalles técnicos.

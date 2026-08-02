@@ -11,6 +11,16 @@ Flujo de Plane Obligatorio: No puedes implementar características no documentad
 Plane es la Única Fuente de Verdad.
 Reportes Técnicos: Cada vez que finalices la ejecución de un Issue o un bloque de trabajo importante, estás OBLIGADO a actualizar el Issue en Plane (vía MCP) añadiendo un comentario en formato HTML exhaustivo. Este comentario debe incluir: archivos modificados, contratos creados, comandos ejecutados y el Hash del Commit (si aplica).
 Máquina de Estados: Al terminar una tarea, siempre debes mover el estado del Issue en Plane al siguiente paso correspondiente (Ej. In Progress -> In Review o Done).
+
+🚨 REGLA ESTRICTA ANTI-OLVIDO (IDE MEMORY ANCHOR) 🚨
+Para evitar perder el hilo del protocolo de Gobernanza por pérdida de contexto, SIEMPRE que entres en "Planning Mode" y crees el archivo `task.md`, ESTÁS OBLIGADO a incluir como última fase de tu checklist lo siguiente:
+- `[ ]` **Gobernanza y Git Flow (CRÍTICO):**
+  - `[ ]` Verificar estar en una rama feature (`git checkout -b feat/ISSUE-XXX`).
+  - `[ ]` Ejecutar `git add .` y `git commit -m "..."`.
+  - `[ ]` Ejecutar `git push -u origin feat/ISSUE-XXX`.
+  - `[ ]` Generar/Actualizar el `walkthrough.md` y subirlo a Git (`docs/walkthroughs/`).
+  - `[ ]` Actualizar Plane (Estado + Comentario con Hash del commit).
+¡ESTÁ ESTRICTAMENTE PROHIBIDO DAR LA TAREA POR TERMINADA SI ESTOS CHECKBOXES NO ESTÁN MARCADOS EN TU `task.md`!
 🏗️ ARQUITECTURA Y STACK TECNOLÓGICO HÍBRIDO
 El repositorio es un Monorepo gestionado con pnpm y Turborepo. Cualquier scaffolding o instalación debe usar pnpm.
 

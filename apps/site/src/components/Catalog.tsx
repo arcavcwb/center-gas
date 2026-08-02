@@ -1,13 +1,16 @@
-import { createSignal, createMemo, For, Show } from 'solid-js';
+import { createSignal, createMemo, createEffect, For, Show } from 'solid-js';
+import { supabase } from '../lib/supabase';
 
-// Mocked products matching the PRD and SQL Migration
-const PRODUCTS = [
-  { id: '1', name: 'Gás P13 (Recarga)', type: 'gas_refill', price: 100.00, desc: 'Debes entregar envase vacío' },
-  { id: '2', name: 'Gás P13 COMPLETO', type: 'gas_full', price: 300.00, desc: 'Incluye Casco Nuevo' },
-  { id: '3', name: 'Água 20L', type: 'water', price: 15.00, desc: 'Galón retornable' },
-];
+interface Product {
+  id: string;
+  name: string;
+  type: string;
+  price: number;
+  desc: string;
+}
 
 export default function Catalog() {
+  const [products, setProducts] = createSignal<Product[]>([]);
   const [cart, setCart] = createSignal<Record<string, number>>({});
   const [phone, setPhone] = createSignal('');
   const [address, setAddress] = createSignal('');
@@ -16,9 +19,24 @@ export default function Catalog() {
   const [isSubmitting, setIsSubmitting] = createSignal(false);
   const [orderSuccess, setOrderSuccess] = createSignal(false);
 
+  // Fetch real products on mount
+  createEffect(() => {
+    supabase.from('products').select('*').eq('is_active', true).then(({ data }) => {
+      if (data) {
+        setProducts(data.map(p => ({
+          id: p.id,
+          name: p.name,
+          type: p.sku,
+          price: p.price,
+          desc: p.includes_cylinder ? 'Incluye Casco Nuevo' : 'Recarga normal'
+        })));
+      }
+    });
+  });
+
   const total = createMemo(() => {
     return Object.entries(cart()).reduce((acc, [id, qty]) => {
-      const product = PRODUCTS.find(p => p.id === id);
+      const product = products().find(p => p.id === id);
       return acc + (product ? product.price * qty : 0);
     }, 0);
   });
@@ -41,21 +59,28 @@ export default function Catalog() {
 
     setIsSubmitting(true);
 
-    // MOCK: Simular latencia de red hacia Supabase
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    // Build the items payload for the RPC
+    const p_items = Object.entries(cart()).map(([id, qty]) => ({
+      product_id: id,
+      quantity: qty
+    }));
 
-    // Aquí iría el insert real a Supabase `orders`
-    console.log("Order payload:", {
-      phone: phone(),
-      address: address(),
-      cart: cart(),
-      total: total(),
-      paymentMethod: paymentMethod(),
-      changeFor: changeFor()
+    const { error } = await supabase.rpc('create_b2c_order', {
+      p_phone: phone(),
+      p_address_line: address(),
+      p_items,
+      p_payment_method: paymentMethod(),
+      p_cash_change_for: changeFor()
     });
 
     setIsSubmitting(false);
-    setOrderSuccess(true);
+
+    if (error) {
+      console.error("Error creating order:", error);
+      alert('Hubo un error al procesar tu pedido. Intenta nuevamente.');
+    } else {
+      setOrderSuccess(true);
+    }
   };
 
   return (
@@ -78,7 +103,10 @@ export default function Catalog() {
 
       <Show when={!orderSuccess()}>
         <div class="space-y-4">
-          <For each={PRODUCTS}>
+          <Show when={products().length === 0}>
+            <div class="text-center p-8 text-gray-500">Cargando catálogo...</div>
+          </Show>
+          <For each={products()}>
             {(product) => (
               <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-center transition-all hover:shadow-md">
                 <div>
@@ -117,7 +145,7 @@ export default function Catalog() {
                 value={phone()} 
                 onInput={(e) => setPhone(e.currentTarget.value)}
                 placeholder="(41) 99999-9999"
-                class="w-full border-gray-300 rounded-lg shadow-sm focus:border-primary focus:ring-primary py-2 px-3 border"
+                class="w-full border-gray-300 rounded-lg shadow-sm focus:border-primary focus:ring-primary py-2 px-3 border outline-none"
                 required
               />
             </div>
@@ -127,7 +155,7 @@ export default function Catalog() {
                 value={address()} 
                 onInput={(e) => setAddress(e.currentTarget.value)}
                 placeholder="Rua, Número, Barrio, Referencia..."
-                class="w-full border-gray-300 rounded-lg shadow-sm focus:border-primary focus:ring-primary py-2 px-3 border"
+                class="w-full border-gray-300 rounded-lg shadow-sm focus:border-primary focus:ring-primary py-2 px-3 border outline-none"
                 rows="2"
                 required
               />
@@ -151,7 +179,7 @@ export default function Catalog() {
             <div class="bg-surface p-4 rounded-xl border border-gray-100 mt-3">
               <label class="block text-sm font-medium text-gray-700 mb-2">¿Necesitas vuelto (Troco)?</label>
               <select 
-                class="w-full border-gray-300 rounded-lg shadow-sm focus:border-primary focus:ring-primary py-2 px-3 border"
+                class="w-full border-gray-300 rounded-lg shadow-sm focus:border-primary focus:ring-primary py-2 px-3 border outline-none"
                 onChange={(e) => setChangeFor(e.currentTarget.value ? Number(e.currentTarget.value) : null)}
               >
                 <option value="">No, pagaré el monto exacto</option>
