@@ -15,11 +15,13 @@ Máquina de Estados: Al terminar una tarea, siempre debes mover el estado del Is
 🚨 REGLA ESTRICTA ANTI-OLVIDO (IDE MEMORY ANCHOR) 🚨
 Para evitar perder el hilo del protocolo de Gobernanza por pérdida de contexto, SIEMPRE que entres en "Planning Mode" y crees el archivo `task.md`, ESTÁS OBLIGADO a incluir como última fase de tu checklist lo siguiente:
 - `[ ]` **Gobernanza y Git Flow (CRÍTICO):**
+  - `[ ]` NUNCA comitear directamente a `main`.
   - `[ ]` Verificar estar en una rama feature (`git checkout -b feat/ISSUE-XXX`).
   - `[ ]` Ejecutar `git add .` y `git commit -m "..."`.
   - `[ ]` Ejecutar `git push -u origin feat/ISSUE-XXX`.
+  - `[ ]` **Actualizar la descripción del Pull Request** (usando la API para evitar el bug de gh: `gh api -X PATCH /repos/arcavcwb/center-gas/pulls/PR_NUM -F body="..."`).
   - `[ ]` Generar/Actualizar el `walkthrough.md` y subirlo a Git (`docs/walkthroughs/`).
-  - `[ ]` Actualizar Plane (Estado + Comentario con Hash del commit).
+  - `[ ]` Actualizar Plane (Estado + Comentario con Hash del commit y link al PR).
 ¡ESTÁ ESTRICTAMENTE PROHIBIDO DAR LA TAREA POR TERMINADA SI ESTOS CHECKBOXES NO ESTÁN MARCADOS EN TU `task.md`!
 🏗️ ARQUITECTURA Y STACK TECNOLÓGICO HÍBRIDO
 El repositorio es un Monorepo gestionado con pnpm y Turborepo. Cualquier scaffolding o instalación debe usar pnpm.
