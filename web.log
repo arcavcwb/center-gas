@@ -1,0 +1,27 @@
+
+> web@0.1.0 dev /home/arcav/projects/center-gas/center-gas-platform/apps/web
+> next dev --turbopack
+
+   ▲ Next.js 15.5.22 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.15.6:3000
+
+ ✓ Starting...
+ ✓ Ready in 3s
+ ○ Compiling /_not-found/page ...
+ ✓ Compiled /_not-found/page in 18.8s
+ GET /auth 404 in 15249ms
+ GET /motoboy/login 404 in 22011ms
+ GET /motoboy/login 404 in 270ms
+ GET /auth 404 in 256ms
+ ○ Compiling / ...
+ ✓ Compiled / in 5.7s
+ GET / 200 in 6906ms
+ ○ Compiling /login ...
+ GET / 200 in 845ms
+ ✓ Compiled /login in 4.9s
+ GET /login 200 in 371ms
+ GET /login 200 in 998ms
+ GET /login 200 in 266ms
+ GET /login 200 in 417ms
+ GET /login 200 in 221ms
