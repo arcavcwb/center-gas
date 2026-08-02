@@ -13,8 +13,8 @@
       "command": "npx",
       "args": ["-y", "n8n-mcp"],
       "env": {
-        "N8N_API_URL": "http://localhost:5678/api/v1",
-        "N8N_API_KEY": "PENDIENTE_DE_CONFIGURAR"
+        "N8N_API_URL": "https://n8n.arcav.us/api/v1",
+        "N8N_API_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjN2QzZTZjMS00OGM0LTRjNzAtYjhkOS1mY2FkY2VjMGNiMTMiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwianRpIjoiNWRlZDY1ODEtMDQ0YS00N2M1LTllN2YtYTU1N2I5ZTM3ZmQzIiwiaWF0IjoxNzg1NjI4Njg4fQ.Ciuly3RZhOFzZZe3lH7fwe9DgCKvRUH4yB3c5tlFucE"
       }
     },
     "playwright": {
