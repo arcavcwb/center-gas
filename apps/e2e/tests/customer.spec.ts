@@ -14,7 +14,17 @@ test.describe('Flujo B2C de Compra', () => {
     // 3. Checkout con teléfono de prueba y dirección
     await catalog.checkout('41999999999', 'Rua das Flores 123');
 
-    // 4. Validar mensaje de éxito
-    await expect(catalog.successMessage).toBeVisible({ timeout: 10000 });
+    // 4. Validar mensaje de éxito o capturar error
+    const submitError = page.locator('[data-testid="submit-error"]');
+    
+    try {
+      await expect(catalog.successMessage).toBeVisible({ timeout: 10000 });
+    } catch (e) {
+      if (await submitError.isVisible()) {
+        const errorText = await submitError.textContent();
+        throw new Error(`RPC Failed with error: ${errorText}`);
+      }
+      throw e;
+    }
   });
 });

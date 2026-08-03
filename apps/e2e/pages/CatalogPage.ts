@@ -14,7 +14,7 @@ export class CatalogPage {
     this.phoneInput = page.locator('input[type="tel"]');
     this.addressInput = page.locator('textarea');
     this.confirmButton = page.locator('button:has-text("PEDIR AHORA")');
-    this.successMessage = page.locator('text="Pedido Confirmado"');
+    this.successMessage = page.locator('text=Pedido Confirmado');
   }
 
   async goto() {

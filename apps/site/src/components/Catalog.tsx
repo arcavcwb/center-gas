@@ -19,6 +19,8 @@ export default function Catalog() {
   const [isSubmitting, setIsSubmitting] = createSignal(false);
   const [orderSuccess, setOrderSuccess] = createSignal(false);
 
+  const [submitError, setSubmitError] = createSignal<string | null>(null);
+
   // Fetch real products on mount
   createEffect(() => {
     supabase.from('products').select('*').eq('is_active', true).then(({ data }) => {
@@ -54,8 +56,15 @@ export default function Catalog() {
 
   const handleSubmit = async (e: Event) => {
     e.preventDefault();
-    if (total() === 0) return alert('El carrito está vacío');
-    if (!phone() || !address()) return alert('Por favor ingresa tu teléfono y dirección');
+    setSubmitError(null);
+    if (total() === 0) {
+      setSubmitError('El carrito está vacío');
+      return;
+    }
+    if (!phone() || !address()) {
+      setSubmitError('Por favor ingresa tu teléfono y dirección');
+      return;
+    }
 
     setIsSubmitting(true);
 
@@ -77,7 +86,7 @@ export default function Catalog() {
 
     if (error) {
       console.error("Error creating order:", error);
-      alert('Hubo un error al procesar tu pedido. Intenta nuevamente.');
+      setSubmitError(error.message || JSON.stringify(error));
     } else {
       setOrderSuccess(true);
     }
@@ -103,6 +112,11 @@ export default function Catalog() {
 
       <Show when={!orderSuccess()}>
         <div class="space-y-4">
+          <Show when={submitError()}>
+            <div data-testid="submit-error" class="bg-red-50 border-l-4 border-red-500 p-4 rounded-md shadow-sm mb-4">
+              <p class="text-sm text-red-700">{submitError()}</p>
+            </div>
+          </Show>
           <Show when={products().length === 0}>
             <div class="text-center p-8 text-gray-500">Cargando catálogo...</div>
           </Show>
