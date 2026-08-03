@@ -24,3 +24,4 @@ def deploy_workflow(file_path):
 
 deploy_workflow("workflows/n8n/WF-01_WhatsApp_Inbound.json")
 deploy_workflow("workflows/n8n/WF-02_WhatsApp_Outbound.json")
+deploy_workflow("workflows/n8n/WF-04_Global_Error_Handler.json")
