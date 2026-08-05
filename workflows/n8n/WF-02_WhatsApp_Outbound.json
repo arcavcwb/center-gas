@@ -1,5 +1,5 @@
 {
-  "name": "WF-02: WhatsApp Outbound Notifications",
+  "name": "WF-02/03: WhatsApp Outbound Notifications",
   "nodes": [
     {
       "parameters": {
@@ -12,14 +12,76 @@
       "name": "Webhook Supabase",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
-      "position": [ 250, 300 ]
+      "position": [ 100, 300 ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.PUBLIC_SUPABASE_URL }}/rest/v1/notifications_log",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $env.SUPABASE_SERVICE_ROLE_KEY }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.SUPABASE_SERVICE_ROLE_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "order_id",
+              "value": "={{ $('Webhook Supabase').item.json.body.record.id }}"
+            },
+            {
+              "name": "notification_type",
+              "value": "={{ $('Webhook Supabase').item.json.body.record.status }}"
+            }
+          ]
+        },
+        "options": {
+          "ignoreResponseCode": true
+        }
+      },
+      "id": "http-idempotency",
+      "name": "Idempotency Insert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [ 300, 300 ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.statusCode }}",
+              "operation": "notEqual",
+              "value2": "409"
+            }
+          ]
+        }
+      },
+      "id": "if-not-duplicate",
+      "name": "Is Not Duplicate?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [ 500, 300 ]
     },
     {
       "parameters": {
         "dataType": "string",
-        "value1": "={{ $json.body.record.status }}",
+        "value1": "={{ $('Webhook Supabase').item.json.body.record.status }}",
         "rules": {
           "rules": [
+            {
+              "value2": "nuevo",
+              "outputKey": "Nuevo"
+            },
             {
               "value2": "en_camino",
               "outputKey": "En Camino"
@@ -30,13 +92,13 @@
             }
           ]
         },
-        "fallbackOutput": 2
+        "fallbackOutput": 3
       },
       "id": "switch-status",
       "name": "Estado del Pedido",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 1,
-      "position": [ 450, 300 ]
+      "position": [ 700, 300 ]
     },
     {
       "parameters": {
@@ -56,11 +118,48 @@
           "parameters": [
             {
               "name": "number",
-              "value": "={{ $json.body.record.customer_phone }}"
+              "value": "={{ $('Webhook Supabase').item.json.body.record.customer_phone }}"
             },
             {
               "name": "text",
-              "value": "¡Excelente noticia! 🚚 Tu pedido #{{ $json.body.record.id }} va en camino. El motoboy fue notificado. Puedes tener listo el envase vacío si aplica."
+              "value": "¡Recibimos tu pedido #{{ $('Webhook Supabase').item.json.body.record.id }}, total R$ {{ $('Webhook Supabase').item.json.body.record.total_amount }}! 📝 Te avisaremos en cuanto salga hacia tu dirección."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "http-send-nuevo",
+      "name": "Enviar Confirmación (Nuevo)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [ 1000, 100 ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.EVOLUTION_API_URL }}/message/sendText/{{ $env.EVOLUTION_INSTANCE_NAME }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $env.EVOLUTION_API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "={{ $('Webhook Supabase').item.json.body.record.customer_phone }}"
+            },
+            {
+              "name": "text",
+              "value": "¡Excelente noticia! 🚚 Tu pedido #{{ $('Webhook Supabase').item.json.body.record.id }} va en camino. El motoboy fue notificado. Puedes tener listo el envase vacío si aplica."
             }
           ]
         },
@@ -70,7 +169,10 @@
       "name": "Enviar En Camino",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [ 700, 200 ]
+      "position": [ 1000, 300 ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
     },
     {
       "parameters": {
@@ -90,11 +192,11 @@
           "parameters": [
             {
               "name": "number",
-              "value": "={{ $json.body.record.customer_phone }}"
+              "value": "={{ $('Webhook Supabase').item.json.body.record.customer_phone }}"
             },
             {
               "name": "text",
-              "value": "¡Tu pedido #{{ $json.body.record.id }} fue entregado con éxito! ✅ Gracias por elegir Center Gas. Esperamos verte pronto."
+              "value": "¡Tu pedido #{{ $('Webhook Supabase').item.json.body.record.id }} fue entregado con éxito! ✅ Gracias por elegir Center Gas. Esperamos verte pronto."
             }
           ]
         },
@@ -104,11 +206,36 @@
       "name": "Enviar Entregado",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [ 700, 400 ]
+      "position": [ 1000, 500 ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
     }
   ],
   "connections": {
     "Webhook Supabase": {
+      "main": [
+        [
+          {
+            "node": "Idempotency Insert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Idempotency Insert": {
+      "main": [
+        [
+          {
+            "node": "Is Not Duplicate?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Not Duplicate?": {
       "main": [
         [
           {
@@ -121,6 +248,13 @@
     },
     "Estado del Pedido": {
       "main": [
+        [
+          {
+            "node": "Enviar Confirmación (Nuevo)",
+            "type": "main",
+            "index": 0
+          }
+        ],
         [
           {
             "node": "Enviar En Camino",
@@ -139,6 +273,7 @@
     }
   },
   "settings": {
-    "executionOrder": "v1"
+    "executionOrder": "v1",
+    "errorWorkflow": "WF-04: Global Error Handler"
   }
 }

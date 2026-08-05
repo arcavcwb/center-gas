@@ -2,38 +2,32 @@ import { Page, Locator } from '@playwright/test';
 
 export class CatalogPage {
   readonly page: Page;
-  readonly cylinderItem: Locator;
-  readonly comboBanner: Locator;
+  readonly addBtn: Locator;
   readonly phoneInput: Locator;
+  readonly addressInput: Locator;
   readonly confirmButton: Locator;
   readonly successMessage: Locator;
 
   constructor(page: Page) {
     this.page = page;
-    this.cylinderItem = page.locator('[data-testid="cylinder-item"]').first();
-    this.comboBanner = page.locator('[data-testid="combo-banner"]');
+    this.addBtn = page.locator('button:has-text("+")').first();
     this.phoneInput = page.locator('input[type="tel"]');
-    this.confirmButton = page.locator('button:has-text("Pedir Ahora")');
-    this.successMessage = page.locator('text="Pedido confirmado"');
+    this.addressInput = page.locator('textarea');
+    this.confirmButton = page.locator('button:has-text("PEDIR AHORA")');
+    this.successMessage = page.locator('text=Pedido Confirmado');
   }
 
   async goto() {
-    // El catálogo corre en Astro (puerto 4321)
-    await this.page.goto('http://localhost:4321');
+    await this.page.goto('http://localhost:3001');
   }
 
   async addCylinderToCart() {
-    await this.cylinderItem.click();
+    await this.addBtn.click();
   }
 
-  async applyCombo() {
-    if (await this.comboBanner.isVisible()) {
-      await this.comboBanner.click();
-    }
-  }
-
-  async checkout(phone: string) {
+  async checkout(phone: string, address: string) {
     await this.phoneInput.fill(phone);
+    await this.addressInput.fill(address);
     await this.confirmButton.click();
   }
 }
