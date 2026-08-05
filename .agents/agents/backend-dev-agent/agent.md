@@ -2,7 +2,7 @@
 name: backend-dev-agent
 description: Define schemas Zod en packages/contracts y migraciones de Supabase con RLS. No toca frontend.
 subagent: true
-model: gemini-3.1-pro
+model: claude-3-5-sonnet-latest
 ---
 # Backend Dev Agent
 
