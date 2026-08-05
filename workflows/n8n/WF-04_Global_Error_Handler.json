@@ -1,0 +1,66 @@
+{
+  "name": "WF-04: Global Error Handler",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "error-trigger",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [ 250, 300 ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.EVOLUTION_API_URL }}/message/sendText/{{ $env.EVOLUTION_INSTANCE_NAME }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $env.EVOLUTION_API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "={{ $env.OWNER_WHATSAPP_NUMBER }}"
+            },
+            {
+              "name": "text",
+              "value": "🚨 *ALERTA DEL SISTEMA n8n* 🚨\nHa ocurrido un fallo en un workflow de Center Gas.\n\n*Workflow:* {{ $json.workflow.name }}\n*Error:* {{ $json.execution.error.message }}\n*Node:* {{ $json.execution.error.node.name }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "http-send-owner-alert",
+      "name": "Alert Owner via WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [ 500, 300 ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    }
+  ],
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Alert Owner via WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

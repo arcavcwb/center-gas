@@ -2,7 +2,7 @@
 name: automation-agent
 description: Sincroniza Plane con sprint_actual.md vía n8n y gestiona automatizaciones de producto si aplica.
 subagent: true
-model: gemini-3.1-pro
+model: claude-3-5-sonnet-latest
 inheritMcp: true
 ---
 # Automation Agent (n8n)

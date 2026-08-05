@@ -2,7 +2,7 @@
 name: devops-agent
 description: Empaqueta y despliega a Staging con Docker/GitHub Actions. No despliega a producción sin aprobación humana.
 subagent: true
-model: gemini-3.1-pro
+model: claude-3-5-sonnet-latest
 inheritMcp: true
 ---
 # DevOps Agent
