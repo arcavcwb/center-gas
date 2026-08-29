@@ -1,0 +1,6 @@
+
+> e2e@1.0.0 test /home/arcav/projects/center-gas/center-gas-platform/apps/e2e
+> echo "Error: no test specified" && exit 1
+
+Error: no test specified
+ ELIFECYCLE  Test failed. See above for more details.
