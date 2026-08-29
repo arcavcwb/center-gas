@@ -12,7 +12,31 @@
       "name": "Webhook Supabase",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
-      "position": [ 100, 300 ]
+      "position": [
+        100,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.headers.authorization }}",
+              "operation": "equal",
+              "value2": "Bearer CENTERGAS_SECURE_TOKEN_2026"
+            }
+          ]
+        }
+      },
+      "id": "if-validate-token",
+      "name": "Validate Token",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        200,
+        300
+      ]
     },
     {
       "parameters": {
@@ -52,7 +76,10 @@
       "name": "Idempotency Insert",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [ 300, 300 ]
+      "position": [
+        300,
+        300
+      ]
     },
     {
       "parameters": {
@@ -70,7 +97,10 @@
       "name": "Is Not Duplicate?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
-      "position": [ 500, 300 ]
+      "position": [
+        500,
+        300
+      ]
     },
     {
       "parameters": {
@@ -98,7 +128,10 @@
       "name": "Estado del Pedido",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 1,
-      "position": [ 700, 300 ]
+      "position": [
+        700,
+        300
+      ]
     },
     {
       "parameters": {
@@ -122,17 +155,20 @@
             },
             {
               "name": "text",
-              "value": "¡Recibimos tu pedido #{{ $('Webhook Supabase').item.json.body.record.id }}, total R$ {{ $('Webhook Supabase').item.json.body.record.total_amount }}! 📝 Te avisaremos en cuanto salga hacia tu dirección."
+              "value": "\u00a1Recibimos tu pedido #{{ $('Webhook Supabase').item.json.body.record.id }}, total R$ {{ $('Webhook Supabase').item.json.body.record.total_amount }}! \ud83d\udcdd Te avisaremos en cuanto salga hacia tu direcci\u00f3n."
             }
           ]
         },
         "options": {}
       },
       "id": "http-send-nuevo",
-      "name": "Enviar Confirmación (Nuevo)",
+      "name": "Enviar Confirmaci\u00f3n (Nuevo)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [ 1000, 100 ],
+      "position": [
+        1000,
+        100
+      ],
       "retryOnFail": true,
       "maxTries": 3,
       "waitBetweenTries": 2000
@@ -159,7 +195,7 @@
             },
             {
               "name": "text",
-              "value": "¡Excelente noticia! 🚚 Tu pedido #{{ $('Webhook Supabase').item.json.body.record.id }} va en camino. El motoboy fue notificado. Puedes tener listo el envase vacío si aplica."
+              "value": "\u00a1Excelente noticia! \ud83d\ude9a Tu pedido #{{ $('Webhook Supabase').item.json.body.record.id }} va en camino. El motoboy fue notificado. Puedes tener listo el envase vac\u00edo si aplica."
             }
           ]
         },
@@ -169,7 +205,10 @@
       "name": "Enviar En Camino",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [ 1000, 300 ],
+      "position": [
+        1000,
+        300
+      ],
       "retryOnFail": true,
       "maxTries": 3,
       "waitBetweenTries": 2000
@@ -196,7 +235,7 @@
             },
             {
               "name": "text",
-              "value": "¡Tu pedido #{{ $('Webhook Supabase').item.json.body.record.id }} fue entregado con éxito! ✅ Gracias por elegir Center Gas. Esperamos verte pronto."
+              "value": "\u00a1Tu pedido #{{ $('Webhook Supabase').item.json.body.record.id }} fue entregado con \u00e9xito! \u2705 Gracias por elegir Center Gas. Esperamos verte pronto."
             }
           ]
         },
@@ -206,7 +245,10 @@
       "name": "Enviar Entregado",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [ 1000, 500 ],
+      "position": [
+        1000,
+        500
+      ],
       "retryOnFail": true,
       "maxTries": 3,
       "waitBetweenTries": 2000
@@ -217,7 +259,7 @@
       "main": [
         [
           {
-            "node": "Idempotency Insert",
+            "node": "Validate Token",
             "type": "main",
             "index": 0
           }
@@ -250,7 +292,7 @@
       "main": [
         [
           {
-            "node": "Enviar Confirmación (Nuevo)",
+            "node": "Enviar Confirmaci\u00f3n (Nuevo)",
             "type": "main",
             "index": 0
           }
@@ -265,6 +307,17 @@
         [
           {
             "node": "Enviar Entregado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Token": {
+      "main": [
+        [
+          {
+            "node": "Idempotency Insert",
             "type": "main",
             "index": 0
           }

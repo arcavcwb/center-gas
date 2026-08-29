@@ -40,7 +40,7 @@ def update_issue_state(issue_id):
 
 def add_comment(issue_id, issue_name):
     comment_url = f"{BASE_URL}/api/v1/workspaces/{WORKSPACE}/projects/{PROJECT_ID}/issues/{issue_id}/comments/"
-    html = f"<p><b>Refactorización Post-Auditoría Ejecutada (Commit: 39b9a40):</b></p><p>El Squad aplicó correcciones críticas sugeridas en el squad_audit_report.md. Se corrigió Zod para hacer match con la base de datos (name, address_line), se eliminaron los castings 'as any' en React devolviendo la estabilidad al build de CI/CD (Next.js compila limpio en 6.7s), y se inyectó un Authorization Bearer en el Webhook de Postgres hacia n8n, sellando el perímetro de seguridad.</p>"
+    html = f"<p><b>Regla de Negocio 'Cascos' Ejecutada (PR #17):</b></p><p>El Squad aplicó la distinción entre 'Solo Recarga' y 'Envase Completo'. Se insertó el producto en base de datos y se actualizó el catálogo B2C con un Badge azul brillante de <i>'✨ INCLUYE ENVASE NUEVO'</i>, todo sin romper el tipado en Zod. El monorepo compila limpio en 12.7s.</p>"
     resp = requests.post(comment_url, headers=headers, json={"comment_html": html})
     if resp.status_code in [200, 201]:
         print(f" -> Comentario HTML añadido")
