@@ -36,11 +36,22 @@ export function KanbanBoard() {
 
     // Subscribe to realtime changes
     const channel = supabase.channel('realtime_orders')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, (payload) => {
-        if (payload.eventType === 'INSERT') {
-          setOrders(prev => [...prev, payload.new as Order]);
-        } else if (payload.eventType === 'UPDATE') {
-          setOrders(prev => prev.map(o => o.id === payload.new.id ? payload.new as Order : o));
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, async (payload) => {
+        if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+          // Fetch the fully populated order to get relations (customer, items)
+          const { data } = await supabase
+            .from('orders')
+            .select(`*, customer:customers (name, phone, address_line, loyalty_points, available_free_cylinders), items:order_items (*)`)
+            .eq('id', payload.new.id)
+            .single();
+            
+          if (data) {
+            if (payload.eventType === 'INSERT') {
+              setOrders(prev => [...prev, data as Order]);
+            } else {
+              setOrders(prev => prev.map(o => o.id === data.id ? data as Order : o));
+            }
+          }
         } else if (payload.eventType === 'DELETE') {
           setOrders(prev => prev.filter(o => o.id !== payload.old.id));
         }
