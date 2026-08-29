@@ -6,8 +6,8 @@
    - Environments: .env
 
    Creating an optimized production build ...
- ✓ Finished writing to disk in 9ms
- ✓ Compiled successfully in 6.7s
+ ✓ Finished writing to disk in 8ms
+ ✓ Compiled successfully in 12.7s
    Linting and checking validity of types     ✓ Linting and checking validity of types 
    Collecting page data     ✓ Collecting page data 
  ✓ Generating static pages (6/6)
