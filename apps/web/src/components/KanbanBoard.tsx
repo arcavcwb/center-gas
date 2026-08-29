@@ -20,7 +20,7 @@ export function KanbanBoard() {
         .from('orders')
         .select(`
           *,
-          customer:customers (full_name, phone, address),
+          customer:customers (full_name, phone, address, loyalty_points, available_free_cylinders),
           items:order_items (*)
         `)
         .neq('status', 'cancelado')
