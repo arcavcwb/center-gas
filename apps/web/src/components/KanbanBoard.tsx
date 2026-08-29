@@ -95,7 +95,7 @@ export function KanbanBoard() {
         <h1 className="text-2xl font-bold text-slate-800">Panel de Control B2B</h1>
         <button 
           onClick={() => setIsNewOrderModalOpen(true)}
-          className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition flex items-center gap-2"
+          className="bg-brand-orange hover:bg-brand-orange-hover text-white px-4 py-2 rounded-lg font-medium shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 flex items-center gap-2"
         >
           <PhoneCall size={18} />
           Ingresar Pedido Manual
@@ -104,11 +104,14 @@ export function KanbanBoard() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Columna Nuevos */}
-        <div className="bg-slate-200 rounded-xl p-4 min-h-[500px]">
-          <h2 className="font-semibold text-slate-700 mb-4 px-2">
-            NUEVOS ({newOrders.length})
-          </h2>
-          <div className="flex flex-col gap-2">
+        <div className="bg-white/60 border border-slate-200/60 backdrop-blur-sm shadow-sm rounded-xl p-4 min-h-[500px]">
+          <div className="flex items-center gap-2 mb-4 px-2">
+            <h2 className="font-semibold text-slate-800 tracking-tight">Nuevos</h2>
+            <span className="bg-slate-200 text-slate-700 text-xs font-bold px-2 py-0.5 rounded-full">
+              {newOrders.length}
+            </span>
+          </div>
+          <div className="flex flex-col gap-3">
             {newOrders.map(order => (
               <OrderCard key={order.id} order={order} onUpdateStatus={handleUpdateStatus} onCancelRequest={setCancelingOrderId} />
             ))}
@@ -119,11 +122,14 @@ export function KanbanBoard() {
         </div>
 
         {/* Columna Activos */}
-        <div className="bg-slate-200 rounded-xl p-4 min-h-[500px]">
-          <h2 className="font-semibold text-slate-700 mb-4 px-2">
-            ASIGNADOS / EN CAMINO ({activeOrders.length})
-          </h2>
-          <div className="flex flex-col gap-2">
+        <div className="bg-white/60 border border-slate-200/60 backdrop-blur-sm shadow-sm rounded-xl p-4 min-h-[500px]">
+          <div className="flex items-center gap-2 mb-4 px-2">
+            <h2 className="font-semibold text-slate-800 tracking-tight">Asignados / En Camino</h2>
+            <span className="bg-brand-blue/10 text-brand-blue text-xs font-bold px-2 py-0.5 rounded-full">
+              {activeOrders.length}
+            </span>
+          </div>
+          <div className="flex flex-col gap-3">
             {activeOrders.map(order => (
               <OrderCard key={order.id} order={order} onUpdateStatus={handleUpdateStatus} onCancelRequest={setCancelingOrderId} />
             ))}

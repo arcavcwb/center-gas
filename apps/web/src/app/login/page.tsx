@@ -45,7 +45,7 @@ export default function LoginPage() {
             <input 
               type="email" 
               required
-              className="w-full border border-slate-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="w-full border border-slate-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-orange-500 text-slate-900 bg-white"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
@@ -55,7 +55,7 @@ export default function LoginPage() {
             <input 
               type="password" 
               required
-              className="w-full border border-slate-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="w-full border border-slate-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-orange-500 text-slate-900 bg-white"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
