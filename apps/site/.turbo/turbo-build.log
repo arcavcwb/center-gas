@@ -2,23 +2,23 @@
 > site@0.0.1 build /home/arcav/projects/center-gas/center-gas-platform/apps/site
 > astro build
 
-14:02:17 [vite] Re-optimizing dependencies because vite config has changed
-14:02:18 [types] Generated 1.29s
-14:02:18 [build] output: "static"
-14:02:18 [build] mode: "static"
-14:02:18 [build] directory: /home/arcav/projects/center-gas/center-gas-platform/apps/site/dist/
-14:02:18 [build] Collecting build info...
-14:02:18 [build] ✓ Completed in 2.03s.
-14:02:18 [build] Building static entrypoints...
-14:02:23 [vite] ✓ built in 4.27s
-14:02:23 [vite] ✓ built in 763ms
-14:02:23 [build] Rearranging server assets...
+16:55:49 [vite] Re-optimizing dependencies because vite config has changed
+16:55:49 [types] Generated 452ms
+16:55:49 [build] output: "static"
+16:55:49 [build] mode: "static"
+16:55:49 [build] directory: /home/arcav/projects/center-gas/center-gas-platform/apps/site/dist/
+16:55:49 [build] Collecting build info...
+16:55:49 [build] ✓ Completed in 631ms.
+16:55:49 [build] Building static entrypoints...
+16:55:51 [vite] ✓ built in 1.52s
+16:55:52 [vite] ✓ built in 651ms
+16:55:52 [build] Rearranging server assets...
 
  generating static routes 
-14:02:23   ├─ /driver/index.html (+197ms) 
-14:02:24   ├─ /index.html (+19ms) 
-14:02:24 ✓ Completed in 366ms.
+16:55:52   ├─ /driver/index.html (+136ms) 
+16:55:52   ├─ /index.html (+12ms) 
+16:55:52 ✓ Completed in 250ms.
 
-14:02:24 [build] ✓ Completed in 5.59s.
-14:02:24 [build] 2 page(s) built in 7.64s
-14:02:24 [build] Complete!
+16:55:52 [build] ✓ Completed in 2.51s.
+16:55:52 [build] 2 page(s) built in 3.15s
+16:55:52 [build] Complete!
