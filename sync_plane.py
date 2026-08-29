@@ -40,7 +40,7 @@ def update_issue_state(issue_id):
 
 def add_comment(issue_id, issue_name):
     comment_url = f"{BASE_URL}/api/v1/workspaces/{WORKSPACE}/projects/{PROJECT_ID}/issues/{issue_id}/comments/"
-    html = f"<p><b>MVP Completado y Desplegado (PR #14 y #15):</b></p><p>Se ha implementado el <b>Happy Path End-to-End</b>. Los contratos (Zod) se han actualizado y el B2B Dashboard extrae los datos de fidelidad (<code>loyalty_points</code>, <code>available_free_cylinders</code>) en tiempo real. También se activó el Trigger de base de datos que empuja el estado vía Webhook hacia n8n.</p><p>Pruebas Playwright (E2E) pasaron en verde.</p>"
+    html = f"<p><b>Refactorización Post-Auditoría Ejecutada (Commit: 39b9a40):</b></p><p>El Squad aplicó correcciones críticas sugeridas en el squad_audit_report.md. Se corrigió Zod para hacer match con la base de datos (name, address_line), se eliminaron los castings 'as any' en React devolviendo la estabilidad al build de CI/CD (Next.js compila limpio en 6.7s), y se inyectó un Authorization Bearer en el Webhook de Postgres hacia n8n, sellando el perímetro de seguridad.</p>"
     resp = requests.post(comment_url, headers=headers, json={"comment_html": html})
     if resp.status_code in [200, 201]:
         print(f" -> Comentario HTML añadido")

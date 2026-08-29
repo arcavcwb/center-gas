@@ -7,6 +7,7 @@ interface Product {
   type: string;
   price: number;
   desc: string;
+  includes_cylinder: boolean;
 }
 
 interface Neighborhood {
@@ -42,7 +43,8 @@ export default function Catalog() {
           name: p.name,
           type: p.sku,
           price: p.price,
-          desc: p.includes_cylinder ? 'Incluye Casco Nuevo' : 'Recarga normal'
+          desc: p.includes_cylinder ? 'Líquido + Casco Plástico.' : 'Debes entregar un envase vacío al motoboy.',
+          includes_cylinder: p.includes_cylinder || false
         })));
       }
     });
@@ -294,9 +296,16 @@ export default function Catalog() {
               {(product) => (
                 <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-center transition-all hover:shadow-md">
                   <div>
-                    <h3 class="font-bold text-gray-900">{product.name}</h3>
-                    <p class="text-xs text-gray-500 mt-0.5">{product.desc}</p>
-                    <p class="text-primary font-semibold mt-1">R$ {product.price.toFixed(2)}</p>
+                    <h3 class="font-bold text-gray-900 flex items-center gap-2">
+                      {product.name}
+                    </h3>
+                    <Show when={product.includes_cylinder}>
+                      <span class="inline-block mt-1 mb-1 px-2 py-0.5 bg-blue-100 text-blue-800 text-[10px] font-extrabold rounded-full tracking-wide">
+                        ✨ INCLUYE ENVASE NUEVO
+                      </span>
+                    </Show>
+                    <p class="text-xs text-gray-500 mt-1 leading-tight">{product.desc}</p>
+                    <p class="text-primary font-semibold mt-1.5 text-lg">R$ {product.price.toFixed(2)}</p>
                   </div>
                   <div class="flex items-center space-x-3 bg-surface p-1 rounded-full border border-gray-100">
                     <button 

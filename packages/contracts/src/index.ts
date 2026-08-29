@@ -34,8 +34,10 @@ export type Order = z.infer<typeof OrderSchema>;
 export const ProductSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
-  type: z.enum(['gas_refill', 'gas_full', 'water']),
+  sku: z.string(),
   price: z.number(),
+  includes_cylinder: z.boolean().optional(),
+  is_active: z.boolean().optional(),
   image_url: z.string().url().optional(),
 });
 
