@@ -67,8 +67,11 @@ export function KanbanBoard() {
     // Optimistic UI update
     setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus as Order['status'] } : o));
     
-    // DB update
-    await supabase.from('orders').update({ status: newStatus }).eq('id', orderId);
+    // DB update using RPC to track history
+    await supabase.rpc('update_order_status', { 
+      p_order_id: orderId, 
+      p_new_status: newStatus 
+    });
   };
 
   const handleCancelOrder = async (reason: string) => {
@@ -76,9 +79,12 @@ export function KanbanBoard() {
     // Optimistic UI update
     setOrders(prev => prev.map(o => o.id === cancelingOrderId ? { ...o, status: 'cancelado' } : o));
     
-    // DB update (reason should be saved in real DB)
-    await supabase.from('orders').update({ status: 'cancelado' }).eq('id', cancelingOrderId);
-    console.log('Order cancelled, reason:', reason);
+    // DB update using RPC to track history and reason
+    await supabase.rpc('update_order_status', { 
+      p_order_id: cancelingOrderId, 
+      p_new_status: 'cancelado',
+      p_reason: reason
+    });
     setCancelingOrderId(null);
   };
 
