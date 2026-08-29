@@ -21,18 +21,4 @@ export default defineConfig({
       use: { ...devices['Pixel 5'] },
     },
   ],
-  webServer: [
-    {
-      command: 'pnpm --filter web dev',
-      url: 'http://localhost:3000',
-      reuseExistingServer: !process.env.CI,
-      timeout: 120 * 1000,
-    },
-    {
-      command: 'pnpm --filter site dev',
-      url: 'http://localhost:4321',
-      reuseExistingServer: !process.env.CI,
-      timeout: 120 * 1000,
-    }
-  ],
 });

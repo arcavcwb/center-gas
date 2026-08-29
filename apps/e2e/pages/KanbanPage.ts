@@ -7,26 +7,19 @@ export class KanbanPage {
 
   constructor(page: Page) {
     this.page = page;
-    // B2B corre en Next.js (puerto 3000)
-    this.incomingColumn = page.locator('[data-testid="column-incoming"]');
-    this.assignedColumn = page.locator('[data-testid="column-assigned"]');
+    this.incomingColumn = page.locator('text="NUEVOS"');
+    this.assignedColumn = page.locator('text="ASIGNADOS / EN CAMINO"');
   }
 
   async goto() {
-    await this.page.goto('http://localhost:3000/dashboard/kanban');
+    await this.page.goto('http://localhost:3000');
   }
 
   async login(email: string, pass: string) {
-    await this.page.goto('http://localhost:3000/auth');
+    await this.page.goto('http://localhost:3000/login');
     await this.page.fill('input[type="email"]', email);
     await this.page.fill('input[type="password"]', pass);
     await this.page.click('button:has-text("Ingresar")');
-    await this.page.waitForURL('**/dashboard/**');
-  }
-
-  async dragOrderToAssigned(orderId: string) {
-    const orderCard = this.page.locator(`[data-order-id="${orderId}"]`);
-    await expect(orderCard).toBeVisible();
-    await orderCard.dragTo(this.assignedColumn);
+    await expect(this.page.locator('text="Panel de Control B2B"')).toBeVisible({ timeout: 10000 });
   }
 }

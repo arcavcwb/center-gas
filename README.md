@@ -37,13 +37,13 @@ Este repositorio no es un proyecto de software tradicional. Es gobernado y desar
 | 🏛️ **Arquitectura** | `@architect-agent` | 👑 `claude-3-opus` |
 | 🛡️ **Seguridad / Review** | `@pr-reviewer-agent` | ⚡ `gemini-3.6-flash` |
 | 🧪 **QA & Testing** | `@qa-agent` | 🟠 `claude-3.5-sonnet` |
-| 💻 **Frontend Dev** | `@frontend-dev-agent` | 🧠 `gemini-3.1-pro` |
-| 💾 **Backend & DB** | `@backend-dev-agent` | 🧠 `gemini-3.1-pro` |
-| 🎨 **UI/UX Design** | `@designer-agent` | ⚡ `gemini-3.6-flash` |
-| 📈 **Product Owner** | `@po-agent` | ⚡ `gemini-3.6-flash` |
-| ⏱️ **Scrum Master** | `@scrum-master-agent` | ⚡ `gemini-3.6-flash` |
-| ⚙️ **DevOps & CI/CD** | `@devops-agent` | 🧠 `gemini-3.1-pro` |
-| 🤖 **Automatización** | `@automation-agent` | 🧠 `gemini-3.1-pro` |
+| 💻 **Frontend Dev** | `@frontend-dev-agent` | 🟠 `claude-3.5-sonnet` |
+| 💾 **Backend & DB** | `@backend-dev-agent` | 🟠 `claude-3.5-sonnet` |
+| 🎨 **UI/UX Design** | `@designer-agent` | 🟠 `claude-3.5-sonnet` |
+| 📈 **Product Owner** | `@po-agent` | 🟠 `claude-3.5-sonnet` |
+| ⏱️ **Scrum Master** | `@scrum-master-agent` | 🟠 `claude-3.5-sonnet` |
+| ⚙️ **DevOps & CI/CD** | `@devops-agent` | 🟠 `claude-3.5-sonnet` |
+| 🤖 **Automatización** | `@automation-agent` | 🟠 `claude-3.5-sonnet` |
 
 > 📖 **Lectura Recomendada:** Conoce los detalles de esta orquestación en el [Manual de Flujo Agéntico (docs/15)](docs/15-agentic-flow-manual.md).
 
