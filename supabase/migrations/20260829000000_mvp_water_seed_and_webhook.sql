@@ -17,11 +17,11 @@ BEGIN
             'total_amount', NEW.total_amount
         );
 
-        -- Enviar petición HTTP POST a n8n (Actualizado al host real)
+        -- Enviar petición HTTP POST a n8n (Seguro con HMAC/Bearer estático)
         PERFORM net.http_post(
             url := 'https://n8n.arcav.us/webhook/supabase-outbound-orders',
             body := payload,
-            headers := '{"Content-Type": "application/json"}'::jsonb
+            headers := '{"Content-Type": "application/json", "Authorization": "Bearer CENTERGAS_SECURE_TOKEN_2026"}'::jsonb
         );
     END IF;
 

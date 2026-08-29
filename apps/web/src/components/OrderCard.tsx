@@ -18,18 +18,18 @@ export function OrderCard({ order, onUpdateStatus, onCancelRequest }: OrderCardP
       <div className="flex justify-between items-start">
         <div>
           <span className="font-bold text-gray-800">#{order.display_id}</span>
-          <p className="text-sm font-semibold text-gray-700 mt-1">{(order as any).customer?.full_name || order.customer_id}</p>
-          <p className="text-xs text-gray-500">{(order as any).customer?.address || 'Sin dirección'}</p>
+          <p className="text-sm font-semibold text-gray-700 mt-1">{order.customer?.name || order.customer_id}</p>
+          <p className="text-xs text-gray-500">{order.customer?.address_line || 'Sin dirección'}</p>
           
-          {(order as any).customer && (
+          {order.customer && (
             <div className="flex flex-wrap gap-2 mt-2">
-              {(order as any).customer.available_free_cylinders > 0 ? (
-                <span className="text-xs bg-purple-100 text-purple-700 font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+              {(order.customer.available_free_cylinders ?? 0) > 0 ? (
+                <span className="text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm" style={{ backgroundColor: 'var(--color-primary-100, #e0e7ff)', color: 'var(--color-primary-700, #4338ca)' }}>
                   🎁 ¡Tiene Botellón Gratis!
                 </span>
               ) : (
-                <span className="text-xs bg-slate-100 text-slate-600 font-medium px-2 py-0.5 rounded-full flex items-center gap-1 border border-slate-200">
-                  ⭐️ {(order as any).customer.loyalty_points || 0}/8 Puntos
+                <span className="text-xs font-medium px-2 py-0.5 rounded-full flex items-center gap-1 border" style={{ backgroundColor: 'var(--color-surface, #f8fafc)', color: 'var(--color-text-secondary, #475569)', borderColor: 'var(--color-border, #e2e8f0)' }}>
+                  ⭐️ {order.customer.loyalty_points || 0}/8 Puntos
                 </span>
               )}
             </div>

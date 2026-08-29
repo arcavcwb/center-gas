@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import type { Product } from '@center-gas/contracts';
 
 interface NewOrderModalProps {
   onConfirm: () => void;
@@ -16,7 +17,7 @@ export function NewOrderModal({ onConfirm, onCancel }: NewOrderModalProps) {
   const [cashChange, setCashChange] = useState<number | ''>('');
   const [quantity, setQuantity] = useState(1);
   const [productId, setProductId] = useState('');
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {

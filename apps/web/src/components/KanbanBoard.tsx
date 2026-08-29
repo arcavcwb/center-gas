@@ -20,7 +20,7 @@ export function KanbanBoard() {
         .from('orders')
         .select(`
           *,
-          customer:customers (full_name, phone, address, loyalty_points, available_free_cylinders),
+          customer:customers (name, phone, address_line, loyalty_points, available_free_cylinders),
           items:order_items (*)
         `)
         .neq('status', 'cancelado')
@@ -28,7 +28,7 @@ export function KanbanBoard() {
         .order('created_at', { ascending: true });
       
       if (data && !error) {
-        setOrders(data as any[]);
+        setOrders(data as Order[]);
       }
     };
 

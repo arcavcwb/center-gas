@@ -3,8 +3,8 @@ import { z } from "zod";
 export const CustomerSchema = z.object({
   id: z.string().uuid(),
   phone: z.string(),
-  full_name: z.string().optional(),
-  address: z.string().optional(),
+  name: z.string().optional(),
+  address_line: z.string().optional(),
   loyalty_points: z.number().int().min(0).optional(),
   available_free_cylinders: z.number().int().min(0).optional(),
 });
@@ -25,7 +25,7 @@ export const OrderSchema = z.object({
   total_amount: z.number(),
   created_at: z.string(),
   // Campos opcionales si hacemos JOIN
-  customers: CustomerSchema.optional(),
+  customer: CustomerSchema.optional(),
   driver_name: z.string().optional(),
 });
 
