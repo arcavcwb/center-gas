@@ -16,11 +16,11 @@ interface Neighborhood {
 }
 
 export default function Catalog() {
-  // Detect if phone comes from WhatsApp URL to skip the phone form
+  // Detect if token comes from WhatsApp URL to skip the phone form
   const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-  const hasPhoneFromUrl = !!urlParams?.get('phone');
+  const hasTokenFromUrl = !!urlParams?.get('token');
   
-  const [step, setStep] = createSignal<'loading' | 'phone' | 'register' | 'catalog'>(hasPhoneFromUrl ? 'loading' : 'phone');
+  const [step, setStep] = createSignal<'loading' | 'phone' | 'register' | 'catalog'>(hasTokenFromUrl ? 'loading' : 'phone');
   const [customerName, setCustomerName] = createSignal('');
   
   const [products, setProducts] = createSignal<Product[]>([]);
@@ -29,11 +29,13 @@ export default function Catalog() {
   
   const [phone, setPhone] = createSignal('');
   const [name, setName] = createSignal('');
+  const [cep, setCep] = createSignal('');
   const [address, setAddress] = createSignal('');
   const [neighborhoodId, setNeighborhoodId] = createSignal('');
   
   const [paymentMethod, setPaymentMethod] = createSignal<'cash' | 'pix'>('cash');
   const [changeFor, setChangeFor] = createSignal<number | null>(null);
+  const [token, setToken] = createSignal<string | null>(null);
   
   const [isSubmitting, setIsSubmitting] = createSignal(false);
   const [orderSuccess, setOrderSuccess] = createSignal(false);
@@ -58,11 +60,11 @@ export default function Catalog() {
       if (data) setNeighborhoods(data);
     });
     
-    // Check URL for phone (WhatsApp flow)
-    const phoneParam = urlParams?.get('phone');
-    if (phoneParam && (step() === 'phone' || step() === 'loading')) {
-      setPhone(phoneParam);
-      handlePhoneCheck(phoneParam);
+    // Check URL for token (WhatsApp flow)
+    const urlToken = urlParams?.get('token');
+    if (urlToken && (step() === 'phone' || step() === 'loading')) {
+      setToken(urlToken);
+      handleTokenCheck(urlToken);
     }
   });
 
@@ -84,12 +86,39 @@ export default function Catalog() {
     });
   };
 
+  const handleTokenCheck = async (checkToken: string) => {
+    setIsSubmitting(true);
+    setSubmitError(null);
+    const { data, error } = await supabase.rpc('resolve_catalog_session', { p_token: checkToken });
+    setIsSubmitting(false);
+    
+    if (error) {
+      setSubmitError('Error de conexión. Intenta de nuevo.');
+      setStep('phone');
+      return;
+    }
+    
+    if (data && data.valid) {
+      setPhone(data.phone || '');
+      if (data.exists) {
+        setCustomerName(data.name || '');
+        setAddress(data.address_line || '');
+        setNeighborhoodId(data.neighborhood_id || '');
+        setStep('catalog');
+      } else {
+        setStep('register');
+      }
+    } else {
+      setSubmitError(data?.message || 'Enlace expirado o inválido.');
+      setStep('phone');
+    }
+  };
+
   const handlePhoneCheck = async (checkPhone: string) => {
     setIsSubmitting(true);
     setSubmitError(null);
     const { data, error } = await supabase.rpc('check_customer_exists', { p_phone: checkPhone });
     setIsSubmitting(false);
-    console.log("RPC Response:", JSON.stringify({ data, error }));
     
     if (error) {
       setSubmitError('Error de conexión. Intenta de nuevo.');
@@ -110,6 +139,25 @@ export default function Catalog() {
     e.preventDefault();
     if (!phone()) return;
     handlePhoneCheck(phone());
+  };
+
+  const handleCepChange = async (e: Event) => {
+    const val = (e.currentTarget as HTMLInputElement).value.replace(/\D/g, '');
+    setCep(val);
+    if (val.length === 8) {
+      try {
+        const res = await fetch(`https://viacep.com.br/ws/${val}/json/`);
+        const data = await res.json();
+        if (!data.erro) {
+          setAddress(`${data.logradouro}, , ${data.bairro}, ${data.localidade} - ${data.uf}`);
+          // Attempt to match neighborhood
+          const matched = neighborhoods().find(n => n.name.toLowerCase() === data.bairro.toLowerCase());
+          if (matched) setNeighborhoodId(matched.id);
+        }
+      } catch (err) {
+        console.error("ViaCEP error", err);
+      }
+    }
   };
 
   const submitRegister = async (e: Event) => {
@@ -243,6 +291,18 @@ export default function Catalog() {
               />
             </div>
             <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">CEP</label>
+              <input 
+                type="text" 
+                value={cep()} 
+                onInput={handleCepChange}
+                placeholder="00000-000"
+                maxLength="9"
+                class="w-full border-gray-300 rounded-lg shadow-sm focus:border-primary focus:ring-primary py-2 px-3 border outline-none"
+                required
+              />
+            </div>
+            <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Barrio</label>
               <select 
                 value={neighborhoodId()} 
@@ -350,6 +410,28 @@ export default function Catalog() {
           </div>
 
           <form onSubmit={handleSubmitOrder} class="mt-8 space-y-6 bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+            {/* ----------------- CROSS-SELLING ----------------- */}
+            <Show when={products().find(p => p.type === 'agua_20L' && !cart()[p.id])}>
+              {() => {
+                const waterProduct = products().find(p => p.type === 'agua_20L')!;
+                return (
+                  <div class="bg-blue-50/50 border border-blue-100 p-4 rounded-xl mb-4 flex items-center justify-between">
+                    <div>
+                      <h4 class="font-bold text-gray-800 text-sm">¿Deseas agregar algo más?</h4>
+                      <p class="text-xs text-gray-600 mt-0.5">Lleva un Botellón de Agua 20L por R$ {waterProduct.price.toFixed(2)}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => updateQty(waterProduct.id, 1)}
+                      class="px-4 py-2 bg-white border border-blue-200 text-blue-700 font-bold text-sm rounded-lg hover:bg-blue-50 transition-colors shadow-sm"
+                    >
+                      + Agregar
+                    </button>
+                  </div>
+                );
+              }}
+            </Show>
+
             <h3 class="font-bold text-gray-800 border-b pb-2">Datos de Entrega</h3>
             
             <div class="space-y-4">
