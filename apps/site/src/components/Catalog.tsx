@@ -16,7 +16,12 @@ interface Neighborhood {
 }
 
 export default function Catalog() {
-  const [step, setStep] = createSignal<'phone' | 'register' | 'catalog'>('phone');
+  // Detect if phone comes from WhatsApp URL to skip the phone form
+  const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+  const hasPhoneFromUrl = !!urlParams?.get('phone');
+  
+  const [step, setStep] = createSignal<'loading' | 'phone' | 'register' | 'catalog'>(hasPhoneFromUrl ? 'loading' : 'phone');
+  const [customerName, setCustomerName] = createSignal('');
   
   const [products, setProducts] = createSignal<Product[]>([]);
   const [neighborhoods, setNeighborhoods] = createSignal<Neighborhood[]>([]);
@@ -53,10 +58,9 @@ export default function Catalog() {
       if (data) setNeighborhoods(data);
     });
     
-    // Check URL for phone
-    const urlParams = new URLSearchParams(window.location.search);
-    const phoneParam = urlParams.get('phone');
-    if (phoneParam && step() === 'phone') {
+    // Check URL for phone (WhatsApp flow)
+    const phoneParam = urlParams?.get('phone');
+    if (phoneParam && (step() === 'phone' || step() === 'loading')) {
       setPhone(phoneParam);
       handlePhoneCheck(phoneParam);
     }
@@ -93,6 +97,7 @@ export default function Catalog() {
     }
     
     if (data && data.exists) {
+      setCustomerName(data.name || '');
       setAddress(data.address_line || '');
       setNeighborhoodId(data.neighborhood_id || '');
       setStep('catalog');
@@ -169,8 +174,17 @@ export default function Catalog() {
 
   return (
     <div class="space-y-6">
+
+      {/* ----------------- STEP 0: LOADING (WhatsApp flow) ----------------- */}
+      <Show when={step() === 'loading'}>
+        <div class="bg-white p-10 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center min-h-[200px]">
+          <div class="w-10 h-10 border-4 border-gray-200 border-t-primary rounded-full animate-spin mb-4"></div>
+          <p class="text-lg font-bold text-gray-800">Identificándote...</p>
+          <p class="text-sm text-gray-500 mt-1">Un momento, estamos buscando tu cuenta.</p>
+        </div>
+      </Show>
       
-      {/* ----------------- STEP 1: PHONE ----------------- */}
+      {/* ----------------- STEP 1: PHONE (solo acceso directo, sin WhatsApp) ----------------- */}
       <Show when={step() === 'phone'}>
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
           <h2 class="text-xl font-bold text-gray-800 mb-2">Ingresa tu WhatsApp</h2>
@@ -284,6 +298,14 @@ export default function Catalog() {
 
         <Show when={!orderSuccess()}>
           <div class="space-y-4">
+            {/* Banner de bienvenida para clientes recurrentes */}
+            <Show when={customerName()}>
+              <div class="bg-orange-50 border-l-4 border-primary p-4 rounded-xl">
+                <p class="text-base font-bold text-gray-800">¡Hola, {customerName()}! 👋</p>
+                <p class="text-sm text-gray-600 mt-0.5">Tu dirección: {address()}</p>
+              </div>
+            </Show>
+
             <Show when={submitError()}>
               <div data-testid="submit-error" class="bg-red-50 border-l-4 border-red-500 p-4 rounded-md shadow-sm mb-4">
                 <p class="text-sm text-red-700">{submitError()}</p>
@@ -331,15 +353,6 @@ export default function Catalog() {
             <h3 class="font-bold text-gray-800 border-b pb-2">Datos de Entrega</h3>
             
             <div class="space-y-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">WhatsApp</label>
-                <input 
-                  type="tel" 
-                  value={phone()} 
-                  class="w-full border-gray-300 rounded-lg shadow-sm bg-gray-50 text-gray-500 py-2 px-3 border outline-none cursor-not-allowed"
-                  disabled
-                />
-              </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Dirección Exacta</label>
                 <textarea 
