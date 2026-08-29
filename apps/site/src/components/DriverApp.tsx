@@ -105,13 +105,12 @@ export default function DriverApp() {
     
     setIsFinishing(true);
     
-    const { error } = await supabase
-      .from('orders')
-      .update({ 
-        status: 'entregado', 
-        cylinder_returned: cylinderReceived() 
-      })
-      .eq('id', order().id);
+    // Audit trail implementation: Use RPC instead of direct update
+    const { error } = await supabase.rpc('update_order_status', { 
+        p_order_id: order().id,
+        p_new_status: 'entregado',
+        p_cylinder_returned: cylinderReceived()
+    });
 
     setIsFinishing(false);
 
