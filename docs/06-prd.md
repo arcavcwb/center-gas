@@ -1,6 +1,6 @@
 # 06 - Documento de Requisitos del Producto (PRD)
 
-> **Alineado con Plane API - 26 Issues (2026-07-26)**
+> **Alineado con Plane API - 26 Issues (Agosto 2026 - ESTADO: Épicas 1 a 5 COMPLETADAS Y DESPLEGADAS)**
 
 ## Propósito
 Especificar en detalle los requisitos funcionales, historias de usuario y criterios de aceptación, estructurados rígidamente en las **6 Épicas (Epics)** que componen el desarrollo real según Plane.
