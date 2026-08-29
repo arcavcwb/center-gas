@@ -195,7 +195,7 @@
             },
             {
               "name": "text",
-              "value": "\u00a1Excelente noticia! \ud83d\ude9a Tu pedido #{{ $('Webhook Supabase').item.json.body.record.id }} va en camino. El motoboy fue notificado. Puedes tener listo el envase vac\u00edo si aplica."
+              "value": "\u00a1Excelente noticia! \ud83d\ude9a Tu pedido #{{ $('Webhook Supabase').item.json.body.record.display_id || $('Webhook Supabase').item.json.body.record.id }} va en camino. Tu motoboy es *{{ $('Webhook Supabase').item.json.body.record.driver_name || 'nuestro repartidor' }}*. Puedes tener listo el envase vac\u00edo si aplica."
             }
           ]
         },

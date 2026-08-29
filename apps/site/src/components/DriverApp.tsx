@@ -54,7 +54,7 @@ export default function DriverApp() {
         items:order_items ( quantity, product:product_id ( name ) )
       `)
       .eq('driver_id', driverId)
-      .in('status', ['nuevo', 'preparacion', 'en_camino'])
+      .in('status', ['asignado', 'en_camino'])
       .order('created_at', { ascending: true })
       .limit(1)
       .single();
@@ -71,11 +71,16 @@ export default function DriverApp() {
     e.preventDefault();
     setLoadingAuth(true);
     setAuthError('');
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email: email(),
       password: password(),
     });
-    if (error) setAuthError(error.message);
+    if (error) {
+      setAuthError(error.message);
+    } else if (data.session) {
+      setSession(data.session);
+      fetchActiveOrder(data.user.id);
+    }
     setLoadingAuth(false);
   };
 
@@ -132,32 +137,33 @@ export default function DriverApp() {
     return order().items.map((i: any) => `${i.quantity}x ${i.product.name}`).join(', ');
   };
 
-  if (!session()) {
-    return (
-      <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mt-10">
-        <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">Acceso Repartidor</h2>
-        <form onSubmit={handleLogin} class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input type="email" required value={email()} onInput={(e) => setEmail(e.currentTarget.value)} class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
-            <input type="password" required value={password()} onInput={(e) => setPassword(e.currentTarget.value)} class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none" />
-          </div>
-          <Show when={authError()}>
-            <p class="text-red-500 text-sm font-medium">{authError()}</p>
-          </Show>
-          <button type="submit" disabled={loadingAuth()} class="w-full bg-primary text-white font-bold py-4 rounded-xl active:bg-blue-800 transition-colors">
-            {loadingAuth() ? 'Entrando...' : 'Ingresar'}
-          </button>
-        </form>
-      </div>
-    );
-  }
-
   return (
     <div class="space-y-4">
+      <Show when={!session()}>
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mt-10">
+          <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">Acceso Repartidor</h2>
+          <form onSubmit={handleLogin} class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <input type="email" required value={email()} onInput={(e) => setEmail(e.currentTarget.value)} class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+              <input type="password" required value={password()} onInput={(e) => setPassword(e.currentTarget.value)} class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none" />
+            </div>
+            <Show when={authError()}>
+              <p class="text-red-500 text-sm font-medium">{authError()}</p>
+            </Show>
+            <button type="submit" disabled={loadingAuth()} class="w-full bg-primary text-white font-bold py-4 rounded-xl active:bg-blue-800 transition-colors">
+              {loadingAuth() ? 'Entrando...' : 'Ingresar'}
+            </button>
+          </form>
+        </div>
+      </Show>
+
+      <Show when={session()}>
+
+
       <div class="flex justify-end mb-4">
         <button onClick={handleLogout} class="text-sm font-medium text-gray-500 underline">Cerrar Sesión</button>
       </div>
@@ -314,6 +320,7 @@ export default function DriverApp() {
             </div>
           </div>
         </Show>
+      </Show>
       </Show>
     </div>
   );
