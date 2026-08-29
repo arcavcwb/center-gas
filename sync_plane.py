@@ -19,8 +19,7 @@ issues = response.json().get("results", [])
 
 # Lista de issues implementados en código pero huérfanos en Plane
 done_issues = [
-    "ISSUE-102", "ISSUE-105", "ISSUE-107", 
-    "ISSUE-108", "ISSUE-201", "ISSUE-303"
+    "ISSUE-304"
 ]
 
 def add_issue_to_cycle(issue_id):
@@ -41,7 +40,7 @@ def update_issue_state(issue_id):
 
 def add_comment(issue_id, issue_name):
     comment_url = f"{BASE_URL}/api/v1/workspaces/{WORKSPACE}/projects/{PROJECT_ID}/issues/{issue_id}/comments/"
-    html = f"<p><b>Sincronización Automática de Gobernanza:</b></p><p>Este ticket (<b>{issue_name}</b>) fue implementado en código durante los Sprints pasados pero su estado había quedado desfasado en Plane. Se ha cerrado formalmente para reflejar la realidad del repositorio (Regla: Git for Code, Plane for Business).</p>"
+    html = f"<p><b>MVP Completado y Desplegado (PR #14 y #15):</b></p><p>Se ha implementado el <b>Happy Path End-to-End</b>. Los contratos (Zod) se han actualizado y el B2B Dashboard extrae los datos de fidelidad (<code>loyalty_points</code>, <code>available_free_cylinders</code>) en tiempo real. También se activó el Trigger de base de datos que empuja el estado vía Webhook hacia n8n.</p><p>Pruebas Playwright (E2E) pasaron en verde.</p>"
     resp = requests.post(comment_url, headers=headers, json={"comment_html": html})
     if resp.status_code in [200, 201]:
         print(f" -> Comentario HTML añadido")

@@ -2,7 +2,7 @@
 name: frontend-dev-agent
 description: Construye componentes en Next.js/Astro/Solid consumiendo tipos de packages/contracts. Nunca declara tipos propios.
 subagent: true
-model: claude-3-5-sonnet-latest
+model: claude-sonnet-4-6
 inheritMcp: true
 ---
 # Frontend Dev Agent

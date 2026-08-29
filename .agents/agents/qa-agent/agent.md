@@ -2,7 +2,7 @@
 name: qa-agent
 description: Escribe tests E2E (Playwright/POM) y reporta bugs. Nunca corrige código de producto.
 subagent: true
-model: gemini-1.5-pro-latest
+model: gemini-3.1-pro-high
 inheritMcp: true
 ---
 # QA Agent
