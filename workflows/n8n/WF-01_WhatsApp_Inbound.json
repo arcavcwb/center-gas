@@ -34,6 +34,40 @@
     {
       "parameters": {
         "method": "POST",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/rpc/generate_catalog_session",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $env.SUPABASE_ANON_KEY }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.SUPABASE_ANON_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "p_phone",
+              "value": "={{ $json.body.data.key.remoteJid.replace('@s.whatsapp.net', '') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "http-supabase-token",
+      "name": "Generate Catalog Token",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [ 700, 280 ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
         "url": "={{ $env.EVOLUTION_API_URL }}/message/sendText/{{ $env.EVOLUTION_INSTANCE_NAME }}",
         "sendHeaders": true,
         "headerParameters": {
@@ -49,11 +83,11 @@
           "parameters": [
             {
               "name": "number",
-              "value": "={{ $json.body.data.key.remoteJid }}"
+              "value": "={{ $('Es mensaje válido?').item.json.body.data.key.remoteJid }}"
             },
             {
               "name": "text",
-              "value": "¡Hola! 🚀 Haz tu pedido de gas rápido y sin intermediarios desde nuestro catálogo: https://APP_URL/?phone={{ $json.body.data.key.remoteJid.replace('@s.whatsapp.net', '') }}"
+              "value": "¡Hola! 🚀 Haz tu pedido de gas rápido y seguro desde nuestro catálogo: https://APP_URL/?token={{ $json }}"
             }
           ]
         },
@@ -63,7 +97,7 @@
       "name": "Enviar Auto-Respuesta",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [ 700, 280 ]
+      "position": [ 950, 280 ]
     }
   ],
   "connections": {
@@ -79,6 +113,17 @@
       ]
     },
     "Es mensaje válido?": {
+      "main": [
+        [
+          {
+            "node": "Generate Catalog Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Catalog Token": {
       "main": [
         [
           {
