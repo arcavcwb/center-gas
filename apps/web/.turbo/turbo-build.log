@@ -7,7 +7,7 @@
 
    Creating an optimized production build ...
  ✓ Finished writing to disk in 8ms
- ✓ Compiled successfully in 12.7s
+ ✓ Compiled successfully in 7.0s
    Linting and checking validity of types     ✓ Linting and checking validity of types 
    Collecting page data     ✓ Collecting page data 
  ✓ Generating static pages (6/6)
@@ -15,14 +15,14 @@
    Finalizing page optimization     ✓ Finalizing page optimization 
 
 Route (app)                         Size  First Load JS
-┌ ○ /                            5.05 kB         181 kB
+┌ ○ /                            5.29 kB         182 kB
 ├ ○ /_not-found                      0 B         114 kB
-└ ○ /login                         846 B         177 kB
-+ First Load JS shared by all     121 kB
+└ ○ /login                         853 B         177 kB
++ First Load JS shared by all     122 kB
   ├ chunks/3865b5f3e333ee2e.js   10.9 kB
   ├ chunks/a77dd67ff05f9cc8.js   75.4 kB
   └ chunks/d2854bfd09f24f4b.js   14.4 kB
-  └ other shared chunks (total)  20.4 kB
+  └ other shared chunks (total)    21 kB
 
 
 ○  (Static)  prerendered as static content
