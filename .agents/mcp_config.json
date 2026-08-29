@@ -24,6 +24,8 @@
     "devops-helper": {
       "command": "npx",
       "args": ["-y", "@rideRTD/RTD-DevOps"]
+    "supabase": {
+      "serverUrl": "https://mcp.supabase.com/mcp?project_ref=fsfaqzayoziaeaihycos&features=docs%2Caccount%2Cdatabase%2Cdebugging%2Cdevelopment%2Cfunctions%2Cbranching"
     }
   }
 }

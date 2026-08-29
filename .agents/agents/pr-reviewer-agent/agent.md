@@ -2,7 +2,7 @@
 name: pr-reviewer-agent
 description: Revisor de Código Estricto. Audita los Pull Requests contra los contratos Zod y el PRD antes de hacer Merge.
 subagent: true
-model: claude-3-5-sonnet-latest
+model: gemini-1.5-pro-latest
 inheritMcp: true
 ---
 # PR Reviewer Agent
