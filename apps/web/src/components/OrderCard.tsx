@@ -14,10 +14,15 @@ export function OrderCard({ order, onUpdateStatus, onCancelRequest }: OrderCardP
   const isNew = order.status === 'nuevo' || order.status === 'confirmado';
   
   return (
-    <div className="bg-white p-5 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200 border border-slate-100 flex flex-col gap-4 group">
+    <div className={`bg-white p-5 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200 border border-slate-100 flex flex-col gap-4 group border-l-4 ${isNew ? 'border-l-brand-orange' : 'border-l-brand-blue'}`}>
       <div className="flex justify-between items-start">
         <div>
-          <span className="font-bold text-slate-800 tracking-tight">#{order.display_id}</span>
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-slate-800 tracking-tight">#{order.display_id}</span>
+            {order.status === 'nuevo' && (
+              <span className="px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-red-100 text-red-600 rounded animate-pulse">🔥 Reciente</span>
+            )}
+          </div>
           <p className="text-sm font-semibold text-slate-700 mt-1">{order.customer?.name || order.customer_id}</p>
           <p className="text-xs text-slate-500 mt-0.5">{order.customer?.address_line || 'Sin dirección'}</p>
           
