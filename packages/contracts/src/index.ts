@@ -3,7 +3,10 @@ import { z } from "zod";
 export const CustomerSchema = z.object({
   id: z.string().uuid(),
   phone: z.string(),
-  name: z.string().optional(),
+  full_name: z.string().optional(),
+  address: z.string().optional(),
+  loyalty_points: z.number().int().min(0).optional(),
+  available_free_cylinders: z.number().int().min(0).optional(),
 });
 
 export type Customer = z.infer<typeof CustomerSchema>;
