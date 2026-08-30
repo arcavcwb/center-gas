@@ -19,7 +19,8 @@ Toda la documentación conceptual, funcional, de UI/UX, arquitectura, base de da
 
 ## Contenido Principal
 
-### 1. Cronograma de Ejecución Incremental (4 Sprints - 8 Semanas)
+### 1. Cronograma de Ejecución Incremental (4 Sprints - COMPLETADOS)
+> **ESTADO ACTUAL (Agosto 2026):** Los Sprints 1 al 4 (que cubren las Épicas 1 a 5) han sido desarrollados, integrados y testeados exitosamente. El proyecto se encuentra en una pausa de validación antes de entrar al proceso final de QA y monitoreo (Épica 6).
 
 ```mermaid
 gantt

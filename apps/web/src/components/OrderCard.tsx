@@ -6,7 +6,7 @@ import type { Order } from '@center-gas/contracts';
 
 interface OrderCardProps {
   order: Order;
-  onUpdateStatus: (orderId: string, newStatus: string) => void;
+  onUpdateStatus: (orderId: string, newStatus: string, driverId?: string) => void;
   onCancelRequest: (orderId: string) => void;
 }
 
@@ -56,15 +56,13 @@ export function OrderCard({ order, onUpdateStatus, onCancelRequest }: OrderCardP
         {isNew ? (
           <select 
             onChange={(e) => {
-              if (e.target.value) onUpdateStatus(order.id, 'asignado');
+              if (e.target.value) onUpdateStatus(order.id, 'asignado', e.target.value);
             }}
             defaultValue=""
             className="flex-1 bg-slate-50 border border-slate-200 text-slate-700 py-2.5 px-3 rounded-lg font-medium text-sm outline-none focus:border-brand-blue focus:ring-1 focus:ring-brand-blue transition-colors cursor-pointer appearance-none"
           >
             <option value="" disabled>Asignar Motoboy...</option>
-            <option value="driver1">Carlos (Zona Norte)</option>
-            <option value="driver2">João (Zona Sur)</option>
-            <option value="driver3">Pedro (Centro)</option>
+            <option value="40516925-d458-4fea-926e-1f942b51681b">Carlos (Motoboy)</option>
           </select>
         ) : (
           <button 

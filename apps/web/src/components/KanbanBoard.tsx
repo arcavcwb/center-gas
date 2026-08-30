@@ -63,14 +63,15 @@ export function KanbanBoard() {
     };
   }, []);
 
-  const handleUpdateStatus = async (orderId: string, newStatus: string) => {
+  const handleUpdateStatus = async (orderId: string, newStatus: string, driverId?: string) => {
     // Optimistic UI update
     setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus as Order['status'] } : o));
     
     // DB update using RPC to track history
     await supabase.rpc('update_order_status', { 
       p_order_id: orderId, 
-      p_new_status: newStatus 
+      p_new_status: newStatus,
+      p_driver_id: driverId || null
     });
   };
 

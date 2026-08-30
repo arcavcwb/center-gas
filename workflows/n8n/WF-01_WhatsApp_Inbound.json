@@ -40,11 +40,11 @@
           "parameters": [
             {
               "name": "apikey",
-              "value": "={{ $env.SUPABASE_ANON_KEY }}"
+              "value": "={{ $env.SUPABASE_SERVICE_ROLE_KEY }}"
             },
             {
               "name": "Authorization",
-              "value": "=Bearer {{ $env.SUPABASE_ANON_KEY }}"
+              "value": "=Bearer {{ $env.SUPABASE_SERVICE_ROLE_KEY }}"
             }
           ]
         },
@@ -63,7 +63,35 @@
       "name": "Generate Catalog Token",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [ 700, 280 ]
+      "position": [ 650, 300 ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json }}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        }
+      },
+      "id": "if-token-valid",
+      "name": "Token generado? (Rate Limit Check)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [ 850, 300 ]
+    },
+    {
+      "parameters": {
+        "amount": "={{ Math.floor(Math.random() * 6) + 4 }}",
+        "unit": "seconds"
+      },
+      "id": "wait-human-delay",
+      "name": "Delay Anti-Robot (4-9s)",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [ 1050, 280 ]
     },
     {
       "parameters": {
@@ -87,7 +115,7 @@
             },
             {
               "name": "text",
-              "value": "¡Hola! 🚀 Haz tu pedido de gas rápido y seguro desde nuestro catálogo: https://APP_URL/?token={{ $json }}"
+              "value": "Oi! 👋 Vi sua mensagem.\n\nAcesse o link abaixo para fazer seu pedido direto e com segurança:\n🔗 {{ $env.CATALOG_URL }}/?token={{ $('Generate Catalog Token').item.json }}\n\nO link é válido por 24 horas. Qualquer dúvida é só chamar! 😊"
             }
           ]
         },
@@ -97,7 +125,10 @@
       "name": "Enviar Auto-Respuesta",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [ 950, 280 ]
+      "position": [ 1250, 280 ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
     }
   ],
   "connections": {
@@ -127,6 +158,28 @@
       "main": [
         [
           {
+            "node": "Token generado? (Rate Limit Check)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Token generado? (Rate Limit Check)": {
+      "main": [
+        [
+          {
+            "node": "Delay Anti-Robot (4-9s)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delay Anti-Robot (4-9s)": {
+      "main": [
+        [
+          {
             "node": "Enviar Auto-Respuesta",
             "type": "main",
             "index": 0
@@ -136,6 +189,7 @@
     }
   },
   "settings": {
-    "executionOrder": "v1"
+    "executionOrder": "v1",
+    "errorWorkflow": "WF-04: Global Error Handler"
   }
 }
