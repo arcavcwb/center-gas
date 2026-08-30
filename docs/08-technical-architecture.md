@@ -45,7 +45,7 @@ El proyecto utiliza un modelo Trunk-Based Development con `main` protegida. Los 
 | **Backend as a Service** | **Supabase** | Elimina la necesidad de programar un backend Node.js tradicional. Proporciona Auth, API REST autogenerada y Realtime API para el Kanban. |
 | **Base de Datos** | **PostgreSQL** | Motor relacional robusto. Garantiza integridad transaccional (ACID) y seguridad perimetral vía RLS. |
 | **Orquestador Lógico** | **n8n** | Maneja la lógica asíncrona, webhooks de WhatsApp y triggers de base de datos sin acoplar el frontend a flujos pesados. |
-| **Gateway WhatsApp** | **Por definir (ISSUE-403)** | Meta Cloud API vs Evolution API. Manejará la mensajería inbound/outbound. |
+| **Gateway WhatsApp** | **Evolution API v2** | Instancia self-hosted conectada vía Baileys. Maneja la mensajería inbound/outbound con protección anti-baneo. (ISSUE-403) |
 | **APIs Externas** | **ViaCEP** | API pública brasileña para autocompletado instantáneo de direcciones mediante el Código Postal (CEP). Reduce fricción en el frontend. |
 | **Telemetría y Logs** | **Sentry + OpenPanel** | Sentry captura errores de Javascript/UI en tiempo real. OpenPanel ofrece analítica self-hosted y LGPD-compliant para métricas de negocio. |
 | **Monitorización** | **Uptime Kuma** | Watchdog self-hosted para verificar el uptime de N8N, Supabase y los frontends cada 60s, con alertas a Telegram/WhatsApp. |
@@ -113,3 +113,4 @@ graph TD
 | 1.0 | 2026-07-23 | Tech Arch | Definición inicial |
 | 2.0 | 2026-07-26 | Antigravity | Refactor: Inclusión formal de Monorepo híbrido (Next.js / Astro) acorde a ISSUE-101 e ISSUE-201. |
 | 2.1 | 2026-07-26 | Antigravity | Add: Capa de Telemetría (Sentry, Uptime Kuma, OpenPanel) y dependencias de API externa (ViaCEP). |
+| 2.2 | 2026-08-30 | Architect Agent | Actualización final de Gateway WhatsApp: Selección de Evolution API v2 (ISSUE-403). |
