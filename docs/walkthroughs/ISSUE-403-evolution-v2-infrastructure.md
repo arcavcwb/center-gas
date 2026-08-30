@@ -29,6 +29,21 @@ Configurar la infraestructura de mensajería para Center Gas de manera segura, e
 - [x] Respaldo de infraestructura versionada (Zero-Trust CI/CD).
 - [x] Sin asunciones de API: se probó y ajustó iterativamente contra Evolution API v2.3.7 real.
 
-## 🚀 Siguientes Pasos (Negocio)
-1. Conectar el N8N al webhook de Evolution API.
-2. Iniciar el periodo de Warm-up de 2 semanas del número antes de encender campañas masivas, tal como dicta el Protocolo Anti-Baneo.
+## 🚀 Siguientes Pasos
+### 3. Limpieza y Activación Segura de n8n (30 Ago)
+- Se auditó el servidor n8n en producción (`n8n.arcav.us`) identificando conflictos debido a workflows duplicados y obsoletos (creados en sesiones anteriores).
+- Se ejecutó un plan de limpieza vía API REST, eliminando permanentemente los workflows obsoletos:
+  - `WF-01` (ID: yt9SGF4BibKNd4WL)
+  - `WF-02` (ID: mxiksZimTLupEBbf)
+  - `WF-02/03` (ID: KmpLWxprPdTIa75W)
+- Se auditaron y activaron los workflows definitivos (29 Ago) asegurando que contengan el diseño Anti-Ban y el manejo global de errores:
+  - ✅ Activado: `WF-02/03` (Notificaciones Outbound - ID: SCqre7me1lAPKeH1)
+  - ✅ Activado: `WF-04` (Error Handler - ID: lqecFPUmQqc5qul0)
+  - ⏸️ Inactivo (Warm-up Protocol): `WF-01` (Inbound)
+- Se disparó exitosamente un mensaje de prueba a través del endpoint `/message/sendText` de la infraestructura de Evolution API v2 para validar el funcionamiento End-to-End.
+
+## Verificación Manual
+1. Validar en el dashboard de n8n que solo queden los 3 flujos finales (del 29 Ago).
+2. Crear o actualizar un pedido en Supabase para que pase a estado "En Camino".
+3. Verificar que el Webhook de Supabase se haya disparado hacia n8n.
+4. Confirmar recepción del mensaje automatizado en el WhatsApp del cliente con el nombre dinámico del Motoboy (ej: "Tu pedido va en camino con Carlos").
