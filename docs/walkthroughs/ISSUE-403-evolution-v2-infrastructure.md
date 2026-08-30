@@ -47,3 +47,15 @@ Configurar la infraestructura de mensajería para Center Gas de manera segura, e
 2. Crear o actualizar un pedido en Supabase para que pase a estado "En Camino".
 3. Verificar que el Webhook de Supabase se haya disparado hacia n8n.
 4. Confirmar recepción del mensaje automatizado en el WhatsApp del cliente con el nombre dinámico del Motoboy (ej: "Tu pedido va en camino con Carlos").
+
+### Fase 4: Corrección de Expresiones n8n y Formato de Teléfono
+Durante las pruebas End-to-End, se detectaron dos fallas críticas en el procesamiento del webhook en n8n:
+1. **Error de formato de payload (Idempotency):** El webhook personalizado de Supabase (`net.http_post`) enviaba el JSON en la raíz (`body.id`), mientras que n8n esperaba el formato por defecto (`body.record.id`). Esto provocaba inserciones nulas en la tabla de log y fallas en la base de datos (409 Conflict o Constraint Violations).
+2. **Error de país en número de teléfono (Bad Request Evolution API):** Los números de teléfono capturados de la base de datos no tenían el código de país `55` requerido por Evolution API V2.
+
+**Solución aplicada directamente vía REST API a n8n:**
+- Se actualizaron todas las referencias en los nodos de n8n para usar `json.body.id`, `json.body.status` y `json.body.customer_phone`.
+- Se incluyó lógica dinámica en las expresiones de n8n para asegurar que el número de teléfono comience siempre con `55`: `{{ $('Webhook Supabase').item.json.body.customer_phone.startsWith('55') ? $('Webhook Supabase').item.json.body.customer_phone : '55' + $('Webhook Supabase').item.json.body.customer_phone }}`.
+- Se corrigió el uso incorrecto de variables de entorno (bloqueado por `N8N_BLOCK_ENV_ACCESS_IN_NODE`), reemplazándolas por los valores concretos.
+
+**Resultado:** Las ejecuciones en n8n finalizaron con status `SUCCESS` y la plataforma de WhatsApp recibió y entregó exitosamente los mensajes. El archivo JSON en el repositorio (`workflows/n8n/WF-02_WhatsApp_Outbound.json`) fue actualizado para reflejar este estado exitoso.
