@@ -34,17 +34,17 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $env.SUPABASE_URL }}/rest/v1/rpc/check_rate_limit",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/rpc/generate_catalog_session",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
               "name": "apikey",
-              "value": "={{ $env.SUPABASE_ANON_KEY }}"
+              "value": "={{ $env.SUPABASE_SERVICE_ROLE_KEY }}"
             },
             {
               "name": "Authorization",
-              "value": "=Bearer {{ $env.SUPABASE_ANON_KEY }}"
+              "value": "=Bearer {{ $env.SUPABASE_SERVICE_ROLE_KEY }}"
             }
           ]
         },
@@ -54,62 +54,6 @@
             {
               "name": "p_phone",
               "value": "={{ $json.body.data.key.remoteJid.replace('@s.whatsapp.net', '') }}"
-            },
-            {
-              "name": "p_minutes",
-              "value": "10"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "http-check-rate-limit",
-      "name": "Check Rate Limit (10min)",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.1,
-      "position": [ 650, 300 ]
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "boolean": [
-            {
-              "value1": "={{ $json }}",
-              "value2": true,
-              "operation": "equal"
-            }
-          ]
-        }
-      },
-      "id": "if-rate-limit-ok",
-      "name": "Puede responder?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 1,
-      "position": [ 850, 300 ]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "={{ $env.SUPABASE_URL }}/rest/v1/rpc/generate_catalog_session",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "apikey",
-              "value": "={{ $env.SUPABASE_ANON_KEY }}"
-            },
-            {
-              "name": "Authorization",
-              "value": "=Bearer {{ $env.SUPABASE_ANON_KEY }}"
-            }
-          ]
-        },
-        "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "p_phone",
-              "value": "={{ $('Es mensaje válido?').item.json.body.data.key.remoteJid.replace('@s.whatsapp.net', '') }}"
             }
           ]
         },
@@ -119,7 +63,24 @@
       "name": "Generate Catalog Token",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [ 1050, 280 ]
+      "position": [ 650, 300 ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json }}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        }
+      },
+      "id": "if-token-valid",
+      "name": "Token generado? (Rate Limit Check)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [ 850, 300 ]
     },
     {
       "parameters": {
@@ -130,7 +91,7 @@
       "name": "Delay Anti-Robot (4-9s)",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1,
-      "position": [ 1250, 280 ]
+      "position": [ 1050, 280 ]
     },
     {
       "parameters": {
@@ -164,7 +125,10 @@
       "name": "Enviar Auto-Respuesta",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [ 1450, 280 ]
+      "position": [ 1250, 280 ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
     }
   ],
   "connections": {
@@ -183,28 +147,6 @@
       "main": [
         [
           {
-            "node": "Check Rate Limit (10min)",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Check Rate Limit (10min)": {
-      "main": [
-        [
-          {
-            "node": "Puede responder?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Puede responder?": {
-      "main": [
-        [
-          {
             "node": "Generate Catalog Token",
             "type": "main",
             "index": 0
@@ -213,6 +155,17 @@
       ]
     },
     "Generate Catalog Token": {
+      "main": [
+        [
+          {
+            "node": "Token generado? (Rate Limit Check)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Token generado? (Rate Limit Check)": {
       "main": [
         [
           {
