@@ -1,332 +1,724 @@
 {
-  "name": "WF-02/03: WhatsApp Outbound Notifications",
-  "nodes": [
-    {
-      "parameters": {
-        "httpMethod": "POST",
-        "path": "supabase-outbound-orders",
-        "responseMode": "lastNode",
-        "options": {}
-      },
-      "id": "webhook-supabase",
-      "name": "Webhook Supabase",
-      "type": "n8n-nodes-base.webhook",
-      "typeVersion": 1,
-      "position": [
-        100,
-        300
-      ]
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "string": [
-            {
-              "value1": "={{ $json.headers.authorization }}",
-              "operation": "equal",
-              "value2": "Bearer CENTERGAS_SECURE_TOKEN_2026"
-            }
-          ]
+    "updatedAt": "2026-08-30T23:32:55.289Z",
+    "createdAt": "2026-08-29T19:34:33.208Z",
+    "id": "SCqre7me1lAPKeH1",
+    "name": "WF-02/03: WhatsApp Outbound Notifications",
+    "description": null,
+    "active": true,
+    "isArchived": false,
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "supabase-outbound-orders",
+                "responseMode": "lastNode",
+                "options": {}
+            },
+            "id": "webhook-supabase",
+            "name": "Webhook Supabase",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 1,
+            "position": [
+                100,
+                300
+            ],
+            "webhookId": "e1761bae-12ce-4e23-93f7-df3485bfd268"
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "string": [
+                        {
+                            "value1": "={{ $json.headers.authorization }}",
+                            "operation": "equal",
+                            "value2": "Bearer CENTERGAS_SECURE_TOKEN_2026"
+                        }
+                    ]
+                }
+            },
+            "id": "if-validate-token",
+            "name": "Validate Token",
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 1,
+            "position": [
+                200,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "=https://fsfaqzayoziaeaihycos.supabase.co/rest/v1/notifications_log",
+                "sendHeaders": true,
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "apikey",
+                            "value": "=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZzZmFxemF5b3ppYWVhaWh5Y29zIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4Nzk5MTYyMywiZXhwIjoyMTAzNTY3NjIzfQ.NOMiAeXjILk-85YSbT4KKrI8A4Z-_vmCMDkNhFKNDhg"
+                        },
+                        {
+                            "name": "Authorization",
+                            "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZzZmFxemF5b3ppYWVhaWh5Y29zIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4Nzk5MTYyMywiZXhwIjoyMTAzNTY3NjIzfQ.NOMiAeXjILk-85YSbT4KKrI8A4Z-_vmCMDkNhFKNDhg"
+                        }
+                    ]
+                },
+                "sendBody": true,
+                "bodyParameters": {
+                    "parameters": [
+                        {
+                            "name": "order_id",
+                            "value": "={{ $('Webhook Supabase').item.json.body.id }}"
+                        },
+                        {
+                            "name": "notification_type",
+                            "value": "={{ $('Webhook Supabase').item.json.body.status }}"
+                        }
+                    ]
+                },
+                "options": {
+                    "ignoreResponseCode": true
+                }
+            },
+            "id": "http-idempotency",
+            "name": "Idempotency Insert",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.1,
+            "position": [
+                300,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "string": [
+                        {
+                            "value1": "={{ $json.statusCode }}",
+                            "operation": "notEqual",
+                            "value2": "409"
+                        }
+                    ]
+                }
+            },
+            "id": "if-not-duplicate",
+            "name": "Is Not Duplicate?",
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 1,
+            "position": [
+                500,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "dataType": "string",
+                "value1": "={{ $('Webhook Supabase').item.json.body.status }}",
+                "rules": {
+                    "rules": [
+                        {
+                            "value2": "nuevo",
+                            "outputKey": "Nuevo"
+                        },
+                        {
+                            "value2": "en_camino",
+                            "outputKey": "En Camino"
+                        },
+                        {
+                            "value2": "entregado",
+                            "outputKey": "Entregado"
+                        }
+                    ]
+                },
+                "fallbackOutput": 3
+            },
+            "id": "switch-status",
+            "name": "Estado del Pedido",
+            "type": "n8n-nodes-base.switch",
+            "typeVersion": 1,
+            "position": [
+                700,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "=https://evolution.arcav.us/message/sendText/centerGas",
+                "sendHeaders": true,
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "apikey",
+                            "value": "=CENTERGAS_EVOLUTION_KEY_2026"
+                        }
+                    ]
+                },
+                "sendBody": true,
+                "bodyParameters": {
+                    "parameters": [
+                        {
+                            "name": "number",
+                            "value": "={{ $('Webhook Supabase').item.json.body.customer_phone.startsWith('55') ? $('Webhook Supabase').item.json.body.customer_phone : '55' + $('Webhook Supabase').item.json.body.customer_phone }}"
+                        },
+                        {
+                            "name": "text",
+                            "value": "=\u00a1Recibimos tu pedido #{{ $('Webhook Supabase').item.json.body.id }}, total R$ {{ $('Webhook Supabase').item.json.body.total_amount }}! \ud83d\udcdd Te avisaremos en cuanto salga hacia tu direcci\u00f3n."
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "id": "http-send-nuevo",
+            "name": "Enviar Confirmaci\u00f3n (Nuevo)",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.1,
+            "position": [
+                1000,
+                100
+            ],
+            "retryOnFail": true,
+            "maxTries": 3,
+            "waitBetweenTries": 2000
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "=https://evolution.arcav.us/message/sendText/centerGas",
+                "sendHeaders": true,
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "apikey",
+                            "value": "=CENTERGAS_EVOLUTION_KEY_2026"
+                        }
+                    ]
+                },
+                "sendBody": true,
+                "bodyParameters": {
+                    "parameters": [
+                        {
+                            "name": "number",
+                            "value": "={{ $('Webhook Supabase').item.json.body.customer_phone.startsWith('55') ? $('Webhook Supabase').item.json.body.customer_phone : '55' + $('Webhook Supabase').item.json.body.customer_phone }}"
+                        },
+                        {
+                            "name": "text",
+                            "value": "=\u00a1Excelente noticia! \ud83d\ude9a Tu pedido #{{ $('Webhook Supabase').item.json.body.id }} va en camino. El motoboy fue notificado. Puedes tener listo el envase vac\u00edo si aplica."
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "id": "http-send-en-camino",
+            "name": "Enviar En Camino",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.1,
+            "position": [
+                1000,
+                300
+            ],
+            "retryOnFail": true,
+            "maxTries": 3,
+            "waitBetweenTries": 2000
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "=https://evolution.arcav.us/message/sendText/centerGas",
+                "sendHeaders": true,
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "apikey",
+                            "value": "=CENTERGAS_EVOLUTION_KEY_2026"
+                        }
+                    ]
+                },
+                "sendBody": true,
+                "bodyParameters": {
+                    "parameters": [
+                        {
+                            "name": "number",
+                            "value": "={{ $('Webhook Supabase').item.json.body.customer_phone.startsWith('55') ? $('Webhook Supabase').item.json.body.customer_phone : '55' + $('Webhook Supabase').item.json.body.customer_phone }}"
+                        },
+                        {
+                            "name": "text",
+                            "value": "=\u00a1Tu pedido #{{ $('Webhook Supabase').item.json.body.id }} fue entregado con \u00e9xito! \u2705 Gracias por elegir Center Gas. Esperamos verte pronto."
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "id": "http-send-entregado",
+            "name": "Enviar Entregado",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.1,
+            "position": [
+                1000,
+                500
+            ],
+            "retryOnFail": true,
+            "maxTries": 3,
+            "waitBetweenTries": 2000
         }
-      },
-      "id": "if-validate-token",
-      "name": "Validate Token",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 1,
-      "position": [
-        200,
-        300
-      ]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "={{ $env.PUBLIC_SUPABASE_URL }}/rest/v1/notifications_log",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "apikey",
-              "value": "={{ $env.SUPABASE_SERVICE_ROLE_KEY }}"
-            },
-            {
-              "name": "Authorization",
-              "value": "Bearer {{ $env.SUPABASE_SERVICE_ROLE_KEY }}"
-            }
-          ]
+    ],
+    "connections": {
+        "Webhook Supabase": {
+            "main": [
+                [
+                    {
+                        "node": "Validate Token",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
         },
-        "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "order_id",
-              "value": "={{ $('Webhook Supabase').item.json.body.record.id }}"
-            },
-            {
-              "name": "notification_type",
-              "value": "={{ $('Webhook Supabase').item.json.body.record.status }}"
-            }
-          ]
+        "Idempotency Insert": {
+            "main": [
+                [
+                    {
+                        "node": "Is Not Duplicate?",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
         },
-        "options": {
-          "ignoreResponseCode": true
+        "Is Not Duplicate?": {
+            "main": [
+                [
+                    {
+                        "node": "Estado del Pedido",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Estado del Pedido": {
+            "main": [
+                [
+                    {
+                        "node": "Enviar Confirmaci\u00f3n (Nuevo)",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Enviar En Camino",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Enviar Entregado",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Validate Token": {
+            "main": [
+                [
+                    {
+                        "node": "Idempotency Insert",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
         }
-      },
-      "id": "http-idempotency",
-      "name": "Idempotency Insert",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.1,
-      "position": [
-        300,
-        300
-      ]
     },
-    {
-      "parameters": {
-        "conditions": {
-          "string": [
-            {
-              "value1": "={{ $json.statusCode }}",
-              "operation": "notEqual",
-              "value2": "409"
+    "settings": {
+        "executionOrder": "v1",
+        "errorWorkflow": "WF-04: Global Error Handler"
+    },
+    "staticData": null,
+    "meta": null,
+    "nodeGroups": [],
+    "pinData": null,
+    "versionId": "2818d2c1-9c33-4646-9987-b1283e41dae5",
+    "activeVersionId": "2818d2c1-9c33-4646-9987-b1283e41dae5",
+    "versionCounter": 4,
+    "triggerCount": 1,
+    "sourceWorkflowId": null,
+    "shared": [
+        {
+            "updatedAt": "2026-08-29T19:34:33.212Z",
+            "createdAt": "2026-08-29T19:34:33.212Z",
+            "role": "workflow:owner",
+            "workflowId": "SCqre7me1lAPKeH1",
+            "projectId": "0BjEtLomVWwq0wS2",
+            "project": {
+                "updatedAt": "2026-06-14T22:44:06.192Z",
+                "createdAt": "2026-06-14T22:36:54.846Z",
+                "id": "0BjEtLomVWwq0wS2",
+                "name": "Arcav Armando Castro <armandocastrocwb@gmail.com>",
+                "type": "personal",
+                "icon": null,
+                "description": null,
+                "customTelemetryTags": [],
+                "creatorId": "c7d3e6c1-48c4-4c70-b8d9-fcadcec0cb13"
             }
-          ]
         }
-      },
-      "id": "if-not-duplicate",
-      "name": "Is Not Duplicate?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 1,
-      "position": [
-        500,
-        300
-      ]
-    },
-    {
-      "parameters": {
-        "dataType": "string",
-        "value1": "={{ $('Webhook Supabase').item.json.body.record.status }}",
-        "rules": {
-          "rules": [
+    ],
+    "tags": [],
+    "activeVersion": {
+        "updatedAt": "2026-08-30T23:32:55.292Z",
+        "createdAt": "2026-08-30T23:32:55.292Z",
+        "versionId": "2818d2c1-9c33-4646-9987-b1283e41dae5",
+        "workflowId": "SCqre7me1lAPKeH1",
+        "nodes": [
             {
-              "value2": "nuevo",
-              "outputKey": "Nuevo"
+                "parameters": {
+                    "httpMethod": "POST",
+                    "path": "supabase-outbound-orders",
+                    "responseMode": "lastNode",
+                    "options": {}
+                },
+                "id": "webhook-supabase",
+                "name": "Webhook Supabase",
+                "type": "n8n-nodes-base.webhook",
+                "typeVersion": 1,
+                "position": [
+                    100,
+                    300
+                ],
+                "webhookId": "e1761bae-12ce-4e23-93f7-df3485bfd268"
             },
             {
-              "value2": "en_camino",
-              "outputKey": "En Camino"
+                "parameters": {
+                    "conditions": {
+                        "string": [
+                            {
+                                "value1": "={{ $json.headers.authorization }}",
+                                "operation": "equal",
+                                "value2": "Bearer CENTERGAS_SECURE_TOKEN_2026"
+                            }
+                        ]
+                    }
+                },
+                "id": "if-validate-token",
+                "name": "Validate Token",
+                "type": "n8n-nodes-base.if",
+                "typeVersion": 1,
+                "position": [
+                    200,
+                    300
+                ]
             },
             {
-              "value2": "entregado",
-              "outputKey": "Entregado"
-            }
-          ]
-        },
-        "fallbackOutput": 3
-      },
-      "id": "switch-status",
-      "name": "Estado del Pedido",
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 1,
-      "position": [
-        700,
-        300
-      ]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "={{ $env.EVOLUTION_API_URL }}/message/sendText/{{ $env.EVOLUTION_INSTANCE_NAME }}",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "apikey",
-              "value": "={{ $env.EVOLUTION_API_KEY }}"
-            }
-          ]
-        },
-        "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "number",
-              "value": "={{ $('Webhook Supabase').item.json.body.record.customer_phone }}"
+                "parameters": {
+                    "method": "POST",
+                    "url": "=https://fsfaqzayoziaeaihycos.supabase.co/rest/v1/notifications_log",
+                    "sendHeaders": true,
+                    "headerParameters": {
+                        "parameters": [
+                            {
+                                "name": "apikey",
+                                "value": "=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZzZmFxemF5b3ppYWVhaWh5Y29zIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4Nzk5MTYyMywiZXhwIjoyMTAzNTY3NjIzfQ.NOMiAeXjILk-85YSbT4KKrI8A4Z-_vmCMDkNhFKNDhg"
+                            },
+                            {
+                                "name": "Authorization",
+                                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZzZmFxemF5b3ppYWVhaWh5Y29zIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4Nzk5MTYyMywiZXhwIjoyMTAzNTY3NjIzfQ.NOMiAeXjILk-85YSbT4KKrI8A4Z-_vmCMDkNhFKNDhg"
+                            }
+                        ]
+                    },
+                    "sendBody": true,
+                    "bodyParameters": {
+                        "parameters": [
+                            {
+                                "name": "order_id",
+                                "value": "={{ $('Webhook Supabase').item.json.body.id }}"
+                            },
+                            {
+                                "name": "notification_type",
+                                "value": "={{ $('Webhook Supabase').item.json.body.status }}"
+                            }
+                        ]
+                    },
+                    "options": {
+                        "ignoreResponseCode": true
+                    }
+                },
+                "id": "http-idempotency",
+                "name": "Idempotency Insert",
+                "type": "n8n-nodes-base.httpRequest",
+                "typeVersion": 4.1,
+                "position": [
+                    300,
+                    300
+                ]
             },
             {
-              "name": "text",
-              "value": "\u00a1Recibimos tu pedido #{{ $('Webhook Supabase').item.json.body.record.id }}, total R$ {{ $('Webhook Supabase').item.json.body.record.total_amount }}! \ud83d\udcdd Te avisaremos en cuanto salga hacia tu direcci\u00f3n."
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "http-send-nuevo",
-      "name": "Enviar Confirmaci\u00f3n (Nuevo)",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.1,
-      "position": [
-        1000,
-        100
-      ],
-      "retryOnFail": true,
-      "maxTries": 3,
-      "waitBetweenTries": 2000
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "={{ $env.EVOLUTION_API_URL }}/message/sendText/{{ $env.EVOLUTION_INSTANCE_NAME }}",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "apikey",
-              "value": "={{ $env.EVOLUTION_API_KEY }}"
-            }
-          ]
-        },
-        "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "number",
-              "value": "={{ $('Webhook Supabase').item.json.body.record.customer_phone }}"
+                "parameters": {
+                    "conditions": {
+                        "string": [
+                            {
+                                "value1": "={{ $json.statusCode }}",
+                                "operation": "notEqual",
+                                "value2": "409"
+                            }
+                        ]
+                    }
+                },
+                "id": "if-not-duplicate",
+                "name": "Is Not Duplicate?",
+                "type": "n8n-nodes-base.if",
+                "typeVersion": 1,
+                "position": [
+                    500,
+                    300
+                ]
             },
             {
-              "name": "text",
-              "value": "\u00a1Excelente noticia! \ud83d\ude9a Tu pedido #{{ $('Webhook Supabase').item.json.body.record.display_id || $('Webhook Supabase').item.json.body.record.id }} va en camino. Tu motoboy es *{{ $('Webhook Supabase').item.json.body.record.driver_name || 'nuestro repartidor' }}*. Puedes tener listo el envase vac\u00edo si aplica."
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "http-send-en-camino",
-      "name": "Enviar En Camino",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.1,
-      "position": [
-        1000,
-        300
-      ],
-      "retryOnFail": true,
-      "maxTries": 3,
-      "waitBetweenTries": 2000
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "={{ $env.EVOLUTION_API_URL }}/message/sendText/{{ $env.EVOLUTION_INSTANCE_NAME }}",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "apikey",
-              "value": "={{ $env.EVOLUTION_API_KEY }}"
-            }
-          ]
-        },
-        "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "number",
-              "value": "={{ $('Webhook Supabase').item.json.body.record.customer_phone }}"
+                "parameters": {
+                    "dataType": "string",
+                    "value1": "={{ $('Webhook Supabase').item.json.body.status }}",
+                    "rules": {
+                        "rules": [
+                            {
+                                "value2": "nuevo",
+                                "outputKey": "Nuevo"
+                            },
+                            {
+                                "value2": "en_camino",
+                                "outputKey": "En Camino"
+                            },
+                            {
+                                "value2": "entregado",
+                                "outputKey": "Entregado"
+                            }
+                        ]
+                    },
+                    "fallbackOutput": 3
+                },
+                "id": "switch-status",
+                "name": "Estado del Pedido",
+                "type": "n8n-nodes-base.switch",
+                "typeVersion": 1,
+                "position": [
+                    700,
+                    300
+                ]
             },
             {
-              "name": "text",
-              "value": "\u00a1Tu pedido #{{ $('Webhook Supabase').item.json.body.record.id }} fue entregado con \u00e9xito! \u2705 Gracias por elegir Center Gas. Esperamos verte pronto."
+                "parameters": {
+                    "method": "POST",
+                    "url": "=https://evolution.arcav.us/message/sendText/centerGas",
+                    "sendHeaders": true,
+                    "headerParameters": {
+                        "parameters": [
+                            {
+                                "name": "apikey",
+                                "value": "=CENTERGAS_EVOLUTION_KEY_2026"
+                            }
+                        ]
+                    },
+                    "sendBody": true,
+                    "bodyParameters": {
+                        "parameters": [
+                            {
+                                "name": "number",
+                                "value": "={{ $('Webhook Supabase').item.json.body.customer_phone.startsWith('55') ? $('Webhook Supabase').item.json.body.customer_phone : '55' + $('Webhook Supabase').item.json.body.customer_phone }}"
+                            },
+                            {
+                                "name": "text",
+                                "value": "=\u00a1Recibimos tu pedido #{{ $('Webhook Supabase').item.json.body.id }}, total R$ {{ $('Webhook Supabase').item.json.body.total_amount }}! \ud83d\udcdd Te avisaremos en cuanto salga hacia tu direcci\u00f3n."
+                            }
+                        ]
+                    },
+                    "options": {}
+                },
+                "id": "http-send-nuevo",
+                "name": "Enviar Confirmaci\u00f3n (Nuevo)",
+                "type": "n8n-nodes-base.httpRequest",
+                "typeVersion": 4.1,
+                "position": [
+                    1000,
+                    100
+                ],
+                "retryOnFail": true,
+                "maxTries": 3,
+                "waitBetweenTries": 2000
+            },
+            {
+                "parameters": {
+                    "method": "POST",
+                    "url": "=https://evolution.arcav.us/message/sendText/centerGas",
+                    "sendHeaders": true,
+                    "headerParameters": {
+                        "parameters": [
+                            {
+                                "name": "apikey",
+                                "value": "=CENTERGAS_EVOLUTION_KEY_2026"
+                            }
+                        ]
+                    },
+                    "sendBody": true,
+                    "bodyParameters": {
+                        "parameters": [
+                            {
+                                "name": "number",
+                                "value": "={{ $('Webhook Supabase').item.json.body.customer_phone.startsWith('55') ? $('Webhook Supabase').item.json.body.customer_phone : '55' + $('Webhook Supabase').item.json.body.customer_phone }}"
+                            },
+                            {
+                                "name": "text",
+                                "value": "=\u00a1Excelente noticia! \ud83d\ude9a Tu pedido #{{ $('Webhook Supabase').item.json.body.id }} va en camino. El motoboy fue notificado. Puedes tener listo el envase vac\u00edo si aplica."
+                            }
+                        ]
+                    },
+                    "options": {}
+                },
+                "id": "http-send-en-camino",
+                "name": "Enviar En Camino",
+                "type": "n8n-nodes-base.httpRequest",
+                "typeVersion": 4.1,
+                "position": [
+                    1000,
+                    300
+                ],
+                "retryOnFail": true,
+                "maxTries": 3,
+                "waitBetweenTries": 2000
+            },
+            {
+                "parameters": {
+                    "method": "POST",
+                    "url": "=https://evolution.arcav.us/message/sendText/centerGas",
+                    "sendHeaders": true,
+                    "headerParameters": {
+                        "parameters": [
+                            {
+                                "name": "apikey",
+                                "value": "=CENTERGAS_EVOLUTION_KEY_2026"
+                            }
+                        ]
+                    },
+                    "sendBody": true,
+                    "bodyParameters": {
+                        "parameters": [
+                            {
+                                "name": "number",
+                                "value": "={{ $('Webhook Supabase').item.json.body.customer_phone.startsWith('55') ? $('Webhook Supabase').item.json.body.customer_phone : '55' + $('Webhook Supabase').item.json.body.customer_phone }}"
+                            },
+                            {
+                                "name": "text",
+                                "value": "=\u00a1Tu pedido #{{ $('Webhook Supabase').item.json.body.id }} fue entregado con \u00e9xito! \u2705 Gracias por elegir Center Gas. Esperamos verte pronto."
+                            }
+                        ]
+                    },
+                    "options": {}
+                },
+                "id": "http-send-entregado",
+                "name": "Enviar Entregado",
+                "type": "n8n-nodes-base.httpRequest",
+                "typeVersion": 4.1,
+                "position": [
+                    1000,
+                    500
+                ],
+                "retryOnFail": true,
+                "maxTries": 3,
+                "waitBetweenTries": 2000
             }
-          ]
-        },
-        "options": {}
-      },
-      "id": "http-send-entregado",
-      "name": "Enviar Entregado",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.1,
-      "position": [
-        1000,
-        500
-      ],
-      "retryOnFail": true,
-      "maxTries": 3,
-      "waitBetweenTries": 2000
-    }
-  ],
-  "connections": {
-    "Webhook Supabase": {
-      "main": [
-        [
-          {
-            "node": "Validate Token",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Idempotency Insert": {
-      "main": [
-        [
-          {
-            "node": "Is Not Duplicate?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Is Not Duplicate?": {
-      "main": [
-        [
-          {
-            "node": "Estado del Pedido",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Estado del Pedido": {
-      "main": [
-        [
-          {
-            "node": "Enviar Confirmaci\u00f3n (Nuevo)",
-            "type": "main",
-            "index": 0
-          }
         ],
-        [
-          {
-            "node": "Enviar En Camino",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Enviar Entregado",
-            "type": "main",
-            "index": 0
-          }
+        "connections": {
+            "Webhook Supabase": {
+                "main": [
+                    [
+                        {
+                            "node": "Validate Token",
+                            "type": "main",
+                            "index": 0
+                        }
+                    ]
+                ]
+            },
+            "Idempotency Insert": {
+                "main": [
+                    [
+                        {
+                            "node": "Is Not Duplicate?",
+                            "type": "main",
+                            "index": 0
+                        }
+                    ]
+                ]
+            },
+            "Is Not Duplicate?": {
+                "main": [
+                    [
+                        {
+                            "node": "Estado del Pedido",
+                            "type": "main",
+                            "index": 0
+                        }
+                    ]
+                ]
+            },
+            "Estado del Pedido": {
+                "main": [
+                    [
+                        {
+                            "node": "Enviar Confirmaci\u00f3n (Nuevo)",
+                            "type": "main",
+                            "index": 0
+                        }
+                    ],
+                    [
+                        {
+                            "node": "Enviar En Camino",
+                            "type": "main",
+                            "index": 0
+                        }
+                    ],
+                    [
+                        {
+                            "node": "Enviar Entregado",
+                            "type": "main",
+                            "index": 0
+                        }
+                    ]
+                ]
+            },
+            "Validate Token": {
+                "main": [
+                    [
+                        {
+                            "node": "Idempotency Insert",
+                            "type": "main",
+                            "index": 0
+                        }
+                    ]
+                ]
+            }
+        },
+        "nodeGroups": [],
+        "authors": "Arcav Armando Castro",
+        "name": null,
+        "description": null,
+        "autosaved": false,
+        "workflowPublishHistory": [
+            {
+                "createdAt": "2026-08-30T23:32:55.491Z",
+                "id": 52,
+                "workflowId": "SCqre7me1lAPKeH1",
+                "versionId": "2818d2c1-9c33-4646-9987-b1283e41dae5",
+                "event": "activated",
+                "userId": "c7d3e6c1-48c4-4c70-b8d9-fcadcec0cb13"
+            },
+            {
+                "createdAt": "2026-08-30T23:32:55.441Z",
+                "id": 51,
+                "workflowId": "SCqre7me1lAPKeH1",
+                "versionId": "2818d2c1-9c33-4646-9987-b1283e41dae5",
+                "event": "deactivated",
+                "userId": "c7d3e6c1-48c4-4c70-b8d9-fcadcec0cb13"
+            }
         ]
-      ]
-    },
-    "Validate Token": {
-      "main": [
-        [
-          {
-            "node": "Idempotency Insert",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
     }
-  },
-  "settings": {
-    "executionOrder": "v1",
-    "errorWorkflow": "WF-04: Global Error Handler"
-  }
 }

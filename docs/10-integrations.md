@@ -19,7 +19,7 @@ El sistema confía exclusivamente en **Supabase Auth** para los usuarios operati
 ## 2. Flujos n8n y WhatsApp (ISSUE-401, 402, 404)
 
 ### Gateway de WhatsApp (ISSUE-403)
-La decisión del proveedor (Meta Cloud API oficial vs Evolution API) impactará el endpoint final, pero el contrato JSON hacia n8n se mantiene agnóstico.
+La plataforma utiliza **Evolution API v2** como su Gateway de mensajería (self-hosted). Se configuró a través de la librería `Baileys` para sincronizar mediante código QR y cuenta con un protocolo anti-baneo formal (ver `docs/16-whatsapp-anti-ban-protocol.md`).
 
 ### A. Webhook: Mensaje Entrante (WF-01)
 * **Objetivo:** Auto-respuesta inmediata con link del catálogo.
