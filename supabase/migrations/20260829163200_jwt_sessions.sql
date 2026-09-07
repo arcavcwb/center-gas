@@ -28,6 +28,7 @@ END;
 $$;
 
 -- Función para resolver el token de sesión en el catálogo
+DROP FUNCTION IF EXISTS resolve_catalog_session(VARCHAR);
 CREATE OR REPLACE FUNCTION resolve_catalog_session(p_token VARCHAR)
 RETURNS JSONB
 LANGUAGE plpgsql
