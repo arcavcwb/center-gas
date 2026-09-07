@@ -103,7 +103,16 @@ stateDiagram-v2
 5. **Fase 5: Merge a Main:** Código validado se fusiona a la rama principal (Trunk).
 6. **Fase 6: Deploy & Plane Sync:** Se despliega en Staging y se marca el Issue como Done.
 
+## 6. Protocolo Mandatorio UI/UX (Impeccable Craft Floor)
+
+Todo desarrollo que involucre pantallas, interfaces, componentes o estilos en `apps/site` y `apps/web` está sujeto al estándar innegociable de Impeccable:
+- **Ejecución previa de contexto:** Lectura obligatoria de `PRODUCT.md` y `DESIGN.md`.
+- **Filtro de Anti-Patrones:** Prohibición estricta de gradientes genéricos ("AI slop"), texto con contraste insuficiente y componentes no táctiles.
+- **Ergonomía:** Touch targets $\ge 48\text{px}$ en mobile.
+- **Iconos:** 100% SVG vectorial (0 emojis unicode).
+- **Verificación Mecánica:** Antes de solicitar aprobación del PR, el pipeline ejecuta `pnpm run check:design` (`impeccable detect`) exigiendo 0 hallazgos.
+
 ---
 
-## 6. Próximo Paso
-Con el protocolo **Gherkin BDD + Pirámide de Pruebas + Red-Team Auditor** formalizado, podemos proceder a aplicar la Fase 1 del Sprint 1 (`ISSUE-102` - Despliegue de Esquema SQL DDL v1.2 Enterprise en Supabase Staging y ejecución de la suite de pruebas `pgTAP`).
+## 7. Gobernanza y Estado Actual
+Con el protocolo **Gherkin BDD + Pirámide de Pruebas + Red-Team Auditor + Impeccable Craft Floor** formalizado, el escuadrón agéntico cuenta con todas las garantías de seguridad técnica y excelencia visual en producción.

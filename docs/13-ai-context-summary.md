@@ -55,4 +55,5 @@ Este documento sirve como resumen ejecutivo y técnico del estado del proyecto p
 - **Filosofía:** *"Plane for the Business, Git for the Code"*.
 - **Plane:** Todas las tareas están asociadas a Issues de Plane con reporte técnico HTML al cierre.
 - **Git Flow:** Todo cambio entra mediante Pull Request, probado con unit tests y compilación estática antes de squash merge a `main`.
+- **Gobernanza Visual (Impeccable Mandatorio):** Ningún código de UI se fusiona sin pasar `pnpm run check:design` (0 anti-patrones, WCAG AA, 0 emojis, touch targets $\ge 48\text{px}$).
 - **Walkthroughs:** Documentación paso a paso de cada entrega en `docs/walkthroughs/`.

@@ -17,12 +17,22 @@ Para evitar perder el hilo del protocolo de Gobernanza por pérdida de contexto,
 - `[ ]` **Gobernanza y Git Flow (CRÍTICO):**
   - `[ ]` NUNCA comitear directamente a `main`.
   - `[ ]` Verificar estar en una rama feature (`git checkout -b feat/ISSUE-XXX`).
+  - `[ ]` Si la tarea involucra UI/UX o Frontend: Ejecutar verificación Impeccable (`pnpm run check:design`) y garantizar 0 anti-patrones detectados.
   - `[ ]` Ejecutar `git add .` y `git commit -m "..."`.
   - `[ ]` Ejecutar `git push -u origin feat/ISSUE-XXX`.
   - `[ ]` **Actualizar la descripción del Pull Request** (usando la API para evitar el bug de gh: `gh api -X PATCH /repos/arcavcwb/center-gas/pulls/PR_NUM -F body="..."`).
   - `[ ]` Generar/Actualizar el `walkthrough.md` y subirlo a Git (`docs/walkthroughs/`).
   - `[ ]` Actualizar Plane (Estado + Comentario con Hash del commit y link al PR).
 ¡ESTÁ ESTRICTAMENTE PROHIBIDO DAR LA TAREA POR TERMINADA SI ESTOS CHECKBOXES NO ESTÁN MARCADOS EN TU `task.md`!
+
+🎨 PROTOCOLO MANDATORIO UI/UX (IMPECCABLE CRAFT FLOOR)
+Impeccable es el motor y skill FIJO, OBLIGATORIO E INNEGOCIABLE para todo trabajo de diseño, rediseño, componentes y estilos en `apps/site` y `apps/web`:
+- **Cero AI-Slop Visual:** Prohibido usar estilos genéricos, gradientes violetas predeterminados o jerarquías planas. Todo diseño debe construirse según los tokens de `DESIGN.md` y `PRODUCT.md`.
+- **0 Emojis Unicode en UI:** Terminantemente prohibido el uso de emojis unicode (`🛵`, `📦`, `📍`, etc.) en interfaces de producción. Todo icono debe ser SVG vectorial, limpio y geométrico.
+- **Touch Targets Táctiles:** En interfaces móviles (catálogo B2C y Driver App), botones e inputs interactivos deben medir mínimo 48×48px.
+- **Contraste WCAG 2.1 AA:** Legibilidad estricta bajo luz solar directa (`bg-slate-50`, bordes visibles, texto oscuro sobre fondo claro o claro sobre oscuro con ratio ≥ 4.5:1). Prohibido gray-on-color.
+- **Verificación Mecánica Inmediata:** Antes de abrir PR de frontend, debe ejecutarse `.agents/skills/impeccable/scripts/impeccable detect` (o `pnpm run check:design`), certificando 0 violaciones de anti-patrones.
+
 🏗️ ARQUITECTURA Y STACK TECNOLÓGICO HÍBRIDO
 El repositorio es un Monorepo gestionado con pnpm y Turborepo. Cualquier scaffolding o instalación debe usar pnpm.
 

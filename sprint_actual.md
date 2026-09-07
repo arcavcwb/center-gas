@@ -28,8 +28,8 @@ Elevar la experiencia de usuario y la calidad visual de toda la plataforma digit
 | **ISSUE-501** | Rediseño Impeccable de la Driver Mobile App con BR-002 y Maps/Waze | `frontend-dev-agent` | 🟢 Done | [PR #46](https://github.com/arcavcwb/center-gas/pull/46) / `7a16e1e` |
 | **ISSUE-601** | Suite de Pruebas E2E (Playwright) y Go-Live Checklist | `qa-agent` | 🟢 Done | [PR #26](https://github.com/arcavcwb/center-gas/pull/26) |
 | **ISSUE-701** | Dashboard de Métricas y Podio de Motoboys (Next.js) | `frontend-dev-agent` | 🟢 Done | [PR #45](https://github.com/arcavcwb/center-gas/pull/45) / `2bc943b` |
-| **ISSUE-703** | Horarios Comerciales (08:00 - 20:00) y Pedidos Agendados | `frontend-dev-agent` | 🟢 Done | [PR #37](https://github.com/arcavcwb/center-gas/pull/37) |
-| **ISSUE-801** | Actualización Integral de Documentación & Trazabilidad | `architect-agent` | 🟡 In Progress | Rama `feat/ISSUE-801` |
+| **ISSUE-801** | Actualización Integral de Documentación & Trazabilidad | `architect-agent` | 🟢 Done | [PR #48](https://github.com/arcavcwb/center-gas/pull/48) / `a0ebf1f` |
+| **ISSUE-802** | Integración Mandatoria de Impeccable en el Flujo Agéntico | `architect-agent` | 🟡 In Progress | Rama `feat/ISSUE-802-mandatory-impeccable` |
 
 ---
 

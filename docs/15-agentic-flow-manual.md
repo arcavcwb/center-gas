@@ -115,8 +115,8 @@ Cada agente del squad interactúa con uno o ambos pilares (Plane y Git). La sigu
 | `architect-agent` | ✅ Issues, Criterios | ✅ Comentarios de diseño | ❌ | ❌ (no escribe código) | ✅ Presenta diseños para aprobación |
 | `po-agent` | ✅ Backlog existente | ✅ Crea/actualiza Issues | ❌ | ❌ | ✅ Traduce requerimientos del humano |
 | `scrum-master-agent` | ✅ Cycles, States | ✅ Mueve estados, reporta | ❌ | ❌ | ✅ Reporta estado del sprint |
-| `designer-agent` | ✅ Issues de UI | ✅ Comentarios de diseño | ❌ | ✅ Tokens CSS/diseño | ⚪ Bajo demanda |
-| `frontend-dev-agent` | ✅ Issue asignado | ✅ Bitácora de inicio/fin | ✅ Contratos | ✅ Código + Commits + PR | ❌ |
+| `designer-agent` | ✅ Issues de UI | ✅ Comentarios de diseño | ❌ | ✅ Tokens CSS/diseño (Impeccable) | ⚪ Bajo demanda |
+| `frontend-dev-agent` | ✅ Issue asignado | ✅ Bitácora de inicio/fin | ✅ Contratos | ✅ Código + Commits + PR (Impeccable) | ❌ |
 | `backend-dev-agent` | ✅ Issue asignado | ✅ Bitácora de inicio/fin | ✅ Contratos | ✅ Código + Commits + PR | ❌ |
 | `pr-reviewer-agent` | ✅ Criterios del Issue | ✅ Reporte de revisión | ✅ Diff del PR | ✅ Approve/Reject en PR | ❌ |
 | `qa-agent` | ✅ Criterios Gherkin | ✅ Reporte de tests | ✅ Código para testear | ✅ Archivos de test | ❌ |
@@ -523,6 +523,7 @@ Resuelve ISSUE-XXX: [título del Issue]
 
 ## Checklist del agente
 - [ ] Código sigue los contratos del architect-agent
+- [ ] Si involucra UI/UX o Frontend: Verificación Impeccable ejecutada (`pnpm run check:design`) con 0 anti-patrones
 - [ ] Commits siguen Conventional Commits
 - [ ] No se introdujeron dependencias no autorizadas
 - [ ] Bitácora dejada en Plane (Issue correspondiente)
@@ -547,11 +548,13 @@ graph LR
     B --> C{pr-reviewer-agent}
     C -->|REJECT| D[PR bloqueado + Comentario en Plane]
     D --> A
-    C -->|APPROVE| E[GitHub Action: QA Tests]
-    E --> F[vitest - Unitarios]
+    C -->|APPROVE| E[GitHub Action: QA Tests & Design]
+    E --> F1[impeccable - UI/UX Detect]
+    E --> F2[vitest - Unitarios]
     E --> G[pgTAP - BD]
     E --> H[Playwright - E2E]
-    F --> I{qa-agent analiza}
+    F1 --> I{qa-agent analiza}
+    F2 --> I
     G --> I
     H --> I
     I -->|FAIL| J[Pipeline rojo + Comentario en Plane]
@@ -604,6 +607,7 @@ graph LR
 | Modificar código de otro agente sin pasar por PR | Rompe la cadena de revisión Zero-Trust. |
 | Dejar de documentar en Plane | El PO pierde visibilidad. El proyecto se vuelve una caja negra. |
 | Auto-aprobarse | El mismo modelo que escribe el código NO puede ser el que lo revisa. |
+| Ignorar el Craft Floor de Impeccable | Genera degradación de UI ("AI slop", texto gris ilegible, botones táctiles < 48px, emojis rotos). |
 
 ### 12.2 Reglas de Seguridad del Pipeline
 
