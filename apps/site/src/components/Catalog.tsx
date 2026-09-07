@@ -357,34 +357,40 @@ export default function Catalog() {
 
       {/* ----------------- BANNER DE ATENDIMENTO & SELECTOR DE IDIOMA ----------------- */}
       <Show when={isScheduled()}>
-        <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-3 sm:p-4 rounded-2xl shadow-md border border-indigo-500/30 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div class="flex items-center gap-2.5 text-center sm:text-left">
-            <span class="text-2xl">🌙</span>
-            <div>
+        <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-4 rounded-2xl shadow-md border border-indigo-500/30 space-y-3">
+          {/* Fila Superior: Título + Selector de Idioma */}
+          <div class="flex items-center justify-between gap-2.5">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-2xl shrink-0">🌙</span>
               <p class="text-xs sm:text-sm font-extrabold tracking-tight text-amber-300">
                 {t('scheduledBannerTitle', lang())}
               </p>
-              <p class="text-xs text-indigo-200 font-medium">
-                {t('scheduledBannerDesc', lang())}
-              </p>
             </div>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="bg-indigo-900/90 text-amber-300 border border-amber-400/30 text-xs font-bold px-3 py-1.5 rounded-xl whitespace-nowrap shadow-inner">
-              📅 {lang() === 'pt' ? deliverySlot().formattedPT : deliverySlot().formattedES}
-            </span>
             <LanguageToggle lang={lang()} onToggle={setLang} />
+          </div>
+
+          {/* Descripción del horario */}
+          <p class="text-xs text-indigo-200 font-medium leading-relaxed">
+            {t('scheduledBannerDesc', lang())}
+          </p>
+
+          {/* Badge de Horario de Entrega */}
+          <div class="pt-0.5">
+            <span class="inline-flex items-center gap-1.5 bg-indigo-900/90 text-amber-300 border border-amber-400/30 text-xs font-bold px-3 py-1.5 rounded-xl shadow-inner">
+              <span>📅</span>
+              <span>{lang() === 'pt' ? deliverySlot().formattedPT : deliverySlot().formattedES}</span>
+            </span>
           </div>
         </div>
       </Show>
 
       <Show when={!isScheduled()}>
-        <div class="bg-gradient-to-r from-orange-600 via-primary to-orange-500 text-white p-3 sm:p-4 rounded-2xl shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div class="flex items-center gap-2 text-center sm:text-left">
-            <span class="text-xl">🚚</span>
-            <div>
-              <p class="text-xs sm:text-sm font-extrabold tracking-tight">{t('banner', lang())}</p>
-              <p class="text-xs text-orange-100 font-medium">{t('brandSubtitle', lang())}</p>
+        <div class="bg-gradient-to-r from-orange-600 via-primary to-orange-500 text-white p-4 rounded-2xl shadow-sm flex items-center justify-between gap-3">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <span class="text-xl shrink-0">🚚</span>
+            <div class="min-w-0">
+              <p class="text-xs sm:text-sm font-extrabold tracking-tight truncate">{t('banner', lang())}</p>
+              <p class="text-xs text-orange-100 font-medium truncate">{t('brandSubtitle', lang())}</p>
             </div>
           </div>
           <LanguageToggle lang={lang()} onToggle={setLang} />
