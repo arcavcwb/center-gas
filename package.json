@@ -9,13 +9,11 @@
     "test": "turbo test",
     "test:unit": "pnpm --filter @center-gas/contracts test",
     "test:e2e": "pnpm --filter e2e test",
-    "test:rpc": "node test_rpc.js",
+    "test:rpc": "node --env-file=.env test_rpc.js",
     "check:design": ".agents/skills/impeccable/scripts/impeccable detect",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },
   "devDependencies": {
-    "@types/pg": "^8.23.1",
-    "pg": "^8.23.0",
     "prettier": "^3.0.0",
     "turbo": "^2.0.0",
     "typescript": "^5.0.0"

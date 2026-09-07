@@ -1,7 +1,6 @@
 const path = require('path');
 module.paths.push(path.resolve(__dirname, 'apps/web/node_modules'));
 const { createClient } = require('@supabase/supabase-js');
-require('dotenv').config();
 
 const anonSupabase = createClient(process.env.PUBLIC_SUPABASE_URL, process.env.PUBLIC_SUPABASE_ANON_KEY);
 const adminSupabase = createClient(process.env.PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);

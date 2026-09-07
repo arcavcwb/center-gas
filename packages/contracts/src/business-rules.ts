@@ -90,8 +90,10 @@ export function normalizeWhatsAppPhone(rawPhone: string): string {
 /**
  * BR-004: Formato de Moneda BRL
  */
+const brlFormatter = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+
 export function formatBRL(amount: number): string {
-  return `R$ ${amount.toFixed(2).replace('.', ',')}`;
+  return brlFormatter.format(amount).replace(/\u00a0/g, ' ');
 }
 
 /**
@@ -131,35 +133,16 @@ export function getCuritibaDateTime(date: Date = new Date()): {
   minutes: number;
   isoString: string;
 } {
-  const formatter = new Intl.DateTimeFormat('en-US', {
-    timeZone: 'America/Sao_Paulo',
-    year: 'numeric',
-    month: 'numeric',
-    day: 'numeric',
-    weekday: 'short',
-    hour: 'numeric',
-    minute: 'numeric',
-    second: 'numeric',
-    hour12: false,
-  });
-
-  const parts = formatter.formatToParts(date);
-  const findPart = (type: string) => parts.find(p => p.type === type)?.value || '';
-
-  const month = parseInt(findPart('month'), 10) - 1;
-  const day = parseInt(findPart('day'), 10);
-  const year = parseInt(findPart('year'), 10);
-  let hours = parseInt(findPart('hour'), 10);
-  if (hours === 24) hours = 0;
-  const minutes = parseInt(findPart('minute'), 10);
-
-  const weekdayStr = findPart('weekday');
-  const dayOfWeekMap: Record<string, number> = {
-    Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6
+  const local = new Date(date.toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
+  return {
+    year: local.getFullYear(),
+    month: local.getMonth(),
+    day: local.getDate(),
+    dayOfWeek: local.getDay(),
+    hours: local.getHours(),
+    minutes: local.getMinutes(),
+    isoString: date.toISOString(),
   };
-  const dayOfWeek = dayOfWeekMap[weekdayStr] ?? date.getDay();
-
-  return { year, month, day, dayOfWeek, hours, minutes, isoString: date.toISOString() };
 }
 
 /**
