@@ -19,6 +19,11 @@ export function OrderCard({ order, onUpdateStatus, onCancelRequest }: OrderCardP
         <div>
           <div className="flex items-center gap-2">
             <span className="font-bold text-slate-800 tracking-tight">#{order.display_id}</span>
+            {order.is_scheduled && (
+              <span className="px-2 py-0.5 text-[9px] font-bold tracking-wider bg-purple-100 text-purple-800 border border-purple-200 rounded-full flex items-center gap-1 shadow-sm">
+                🌙 Agendado (08:30)
+              </span>
+            )}
             {order.status === 'nuevo' && (
               <span className="px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-red-100 text-red-600 rounded animate-pulse">🔥 Reciente</span>
             )}

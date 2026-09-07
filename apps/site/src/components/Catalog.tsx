@@ -5,6 +5,8 @@ import {
   validateCashChange,
   normalizeWhatsAppPhone,
   formatBRL,
+  isWithinBusinessHours,
+  getNextDeliverySlot,
   t,
   type CartItemLike,
   type SupportedLang
@@ -158,6 +160,9 @@ export default function Catalog() {
     return Array.from(set).sort((a, b) => a - b);
   });
 
+  const deliverySlot = createMemo(() => getNextDeliverySlot(new Date()));
+  const isScheduled = createMemo(() => deliverySlot().isScheduled);
+
   const updateQty = (id: string, delta: number) => {
     setCart(prev => {
       const current = prev[id] || 0;
@@ -305,7 +310,9 @@ export default function Catalog() {
       p_address_line: address(),
       p_items,
       p_payment_method: paymentMethod(),
-      p_cash_change_for: changeFor()
+      p_cash_change_for: changeFor(),
+      p_is_scheduled: isScheduled(),
+      p_scheduled_for: isScheduled() ? deliverySlot().scheduledDate.toISOString() : null
     });
 
     setIsSubmitting(false);
@@ -321,17 +328,41 @@ export default function Catalog() {
   return (
     <div class="space-y-5">
 
-      {/* ----------------- BANNER PINHEIRINHO & SELECTOR DE IDIOMA ----------------- */}
-      <div class="bg-gradient-to-r from-orange-600 via-primary to-orange-500 text-white p-3 sm:p-4 rounded-2xl shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
-        <div class="flex items-center gap-2 text-center sm:text-left">
-          <span class="text-xl">🚚</span>
-          <div>
-            <p class="text-xs sm:text-sm font-extrabold tracking-tight">{t('banner', lang())}</p>
-            <p class="text-[11px] text-orange-100 font-medium">{t('brandSubtitle', lang())}</p>
+      {/* ----------------- BANNER DE ATENDIMENTO & SELECTOR DE IDIOMA ----------------- */}
+      <Show when={isScheduled()}>
+        <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-3 sm:p-4 rounded-2xl shadow-md border border-indigo-500/30 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div class="flex items-center gap-2.5 text-center sm:text-left">
+            <span class="text-2xl">🌙</span>
+            <div>
+              <p class="text-xs sm:text-sm font-extrabold tracking-tight text-amber-300">
+                {t('scheduledBannerTitle', lang())}
+              </p>
+              <p class="text-[11px] text-indigo-200 font-medium">
+                {t('scheduledBannerDesc', lang())}
+              </p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="bg-indigo-900/90 text-amber-300 border border-amber-400/30 text-xs font-bold px-3 py-1.5 rounded-xl whitespace-nowrap shadow-inner">
+              📅 {lang() === 'pt' ? deliverySlot().formattedPT : deliverySlot().formattedES}
+            </span>
+            <LanguageToggle lang={lang()} onToggle={setLang} />
           </div>
         </div>
-        <LanguageToggle lang={lang()} onToggle={setLang} />
-      </div>
+      </Show>
+
+      <Show when={!isScheduled()}>
+        <div class="bg-gradient-to-r from-orange-600 via-primary to-orange-500 text-white p-3 sm:p-4 rounded-2xl shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div class="flex items-center gap-2 text-center sm:text-left">
+            <span class="text-xl">🚚</span>
+            <div>
+              <p class="text-xs sm:text-sm font-extrabold tracking-tight">{t('banner', lang())}</p>
+              <p class="text-[11px] text-orange-100 font-medium">{t('brandSubtitle', lang())}</p>
+            </div>
+          </div>
+          <LanguageToggle lang={lang()} onToggle={setLang} />
+        </div>
+      </Show>
 
       {/* ----------------- STEP 0: LOADING (WhatsApp flow) ----------------- */}
       <Show when={step() === 'loading'}>
@@ -464,7 +495,9 @@ export default function Catalog() {
               </div>
               <div class="ml-3">
                 <h3 class="text-base font-bold text-green-900">{t('successTitle', lang())}</h3>
-                <p class="mt-1 text-sm text-green-800">{t('successMessage', lang())}</p>
+                <p class="mt-1 text-sm text-green-800">
+                  {isScheduled() ? t('scheduledSuccessMessage', lang()) : t('successMessage', lang())}
+                </p>
               </div>
             </div>
           </div>
@@ -605,6 +638,18 @@ export default function Catalog() {
                 <span class="text-primary text-xl font-black">{formatBRL(total())}</span>
               </div>
             </div>
+
+            <Show when={isScheduled()}>
+              <div class="bg-indigo-50 border border-indigo-200 text-indigo-950 p-3.5 rounded-xl text-xs flex items-center gap-2.5 font-medium shadow-sm mt-4">
+                <span class="text-lg">🌙</span>
+                <div>
+                  <p class="font-bold text-indigo-900">{t('scheduledOrderNotice', lang())}</p>
+                  <p class="text-indigo-700 text-[11px] mt-0.5">
+                    {lang() === 'pt' ? deliverySlot().formattedPT : deliverySlot().formattedES}
+                  </p>
+                </div>
+              </div>
+            </Show>
 
             <h3 class="font-bold text-gray-800 border-b pb-2 mt-6">{t('paymentTitle', lang())}</h3>
             

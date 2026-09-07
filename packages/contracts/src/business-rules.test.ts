@@ -3,7 +3,9 @@ import {
   calculateComboDiscount,
   validateCashChange,
   normalizeWhatsAppPhone,
-  formatBRL
+  formatBRL,
+  isWithinBusinessHours,
+  getNextDeliverySlot
 } from './business-rules';
 
 describe('Business Rules Unit Tests (Center Gás)', () => {
@@ -94,6 +96,75 @@ describe('Business Rules Unit Tests (Center Gás)', () => {
       expect(formatBRL(110)).toBe('R$ 110,00');
       expect(formatBRL(15.5)).toBe('R$ 15,50');
       expect(formatBRL(0)).toBe('R$ 0,00');
+    });
+  });
+
+  describe('BR-005: Horarios Comerciales y Pedidos Programados (ISSUE-703)', () => {
+    // Helper para generar fechas fijas en UTC
+    // Para São Paulo (UTC-3):
+    // 10:00 SP = 13:00 UTC
+    // 07:00 SP = 10:00 UTC
+    // 21:00 SP = 24:00 UTC (00:00 día siguiente)
+
+    it('debe validar horario de atención activo (ej. Lunes 10:00 AM)', () => {
+      // 2026-09-07 es un Lunes. 14:00 UTC = 11:00 AM en Curitiba (UTC-3)
+      const dateMonday11am = new Date(Date.UTC(2026, 8, 7, 14, 0, 0));
+      expect(isWithinBusinessHours(dateMonday11am)).toBe(true);
+    });
+
+    it('debe rechazar entrega inmediata antes de las 08:00 (ej. Lunes 07:15 AM)', () => {
+      // 07:15 SP = 10:15 UTC
+      const dateMonday7am = new Date(Date.UTC(2026, 8, 7, 10, 15, 0));
+      expect(isWithinBusinessHours(dateMonday7am)).toBe(false);
+    });
+
+    it('debe rechazar entrega inmediata después de las 20:00 (ej. Lunes 21:30)', () => {
+      // 21:30 SP = 00:30 UTC del día siguiente
+      const dateMondayNight = new Date(Date.UTC(2026, 8, 8, 0, 30, 0));
+      expect(isWithinBusinessHours(dateMondayNight)).toBe(false);
+    });
+
+    it('debe marcar fuera de horario los Domingos', () => {
+      // 2026-09-06 fue Domingo. 15:00 UTC = 12:00 PM SP
+      const dateSunday = new Date(Date.UTC(2026, 8, 6, 15, 0, 0));
+      expect(isWithinBusinessHours(dateSunday)).toBe(false);
+    });
+
+    it('debe retornar entrega inmediata si está dentro del horario', () => {
+      const dateMonday11am = new Date(Date.UTC(2026, 8, 7, 14, 0, 0));
+      const slot = getNextDeliverySlot(dateMonday11am);
+      expect(slot.isScheduled).toBe(false);
+      expect(slot.timeSlot).toBe('imediato');
+    });
+
+    it('debe programar para hoy a las 08:30 si es de madrugada en día hábil (ej. Lunes 06:00 AM)', () => {
+      // 06:00 SP = 09:00 UTC
+      const dateMonday6am = new Date(Date.UTC(2026, 8, 7, 9, 0, 0));
+      const slot = getNextDeliverySlot(dateMonday6am);
+      expect(slot.isScheduled).toBe(true);
+      expect(slot.timeSlot).toBe('08:30');
+      expect(slot.formattedPT).toContain('Hoje');
+      expect(slot.formattedES).toContain('Hoy');
+    });
+
+    it('debe programar para mañana a las 08:30 si es de noche en día hábil (ej. Lunes 22:00)', () => {
+      // 22:00 SP = 01:00 UTC martes
+      const dateMondayNight = new Date(Date.UTC(2026, 8, 8, 1, 0, 0));
+      const slot = getNextDeliverySlot(dateMondayNight);
+      expect(slot.isScheduled).toBe(true);
+      expect(slot.timeSlot).toBe('08:30');
+      expect(slot.formattedPT).toContain('Amanhã');
+      expect(slot.formattedES).toContain('Mañana');
+    });
+
+    it('debe saltar el Domingo y programar para el Lunes si el pedido entra el Sábado en la noche', () => {
+      // 2026-09-05 es Sábado. 21:30 SP = 00:30 UTC domingo (2026-09-06)
+      const dateSaturdayNight = new Date(Date.UTC(2026, 8, 6, 0, 30, 0));
+      const slot = getNextDeliverySlot(dateSaturdayNight);
+      expect(slot.isScheduled).toBe(true);
+      expect(slot.timeSlot).toBe('08:30');
+      expect(slot.formattedPT).toContain('Segunda-feira');
+      expect(slot.formattedES).toContain('Lunes');
     });
   });
 });

@@ -24,6 +24,8 @@ export const OrderSchema = z.object({
   cylinder_returned: z.boolean().nullable().optional(),
   discount_applied: z.number().nullable().optional(),
   total_amount: z.number(),
+  is_scheduled: z.boolean().default(false),
+  scheduled_for: z.string().nullable().optional(),
   created_at: z.string(),
   // Campos opcionales si hacemos JOIN
   customer: CustomerSchema.optional(),
