@@ -382,8 +382,9 @@ export default function Catalog() {
           <p class="text-sm text-gray-500 mb-6">{t('phoneDesc', lang())}</p>
           
           <Show when={submitError()}>
-            <div data-testid="submit-error" class="bg-red-50 border-l-4 border-red-500 p-4 rounded-md shadow-sm mb-4">
-              <p class="text-sm text-red-700">{submitError()}</p>
+            <div data-testid="submit-error" class="bg-red-50/80 border border-red-200 p-3.5 rounded-xl text-red-700 text-sm font-medium shadow-xs mb-4 flex items-start gap-2.5">
+              <span class="text-base leading-none select-none">⚠️</span>
+              <p class="leading-snug">{submitError()}</p>
             </div>
           </Show>
 
@@ -416,8 +417,9 @@ export default function Catalog() {
           <p class="text-sm text-gray-500 mb-6">{t('registerDesc', lang())}</p>
           
           <Show when={submitError()}>
-            <div data-testid="submit-error" class="bg-red-50 border-l-4 border-red-500 p-4 rounded-md shadow-sm mb-4">
-              <p class="text-sm text-red-700">{submitError()}</p>
+            <div data-testid="submit-error" class="bg-red-50/80 border border-red-200 p-3.5 rounded-xl text-red-700 text-sm font-medium shadow-xs mb-4 flex items-start gap-2.5">
+              <span class="text-base leading-none select-none">⚠️</span>
+              <p class="leading-snug">{submitError()}</p>
             </div>
           </Show>
 
@@ -488,16 +490,16 @@ export default function Catalog() {
       {/* ----------------- STEP 3: CATALOG & CHECKOUT ----------------- */}
       <Show when={step() === 'catalog'}>
         <Show when={orderSuccess()}>
-          <div class="bg-green-50 border-l-4 border-green-500 p-5 rounded-2xl shadow-sm">
+          <div class="bg-emerald-50/80 border border-emerald-200 p-5 rounded-2xl shadow-xs">
             <div class="flex">
               <div class="flex-shrink-0">
-                <svg class="h-6 w-6 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+                <svg class="h-6 w-6 text-emerald-600" viewBox="0 0 20 20" fill="currentColor">
                   <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                 </svg>
               </div>
               <div class="ml-3">
-                <h3 class="text-base font-bold text-green-900">{t('successTitle', lang())}</h3>
-                <p class="mt-1 text-sm text-green-800">
+                <h3 class="text-base font-bold text-emerald-900">{t('successTitle', lang())}</h3>
+                <p class="mt-1 text-sm text-emerald-800">
                   {isScheduled() ? t('scheduledSuccessMessage', lang()) : t('successMessage', lang())}
                 </p>
               </div>
@@ -509,19 +511,20 @@ export default function Catalog() {
           <div class="space-y-4">
             {/* Banner de bienvenida para clientes recurrentes */}
             <Show when={customerName()}>
-              <div class="bg-orange-50 border-l-4 border-primary p-4 rounded-xl">
-                <p class="text-base font-bold text-gray-800">
+              <div class="bg-orange-50/70 border border-orange-200 p-4 rounded-xl shadow-xs">
+                <p class="text-base font-bold text-slate-800">
                   {t('welcomeBack', lang(), { name: customerName() })}
                 </p>
-                <p class="text-sm text-gray-600 mt-0.5">
+                <p class="text-sm text-slate-600 mt-0.5">
                   {t('yourAddress', lang(), { address: address() })}
                 </p>
               </div>
             </Show>
 
             <Show when={submitError()}>
-              <div data-testid="submit-error" class="bg-red-50 border-l-4 border-red-500 p-4 rounded-md shadow-sm mb-4">
-                <p class="text-sm text-red-700">{submitError()}</p>
+              <div data-testid="submit-error" class="bg-red-50/80 border border-red-200 p-3.5 rounded-xl text-red-700 text-sm font-medium shadow-xs mb-4 flex items-start gap-2.5">
+                <span class="text-base leading-none select-none">⚠️</span>
+                <p class="leading-snug">{submitError()}</p>
               </div>
             </Show>
             <Show when={products().length === 0}>

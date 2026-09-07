@@ -113,9 +113,9 @@ export function NewOrderModal({ onConfirm, onCancel }: NewOrderModalProps) {
         
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {error && (
-            <div className="bg-red-50 border-l-4 border-red-500 p-3.5 rounded-xl text-red-700 text-xs font-semibold flex items-center justify-between shadow-xs">
+            <div className="bg-red-50/90 border border-red-200 p-3.5 rounded-xl text-red-700 text-xs font-semibold flex items-center justify-between shadow-xs">
               <span>⚠️ {error}</span>
-              <button type="button" onClick={() => setError(null)} className="text-red-500 hover:text-red-800 text-sm font-bold ml-2">✕</button>
+              <button type="button" onClick={() => setError(null)} className="text-red-500 hover:text-red-800 text-sm font-bold ml-2 cursor-pointer">✕</button>
             </div>
           )}
           <div className="grid grid-cols-2 gap-4">
