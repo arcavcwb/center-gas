@@ -78,10 +78,13 @@ export default function Catalog() {
   const [isSubmitting, setIsSubmitting] = createSignal(false);
   const [orderSuccess, setOrderSuccess] = createSignal(false);
   const [submitError, setSubmitError] = createSignal<string | null>(null);
-  const [isOnline, setIsOnline] = createSignal(typeof navigator !== 'undefined' ? navigator.onLine : true);
+  const [isOnline, setIsOnline] = createSignal(true);
 
   onMount(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && typeof navigator !== 'undefined') {
+      if (typeof navigator.onLine === 'boolean') {
+        setIsOnline(navigator.onLine);
+      }
       const handleOnline = () => setIsOnline(true);
       const handleOffline = () => setIsOnline(false);
       window.addEventListener('online', handleOnline);
