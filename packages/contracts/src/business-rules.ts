@@ -36,7 +36,11 @@ export function calculateComboDiscount(items: CartItemLike[]): number {
  * BR-002: Validación de Pago en Efectivo y Cálculo de Troco
  * El monto para el que se pide cambio debe ser estrictamente mayor o igual al total a pagar.
  */
-export function validateCashChange(totalAmount: number, cashChangeFor: number | null | undefined): {
+export function validateCashChange(
+  totalAmount: number,
+  cashChangeFor: number | null | undefined,
+  lang: 'pt' | 'es' = 'pt'
+): {
   isValid: boolean;
   changeDue: number;
   error?: string;
@@ -46,10 +50,13 @@ export function validateCashChange(totalAmount: number, cashChangeFor: number | 
   }
 
   if (cashChangeFor < totalAmount) {
+    const error = lang === 'pt'
+      ? `O valor para troco (R$ ${cashChangeFor.toFixed(2)}) não pode ser menor que o total do pedido (R$ ${totalAmount.toFixed(2)}).`
+      : `El valor para el cambio (R$ ${cashChangeFor.toFixed(2)}) no puede ser menor al total del pedido (R$ ${totalAmount.toFixed(2)}).`;
     return {
       isValid: false,
       changeDue: 0,
-      error: `El valor para el cambio (R$ ${cashChangeFor.toFixed(2)}) no puede ser menor al total del pedido (R$ ${totalAmount.toFixed(2)}).`
+      error
     };
   }
 

@@ -1,0 +1,176 @@
+export type SupportedLang = 'pt' | 'es';
+
+export interface TranslationSchema {
+  banner: string;
+  brand: string;
+  brandSubtitle: string;
+  help: string;
+  heroGreeting: string;
+  heroDesc: string;
+  loadingTitle: string;
+  loadingSubtitle: string;
+  phoneTitle: string;
+  phoneDesc: string;
+  phonePlaceholder: string;
+  phoneBtn: string;
+  phoneVerifying: string;
+  phoneError: string;
+  connectionError: string;
+  expiredSession: string;
+  registerTitle: string;
+  registerDesc: string;
+  registerName: string;
+  registerNamePlaceholder: string;
+  registerCep: string;
+  registerNeighborhood: string;
+  registerNeighborhoodSelect: string;
+  registerAddress: string;
+  registerAddressPlaceholder: string;
+  registerBtn: string;
+  registerBtnLoading: string;
+  fillAllFields: string;
+  welcomeBack: string;
+  yourAddress: string;
+  loadingCatalog: string;
+  badgeIncludesCylinder: string;
+  descRefill: string;
+  descFull: string;
+  crossSellTitle: string;
+  crossSellSubtitle: string;
+  crossSellComboBadge: string;
+  crossSellAdd: string;
+  deliveryDataTitle: string;
+  subtotalLabel: string;
+  comboDiscountLabel: string;
+  deliveryFeeLabel: string;
+  totalLabel: string;
+  paymentTitle: string;
+  paymentCash: string;
+  paymentPix: string;
+  trocoTitle: string;
+  trocoExact: string;
+  trocoOption: string;
+  submitOrderBtn: string;
+  submittingOrder: string;
+  emptyCartError: string;
+  verifyPhoneAddressError: string;
+  successTitle: string;
+  successMessage: string;
+}
+
+export const translations: Record<SupportedLang, TranslationSchema> = {
+  pt: {
+    banner: "🚚 Entrega Rápida no Pinheirinho e região em até 30-45 min!",
+    brand: "CENTER GÁS",
+    brandSubtitle: "Distribuidora no Pinheirinho - Curitiba",
+    help: "Ajuda WhatsApp",
+    heroGreeting: "Gás de Cozinha e Água Mineral",
+    heroDesc: "Atendimento ágil no Pinheirinho e bairros vizinhos. Faça seu pedido em segundos!",
+    loadingTitle: "Identificando...",
+    loadingSubtitle: "Um momento, estamos localizando seu cadastro.",
+    phoneTitle: "Informe seu WhatsApp",
+    phoneDesc: "Para agilizar sua entrega no seu endereço, informe seu número.",
+    phonePlaceholder: "(41) 99999-9999",
+    phoneBtn: "Continuar",
+    phoneVerifying: "Verificando...",
+    phoneError: "Por favor, informe um número de telefone válido.",
+    connectionError: "Erro de conexão. Tente novamente.",
+    expiredSession: "Link expirado ou inválido.",
+    registerTitle: "Olá! É sua primeira vez na Center Gás",
+    registerDesc: "Preencha seus dados para entrega no Pinheirinho e região.",
+    registerName: "Nome ou Apelido",
+    registerNamePlaceholder: "Ex: João Silva",
+    registerCep: "CEP",
+    registerNeighborhood: "Bairro",
+    registerNeighborhoodSelect: "Selecione seu bairro...",
+    registerAddress: "Endereço Completo",
+    registerAddressPlaceholder: "Rua, Número, Apto/Bloco, Ponto de Referência...",
+    registerBtn: "Salvar e Ver Produtos",
+    registerBtnLoading: "Cadastrando...",
+    fillAllFields: "Preencha todos os campos obrigatórios.",
+    welcomeBack: "Olá, {name}! 👋",
+    yourAddress: "Seu endereço: {address}",
+    loadingCatalog: "Carregando produtos...",
+    badgeIncludesCylinder: "✨ INCLUI BOTIJÃO NOVO",
+    descRefill: "Você entrega o botijão/galão vazio ao entregador.",
+    descFull: "Líquido + Vasilhame novo (não precisa ter vazio).",
+    crossSellTitle: "Vai uma Água Mineral 20L?",
+    crossSellSubtitle: "Leve {product} por apenas {price}",
+    crossSellComboBadge: "🎉 Economize R$ 5,00 no Combo Gás + Água!",
+    crossSellAdd: "+ Adicionar",
+    deliveryDataTitle: "Dados de Entrega",
+    subtotalLabel: "Subtotal dos produtos:",
+    comboDiscountLabel: "🔥 Desconto Combo (Gás + Água):",
+    deliveryFeeLabel: "Taxa de Entrega:",
+    totalLabel: "Total a Pagar:",
+    paymentTitle: "Forma de Pagamento",
+    paymentCash: "Dinheiro na entrega",
+    paymentPix: "PIX na entrega (chave ou maquininha)",
+    trocoTitle: "Precisa de troco?",
+    trocoExact: "Não, vou pagar valor exato ({amount})",
+    trocoOption: "Troco para {amount} (Volta: {change})",
+    submitOrderBtn: "FAZER PEDIDO AGORA ({amount})",
+    submittingOrder: "Processando pedido...",
+    emptyCartError: "O carrinho está vazio.",
+    verifyPhoneAddressError: "Por favor, verifique seu telefone e endereço.",
+    successTitle: "🎉 Pedido Confirmado!",
+    successMessage: "Seu pedido foi recebido e nossa equipe no Pinheirinho já está preparando a entrega. Entraremos em contato pelo WhatsApp!"
+  },
+  es: {
+    banner: "🚚 Entrega Rápida en Pinheirinho y alrededores en 30-45 min!",
+    brand: "CENTER GÁS",
+    brandSubtitle: "Distribuidora en Pinheirinho - Curitiba",
+    help: "Ayuda WhatsApp",
+    heroGreeting: "Gas de Cocina y Agua Mineral",
+    heroDesc: "Atención ágil en Pinheirinho y barrios vecinos. ¡Haz tu pedido en segundos!",
+    loadingTitle: "Identificándote...",
+    loadingSubtitle: "Un momento, estamos buscando tu cuenta.",
+    phoneTitle: "Ingresa tu WhatsApp",
+    phoneDesc: "Para agilizar la entrega en tu dirección, ingresa tu número.",
+    phonePlaceholder: "(41) 99999-9999",
+    phoneBtn: "Continuar",
+    phoneVerifying: "Verificando...",
+    phoneError: "Por favor ingresa un número de teléfono válido.",
+    connectionError: "Error de conexión. Intenta de nuevo.",
+    expiredSession: "Enlace expirado o inválido.",
+    registerTitle: "¡Hola! Es tu primera vez en Center Gás",
+    registerDesc: "Completa tus datos para entrega en Pinheirinho y alrededores.",
+    registerName: "Nombre o Apodo",
+    registerNamePlaceholder: "Ej: João Silva",
+    registerCep: "CEP",
+    registerNeighborhood: "Barrio",
+    registerNeighborhoodSelect: "Selecciona tu barrio...",
+    registerAddress: "Dirección Exacta",
+    registerAddressPlaceholder: "Rua, Número, Referencia...",
+    registerBtn: "Guardar y Ver Catálogo",
+    registerBtnLoading: "Registrando...",
+    fillAllFields: "Completa todos los campos obligatorios.",
+    welcomeBack: "¡Hola, {name}! 👋",
+    yourAddress: "Tu dirección: {address}",
+    loadingCatalog: "Cargando catálogo...",
+    badgeIncludesCylinder: "✨ INCLUYE ENVASE NUEVO",
+    descRefill: "Debes entregar un envase vacío al motoboy.",
+    descFull: "Líquido + Casco Plástico (no necesitas vacío).",
+    crossSellTitle: "¿Deseas agregar agua mineral 20L?",
+    crossSellSubtitle: "Lleva {product} por solo {price}",
+    crossSellComboBadge: "🎉 ¡Ahorra R$ 5,00 con el Combo Gás + Água!",
+    crossSellAdd: "+ Agregar",
+    deliveryDataTitle: "Datos de Entrega",
+    subtotalLabel: "Subtotal productos:",
+    comboDiscountLabel: "🔥 Descuento Combo (Gás + Água):",
+    deliveryFeeLabel: "Tasa de Entrega:",
+    totalLabel: "Total a Pagar:",
+    paymentTitle: "Forma de Pago",
+    paymentCash: "Efectivo al recibir",
+    paymentPix: "PIX en la entrega",
+    trocoTitle: "¿Necesitas vuelto (Troco)?",
+    trocoExact: "No, pagaré el monto exacto ({amount})",
+    trocoOption: "Troco para {amount} (Vuelto: {change})",
+    submitOrderBtn: "PEDIR AHORA ({amount})",
+    submittingOrder: "Procesando pedido...",
+    emptyCartError: "El carrito está vacío.",
+    verifyPhoneAddressError: "Por favor verifica tu teléfono y dirección.",
+    successTitle: "🎉 ¡Pedido Confirmado!",
+    successMessage: "Tu pedido ha sido recibido y nuestro equipo en Pinheirinho ya lo está preparando. Te contactaremos por WhatsApp."
+  }
+};

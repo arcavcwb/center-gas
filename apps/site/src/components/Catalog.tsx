@@ -5,8 +5,11 @@ import {
   validateCashChange,
   normalizeWhatsAppPhone,
   formatBRL,
-  type CartItemLike
+  t,
+  type CartItemLike,
+  type SupportedLang
 } from '@center-gas/contracts';
+import LanguageToggle from './LanguageToggle';
 
 interface Product {
   id: string;
@@ -25,10 +28,32 @@ interface Neighborhood {
 }
 
 export default function Catalog() {
-  // Detect if token comes from WhatsApp URL to skip the phone form
   const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
   const hasTokenFromUrl = !!urlParams?.get('token');
   
+  // Idioma inicial (Português PT-BR por defecto, o persistido)
+  const getInitialLang = (): SupportedLang => {
+    if (typeof window !== 'undefined') {
+      const urlLang = urlParams?.get('lang');
+      if (urlLang === 'es' || urlLang === 'pt') return urlLang;
+      const saved = localStorage.getItem('center_gas_lang');
+      if (saved === 'es' || saved === 'pt') return saved;
+    }
+    return 'pt';
+  };
+
+  const [lang, setLangState] = createSignal<SupportedLang>(getInitialLang());
+
+  const setLang = (newLang: SupportedLang) => {
+    setLangState(newLang);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('center_gas_lang', newLang);
+      const url = new URL(window.location.href);
+      url.searchParams.set('lang', newLang);
+      window.history.replaceState({}, '', url.toString());
+    }
+  };
+
   const [step, setStep] = createSignal<'loading' | 'phone' | 'register' | 'catalog'>(hasTokenFromUrl ? 'loading' : 'phone');
   const [customerName, setCustomerName] = createSignal('');
   
@@ -60,7 +85,9 @@ export default function Catalog() {
           sku: p.sku,
           type: p.sku,
           price: Number(p.price),
-          desc: p.includes_cylinder ? 'Líquido + Casco Plástico.' : 'Debes entregar un envase vacío al motoboy.',
+          desc: p.includes_cylinder 
+            ? t('descFull', lang()) 
+            : t('descRefill', lang()),
           includes_cylinder: p.includes_cylinder || false
         })));
       }
@@ -68,11 +95,18 @@ export default function Catalog() {
 
     supabase.from('neighborhoods').select('id, name, delivery_fee').eq('is_active', true).then(({ data }) => {
       if (data) {
-        setNeighborhoods(data.map(n => ({
+        const list = data.map(n => ({
           id: n.id,
           name: n.name,
           delivery_fee: Number(n.delivery_fee || 0)
-        })));
+        }));
+        setNeighborhoods(list);
+
+        // Preselección de Pinheirinho como barrio principal
+        if (!neighborhoodId()) {
+          const pinheirinho = list.find(n => n.name.toLowerCase().includes('pinheirinho'));
+          if (pinheirinho) setNeighborhoodId(pinheirinho.id);
+        }
       }
     });
     
@@ -142,7 +176,7 @@ export default function Catalog() {
     setIsSubmitting(false);
     
     if (error) {
-      setSubmitError('Error de conexión. Intenta de nuevo.');
+      setSubmitError(t('connectionError', lang()));
       setStep('phone');
       return;
     }
@@ -158,7 +192,7 @@ export default function Catalog() {
         setStep('register');
       }
     } else {
-      setSubmitError(data?.message || 'Enlace expirado o inválido.');
+      setSubmitError(data?.message || t('expiredSession', lang()));
       setStep('phone');
     }
   };
@@ -166,7 +200,7 @@ export default function Catalog() {
   const handlePhoneCheck = async (checkPhone: string) => {
     const normalized = normalizeWhatsAppPhone(checkPhone);
     if (!normalized) {
-      setSubmitError('Por favor ingresa un número de teléfono válido.');
+      setSubmitError(t('phoneError', lang()));
       return;
     }
     setPhone(normalized);
@@ -176,7 +210,7 @@ export default function Catalog() {
     setIsSubmitting(false);
     
     if (error) {
-      setSubmitError('Error de conexión. Intenta de nuevo.');
+      setSubmitError(t('connectionError', lang()));
       return;
     }
     
@@ -205,7 +239,6 @@ export default function Catalog() {
         const data = await res.json();
         if (!data.erro) {
           setAddress(`${data.logradouro}, , ${data.bairro}, ${data.localidade} - ${data.uf}`);
-          // Attempt to match neighborhood
           const matched = neighborhoods().find(n => n.name.toLowerCase() === data.bairro.toLowerCase());
           if (matched) setNeighborhoodId(matched.id);
         }
@@ -218,7 +251,7 @@ export default function Catalog() {
   const submitRegister = async (e: Event) => {
     e.preventDefault();
     if (!name() || !neighborhoodId() || !address()) {
-      setSubmitError('Completa todos los campos');
+      setSubmitError(t('fillAllFields', lang()));
       return;
     }
     const normalized = normalizeWhatsAppPhone(phone());
@@ -243,18 +276,18 @@ export default function Catalog() {
     e.preventDefault();
     setSubmitError(null);
     if (total() === 0) {
-      setSubmitError('El carrito está vacío');
+      setSubmitError(t('emptyCartError', lang()));
       return;
     }
     if (!phone() || !address()) {
-      setSubmitError('Por favor verifica tu teléfono y dirección');
+      setSubmitError(t('verifyPhoneAddressError', lang()));
       return;
     }
 
     if (paymentMethod() === 'cash' && changeFor() !== null) {
-      const validation = validateCashChange(total(), changeFor());
+      const validation = validateCashChange(total(), changeFor(), lang());
       if (!validation.isValid) {
-        setSubmitError(validation.error || 'El monto para el cambio no puede ser menor al total.');
+        setSubmitError(validation.error || t('trocoTitle', lang()));
         return;
       }
     }
@@ -286,22 +319,34 @@ export default function Catalog() {
   };
 
   return (
-    <div class="space-y-6">
+    <div class="space-y-5">
+
+      {/* ----------------- BANNER PINHEIRINHO & SELECTOR DE IDIOMA ----------------- */}
+      <div class="bg-gradient-to-r from-orange-600 via-primary to-orange-500 text-white p-3 sm:p-4 rounded-2xl shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div class="flex items-center gap-2 text-center sm:text-left">
+          <span class="text-xl">🚚</span>
+          <div>
+            <p class="text-xs sm:text-sm font-extrabold tracking-tight">{t('banner', lang())}</p>
+            <p class="text-[11px] text-orange-100 font-medium">{t('brandSubtitle', lang())}</p>
+          </div>
+        </div>
+        <LanguageToggle lang={lang()} onToggle={setLang} />
+      </div>
 
       {/* ----------------- STEP 0: LOADING (WhatsApp flow) ----------------- */}
       <Show when={step() === 'loading'}>
         <div class="bg-white p-10 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center min-h-[200px]">
           <div class="w-10 h-10 border-4 border-gray-200 border-t-primary rounded-full animate-spin mb-4"></div>
-          <p class="text-lg font-bold text-gray-800">Identificándote...</p>
-          <p class="text-sm text-gray-500 mt-1">Un momento, estamos buscando tu cuenta.</p>
+          <p class="text-lg font-bold text-gray-800">{t('loadingTitle', lang())}</p>
+          <p class="text-sm text-gray-500 mt-1">{t('loadingSubtitle', lang())}</p>
         </div>
       </Show>
       
-      {/* ----------------- STEP 1: PHONE (solo acceso directo, sin WhatsApp) ----------------- */}
+      {/* ----------------- STEP 1: PHONE (Acceso sin WhatsApp token) ----------------- */}
       <Show when={step() === 'phone'}>
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-          <h2 class="text-xl font-bold text-gray-800 mb-2">Ingresa tu WhatsApp</h2>
-          <p class="text-sm text-gray-500 mb-6">Para continuar con tu pedido, necesitamos identificarte.</p>
+          <h2 class="text-xl font-bold text-gray-800 mb-2">{t('phoneTitle', lang())}</h2>
+          <p class="text-sm text-gray-500 mb-6">{t('phoneDesc', lang())}</p>
           
           <Show when={submitError()}>
             <div data-testid="submit-error" class="bg-red-50 border-l-4 border-red-500 p-4 rounded-md shadow-sm mb-4">
@@ -315,7 +360,7 @@ export default function Catalog() {
                 type="tel" 
                 value={phone()} 
                 onInput={(e) => setPhone(e.currentTarget.value)}
-                placeholder="(41) 99999-9999"
+                placeholder={t('phonePlaceholder', lang())}
                 class="w-full border-gray-300 rounded-lg shadow-sm focus:border-primary focus:ring-primary py-3 px-4 border outline-none text-lg"
                 required
               />
@@ -325,7 +370,7 @@ export default function Catalog() {
               disabled={isSubmitting()}
               class="w-full py-3 px-6 border border-transparent rounded-xl shadow-sm text-lg font-bold text-white bg-primary hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 transition-all"
             >
-              {isSubmitting() ? 'Verificando...' : 'Continuar'}
+              {isSubmitting() ? t('phoneVerifying', lang()) : t('phoneBtn', lang())}
             </button>
           </form>
         </div>
@@ -334,8 +379,8 @@ export default function Catalog() {
       {/* ----------------- STEP 2: REGISTER ----------------- */}
       <Show when={step() === 'register'}>
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-          <h2 class="text-xl font-bold text-gray-800 mb-2">¡Hola! Es tu primera vez</h2>
-          <p class="text-sm text-gray-500 mb-6">Completa tus datos para crear tu cuenta y guardar tu dirección.</p>
+          <h2 class="text-xl font-bold text-gray-800 mb-2">{t('registerTitle', lang())}</h2>
+          <p class="text-sm text-gray-500 mb-6">{t('registerDesc', lang())}</p>
           
           <Show when={submitError()}>
             <div data-testid="submit-error" class="bg-red-50 border-l-4 border-red-500 p-4 rounded-md shadow-sm mb-4">
@@ -345,18 +390,18 @@ export default function Catalog() {
 
           <form onSubmit={submitRegister} class="space-y-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Nombre o Apodo</label>
+              <label class="block text-sm font-medium text-gray-700 mb-1">{t('registerName', lang())}</label>
               <input 
                 type="text" 
                 value={name()} 
                 onInput={(e) => setName(e.currentTarget.value)}
-                placeholder="Ej. João Silva"
+                placeholder={t('registerNamePlaceholder', lang())}
                 class="w-full border-gray-300 rounded-lg shadow-sm focus:border-primary focus:ring-primary py-2 px-3 border outline-none"
                 required
               />
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">CEP</label>
+              <label class="block text-sm font-medium text-gray-700 mb-1">{t('registerCep', lang())}</label>
               <input 
                 type="text" 
                 value={cep()} 
@@ -368,29 +413,29 @@ export default function Catalog() {
               />
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Barrio</label>
+              <label class="block text-sm font-medium text-gray-700 mb-1">{t('registerNeighborhood', lang())}</label>
               <select 
                 value={neighborhoodId()} 
                 onChange={(e) => setNeighborhoodId(e.currentTarget.value)}
                 class="w-full border-gray-300 rounded-lg shadow-sm focus:border-primary focus:ring-primary py-2 px-3 border outline-none bg-white"
                 required
               >
-                <option value="" disabled>Selecciona tu barrio...</option>
+                <option value="" disabled>{t('registerNeighborhoodSelect', lang())}</option>
                 <For each={neighborhoods()}>
                   {(n) => (
                     <option value={n.id}>
-                      {n.name} {n.delivery_fee ? `(+ ${formatBRL(n.delivery_fee)})` : '(Entrega gratis)'}
+                      {n.name} {n.delivery_fee ? `(+ ${formatBRL(n.delivery_fee)})` : ''}
                     </option>
                   )}
                 </For>
               </select>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Dirección Exacta</label>
+              <label class="block text-sm font-medium text-gray-700 mb-1">{t('registerAddress', lang())}</label>
               <textarea 
                 value={address()} 
                 onInput={(e) => setAddress(e.currentTarget.value)}
-                placeholder="Rua, Número, Referencia..."
+                placeholder={t('registerAddressPlaceholder', lang())}
                 class="w-full border-gray-300 rounded-lg shadow-sm focus:border-primary focus:ring-primary py-2 px-3 border outline-none"
                 rows="2"
                 required
@@ -401,7 +446,7 @@ export default function Catalog() {
               disabled={isSubmitting()}
               class="w-full py-3 px-6 mt-4 border border-transparent rounded-xl shadow-sm text-lg font-bold text-white bg-primary hover:bg-orange-600 focus:outline-none transition-all"
             >
-              {isSubmitting() ? 'Registrando...' : 'Guardar y Ver Catálogo'}
+              {isSubmitting() ? t('registerBtnLoading', lang()) : t('registerBtn', lang())}
             </button>
           </form>
         </div>
@@ -410,16 +455,16 @@ export default function Catalog() {
       {/* ----------------- STEP 3: CATALOG & CHECKOUT ----------------- */}
       <Show when={step() === 'catalog'}>
         <Show when={orderSuccess()}>
-          <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded-md shadow-sm">
+          <div class="bg-green-50 border-l-4 border-green-500 p-5 rounded-2xl shadow-sm">
             <div class="flex">
               <div class="flex-shrink-0">
-                <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                <svg class="h-6 w-6 text-green-500" viewBox="0 0 20 20" fill="currentColor">
                   <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                 </svg>
               </div>
               <div class="ml-3">
-                <h3 class="text-sm font-medium text-green-800">¡Pedido Confirmado!</h3>
-                <p class="mt-2 text-sm text-green-700">Tu pedido ha sido recibido y está siendo procesado. Te contactaremos por WhatsApp.</p>
+                <h3 class="text-base font-bold text-green-900">{t('successTitle', lang())}</h3>
+                <p class="mt-1 text-sm text-green-800">{t('successMessage', lang())}</p>
               </div>
             </div>
           </div>
@@ -430,8 +475,12 @@ export default function Catalog() {
             {/* Banner de bienvenida para clientes recurrentes */}
             <Show when={customerName()}>
               <div class="bg-orange-50 border-l-4 border-primary p-4 rounded-xl">
-                <p class="text-base font-bold text-gray-800">¡Hola, {customerName()}! 👋</p>
-                <p class="text-sm text-gray-600 mt-0.5">Tu dirección: {address()}</p>
+                <p class="text-base font-bold text-gray-800">
+                  {t('welcomeBack', lang(), { name: customerName() })}
+                </p>
+                <p class="text-sm text-gray-600 mt-0.5">
+                  {t('yourAddress', lang(), { address: address() })}
+                </p>
               </div>
             </Show>
 
@@ -441,7 +490,7 @@ export default function Catalog() {
               </div>
             </Show>
             <Show when={products().length === 0}>
-              <div class="text-center p-8 text-gray-500">Cargando catálogo...</div>
+              <div class="text-center p-8 text-gray-500">{t('loadingCatalog', lang())}</div>
             </Show>
             <For each={products()}>
               {(product) => (
@@ -452,10 +501,12 @@ export default function Catalog() {
                     </h3>
                     <Show when={product.includes_cylinder}>
                       <span class="inline-block mt-1 mb-1 px-2 py-0.5 bg-blue-100 text-blue-800 text-[10px] font-extrabold rounded-full tracking-wide">
-                        ✨ INCLUYE ENVASE NUEVO
+                        {t('badgeIncludesCylinder', lang())}
                       </span>
                     </Show>
-                    <p class="text-xs text-gray-500 mt-1 leading-tight">{product.desc}</p>
+                    <p class="text-xs text-gray-500 mt-1 leading-tight">
+                      {product.includes_cylinder ? t('descFull', lang()) : t('descRefill', lang())}
+                    </p>
                     <p class="text-primary font-semibold mt-1.5 text-lg">{formatBRL(product.price)}</p>
                   </div>
                   <div class="flex items-center space-x-3 bg-surface p-1 rounded-full border border-gray-100">
@@ -478,7 +529,7 @@ export default function Catalog() {
             </For>
           </div>
 
-          <form onSubmit={handleSubmitOrder} class="mt-8 space-y-6 bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+          <form onSubmit={handleSubmitOrder} class="mt-6 space-y-6 bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
             {/* ----------------- CROSS-SELLING (Water) ----------------- */}
             <Show when={products().find(p => (p.sku.toLowerCase().includes('water') || p.sku.toLowerCase().includes('agua')) && !cart()[p.id])}>
               {() => {
@@ -492,14 +543,14 @@ export default function Catalog() {
                     <div>
                       <div class="flex items-center gap-1.5">
                         <span class="text-base">💧</span>
-                        <h4 class="font-bold text-gray-800 text-sm">¿Deseas agregar agua mineral?</h4>
+                        <h4 class="font-bold text-gray-800 text-sm">{t('crossSellTitle', lang())}</h4>
                       </div>
                       <p class="text-xs text-gray-600 mt-0.5">
-                        {waterProduct.name} por solo {formatBRL(waterProduct.price)}
+                        {t('crossSellSubtitle', lang(), { product: waterProduct.name, price: formatBRL(waterProduct.price) })}
                       </p>
                       <Show when={hasGas}>
                         <span class="inline-block mt-1 text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
-                          🎉 ¡Ahorra R$ 5,00 con el Combo Gás + Água!
+                          {t('crossSellComboBadge', lang())}
                         </span>
                       </Show>
                     </div>
@@ -508,22 +559,22 @@ export default function Catalog() {
                       onClick={() => updateQty(waterProduct.id, 1)}
                       class="px-4 py-2 bg-secondary text-white font-bold text-sm rounded-lg hover:bg-blue-700 transition-colors shadow-sm active:scale-95"
                     >
-                      + Agregar
+                      {t('crossSellAdd', lang())}
                     </button>
                   </div>
                 );
               }}
             </Show>
 
-            <h3 class="font-bold text-gray-800 border-b pb-2">Datos de Entrega</h3>
+            <h3 class="font-bold text-gray-800 border-b pb-2">{t('deliveryDataTitle', lang())}</h3>
             
             <div class="space-y-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Dirección Exacta</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{t('registerAddress', lang())}</label>
                 <textarea 
                   value={address()} 
                   onInput={(e) => setAddress(e.currentTarget.value)}
-                  placeholder="Rua, Número, Barrio, Referencia..."
+                  placeholder={t('registerAddressPlaceholder', lang())}
                   class="w-full border-gray-300 rounded-lg shadow-sm focus:border-primary focus:ring-primary py-2 px-3 border outline-none"
                   rows="2"
                   required
@@ -531,54 +582,56 @@ export default function Catalog() {
               </div>
             </div>
 
-            {/* Resumen Financiero con Descuento de Combo */}
+            {/* Resumen Financiero */}
             <div class="bg-gray-50 p-4 rounded-xl space-y-2 border border-gray-100">
               <div class="flex justify-between text-sm text-gray-600">
-                <span>Subtotal productos:</span>
+                <span>{t('subtotalLabel', lang())}</span>
                 <span>{formatBRL(subtotal())}</span>
               </div>
               <Show when={comboDiscount() > 0}>
                 <div class="flex justify-between text-sm font-bold text-emerald-700 bg-emerald-100/70 px-2.5 py-1 rounded-lg">
-                  <span>🔥 Descuento Combo (Gás + Água):</span>
+                  <span>{t('comboDiscountLabel', lang())}</span>
                   <span>-{formatBRL(comboDiscount())}</span>
                 </div>
               </Show>
               <Show when={deliveryFee() > 0}>
                 <div class="flex justify-between text-sm text-gray-600">
-                  <span>Tasa de Entrega:</span>
+                  <span>{t('deliveryFeeLabel', lang())}</span>
                   <span>{formatBRL(deliveryFee())}</span>
                 </div>
               </Show>
               <div class="flex justify-between text-base font-extrabold text-gray-900 border-t border-gray-200 pt-2">
-                <span>Total a Pagar:</span>
+                <span>{t('totalLabel', lang())}</span>
                 <span class="text-primary text-xl font-black">{formatBRL(total())}</span>
               </div>
             </div>
 
-            <h3 class="font-bold text-gray-800 border-b pb-2 mt-6">Forma de Pago</h3>
+            <h3 class="font-bold text-gray-800 border-b pb-2 mt-6">{t('paymentTitle', lang())}</h3>
             
             <div class="space-y-3">
               <label class="flex items-center p-3 border rounded-xl cursor-pointer hover:bg-gray-50 transition-colors" classList={{'border-primary bg-orange-50/30': paymentMethod() === 'cash'}}>
                 <input type="radio" name="payment" value="cash" checked={paymentMethod() === 'cash'} onChange={() => setPaymentMethod('cash')} class="text-primary focus:ring-primary" />
-                <span class="ml-3 font-medium text-gray-900">Efectivo al recibir</span>
+                <span class="ml-3 font-medium text-gray-900">{t('paymentCash', lang())}</span>
               </label>
               <label class="flex items-center p-3 border rounded-xl cursor-pointer hover:bg-gray-50 transition-colors" classList={{'border-secondary bg-blue-50/30': paymentMethod() === 'pix'}}>
                 <input type="radio" name="payment" value="pix" checked={paymentMethod() === 'pix'} onChange={() => {setPaymentMethod('pix'); setChangeFor(null);}} class="text-secondary focus:ring-secondary" />
-                <span class="ml-3 font-medium text-gray-900">PIX en la entrega</span>
+                <span class="ml-3 font-medium text-gray-900">{t('paymentPix', lang())}</span>
               </label>
             </div>
 
             <Show when={paymentMethod() === 'cash'}>
               <div class="bg-surface p-4 rounded-xl border border-gray-100 mt-3">
-                <label class="block text-sm font-medium text-gray-700 mb-2">¿Necesitas vuelto (Troco)?</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">{t('trocoTitle', lang())}</label>
                 <select 
                   class="w-full border-gray-300 rounded-lg shadow-sm focus:border-primary focus:ring-primary py-2 px-3 border outline-none bg-white"
                   onChange={(e) => setChangeFor(e.currentTarget.value ? Number(e.currentTarget.value) : null)}
                 >
-                  <option value="">No, pagaré el monto exacto ({formatBRL(total())})</option>
+                  <option value="">{t('trocoExact', lang(), { amount: formatBRL(total()) })}</option>
                   <For each={suggestedCashOptions()}>
                     {(opt) => (
-                      <option value={opt}>Troco para {formatBRL(opt)} (Vuelto: {formatBRL(opt - total())})</option>
+                      <option value={opt}>
+                        {t('trocoOption', lang(), { amount: formatBRL(opt), change: formatBRL(opt - total()) })}
+                      </option>
                     )}
                   </For>
                 </select>
@@ -590,7 +643,7 @@ export default function Catalog() {
               disabled={total() === 0 || isSubmitting()}
               class="w-full py-4 px-6 border border-transparent rounded-xl shadow-sm text-lg font-bold text-white bg-primary hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all transform active:scale-[0.98]"
             >
-              {isSubmitting() ? 'Procesando...' : `PEDIR AHORA (${formatBRL(total())})`}
+              {isSubmitting() ? t('submittingOrder', lang()) : t('submitOrderBtn', lang(), { amount: formatBRL(total()) })}
             </button>
           </form>
         </Show>

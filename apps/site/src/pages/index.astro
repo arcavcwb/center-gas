@@ -3,28 +3,33 @@ import Catalog from '../components/Catalog';
 import '../styles/global.css';
 ---
 
-<html lang="es">
+<html lang="pt-BR">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-    <title>Center Gás Curitiba - Pedido Rápido</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <title>Center Gás Curitiba - Gás P13 e Água Mineral no Pinheirinho</title>
+    <meta name="description" content="Distribuidora de Gás de Cozinha P13 e Água Mineral 20L no Bairro Pinheirinho, Curitiba. Peça online com entrega rápida e pagamento via PIX ou Dinheiro." />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   </head>
   <body class="bg-surface text-gray-900 font-sans antialiased">
     <header class="bg-primary text-white p-4 shadow-md flex justify-between items-center sticky top-0 z-50">
-      <h1 class="font-bold text-xl tracking-tight">CENTER GÁS</h1>
-      <button class="text-sm font-medium bg-white/20 px-3 py-1 rounded-full hover:bg-white/30 transition-colors">
-        Ayuda
-      </button>
+      <div>
+        <h1 class="font-black text-xl tracking-tight leading-none">CENTER GÁS</h1>
+        <p class="text-[10px] text-orange-200 font-medium mt-0.5">Pinheirinho • Curitiba - PR</p>
+      </div>
+      <a 
+        href="https://wa.me/5541999999999" 
+        target="_blank"
+        rel="noopener noreferrer"
+        class="text-xs font-bold bg-white/20 hover:bg-white/30 px-3.5 py-1.5 rounded-full transition-colors flex items-center gap-1.5"
+      >
+        <span>💬</span>
+        <span>WhatsApp</span>
+      </a>
     </header>
 
     <main class="max-w-md mx-auto p-4 pb-24">
-      <div class="mb-6 bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
-        <h2 class="text-lg font-semibold text-gray-800">¡Hola! Haz tu pedido</h2>
-        <p class="text-sm text-gray-500 mt-1">Selecciona tus productos abajo.</p>
-      </div>
-
-      <!-- Isla Interactiva de SolidJS -->
+      <!-- Isla Interactiva de SolidJS con Catálogo Bilingüe y Enfoque Pinheirinho -->
       <Catalog client:load />
     </main>
   </body>
