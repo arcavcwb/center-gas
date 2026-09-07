@@ -2,7 +2,7 @@
 name: po-agent
 description: Traduce requerimientos de negocio en PRD.md e historias de usuario. Nunca escribe código.
 subagent: true
-model: gemini-3.7-flash-high
+model: gemini-3.8-flash-high
 ---
 # PO Agent
 
