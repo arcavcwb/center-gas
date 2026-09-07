@@ -26,8 +26,8 @@ El proyecto utiliza un modelo Trunk-Based Development con `main` protegida. Los 
 
 | Aplicación | Dominio | Stack Tecnológico | Justificación |
 |---|---|---|---|
-| **`apps/site`** | Catálogo Cliente & Vista Repartidor (LP) | **Astro + SolidJS** | Astro genera SSR ultrarrápido sin JS innecesario, vital para la rapidez en móviles. La parte dinámica se maneja con islas en SolidJS utilizando Shadow DOM, evitando conflictos de renderizado en navegadores (como Safari en iPhone). Esto es crítico porque la LP funcionará como portal masivo de pedidos móviles. |
-| **`apps/web`** | Panel Kanban (Dueño/Operaciones) | **Next.js + React** | El panel requiere manejo de estado complejo en cliente, conexiones Websocket abiertas prolongadas y múltiples mutaciones simultáneas. Next.js ofrece el ecosistema más robusto para dashboards SPA-like. |
+| **`apps/site`** | Catálogo Cliente (`/`) & Vista Repartidor (`/driver`) | **Astro 5 + SolidJS** | Astro genera SSR y compilación estática ultrarrápida sin JS innecesario, vital para la rapidez en conexiones móviles. La parte dinámica se maneja con islas interactivas en SolidJS (`DriverApp` y `Catalog`). La app del repartidor `/driver` opera con un consumo de recursos mínimo, navegación GPS (Waze/Maps) y suscripción Realtime a pedidos asignados. |
+| **`apps/web`** | Panel Kanban (Dueño/Operaciones) & Métricas | **Next.js 15 (Turbopack) + React** | El panel requiere manejo de estado complejo en cliente, conexiones Websocket abiertas prolongadas (`Supabase Realtime`) y múltiples mutaciones simultáneas. Next.js 15 ofrece el ecosistema más robusto para dashboards SPA-like con métricas, podio de repartidores y gestión de turnos. |
 
 ### Paquetes Compartidos (Packages)
 
@@ -114,3 +114,4 @@ graph TD
 | 2.0 | 2026-07-26 | Antigravity | Refactor: Inclusión formal de Monorepo híbrido (Next.js / Astro) acorde a ISSUE-101 e ISSUE-201. |
 | 2.1 | 2026-07-26 | Antigravity | Add: Capa de Telemetría (Sentry, Uptime Kuma, OpenPanel) y dependencias de API externa (ViaCEP). |
 | 2.2 | 2026-08-30 | Architect Agent | Actualización final de Gateway WhatsApp: Selección de Evolution API v2 (ISSUE-403). |
+| 2.3 | 2026-09-07 | Antigravity Squad | Actualización: Despliegue dual en producción Vercel (apps/site en Astro 5 + SolidJS y apps/web en Next.js 15 Turbopack), contratos bilingües y canales Realtime de drivers. |

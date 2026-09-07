@@ -72,6 +72,14 @@ gantt
   * Pruebas QA completas y lanzamiento en producción.
 * **Criterio de Éxito:** Operación completa desde el pedido en WhatsApp hasta la validación de entrega por el motoboy, sumando puntos de fidelidad correctamente.
 
+#### Sprint 5: Rediseño Impeccable & Producción en Vercel (2026-09-07 - COMPLETADO)
+* **Entregables (Issues 201, 501, 701, 703):**
+  * Rediseño visual Impeccable en Catálogo B2C (`apps/site`): banners diurnos/nocturnos simétricos de 3 filas, selector bilingüe con banderas, geolocalización en Pinheirinho.
+  * Overhaul de Admin & Kanban B2B (`apps/web`): tarjetas de pedidos con SLA transcurrido, contacto WhatsApp 1-clic, barra de KPIs de turno, podio de repartidores.
+  * Overhaul de App del Repartidor (`apps/site/driver`): modo Operate outdoor de alto contraste, targets >= 48px, navegación directa a Waze y Maps, confirmación táctil de vasilhames BR-002.
+  * Despliegue en producción en Vercel para ambas aplicaciones.
+  * 0 anti-patrones en el detector de diseño Impeccable y 38/38 unit tests pasando.
+
 ---
 
 ### 3. Matriz de Riesgos y Mitigación
