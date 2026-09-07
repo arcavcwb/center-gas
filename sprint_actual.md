@@ -31,7 +31,8 @@ Elevar la experiencia de usuario y la calidad visual de toda la plataforma digit
 | **ISSUE-801** | Actualización Integral de Documentación & Trazabilidad | `architect-agent` | 🟢 Done | [PR #48](https://github.com/arcavcwb/center-gas/pull/48) / `a0ebf1f` |
 | **ISSUE-802** | Integración Mandatoria de Impeccable en el Flujo Agéntico | `architect-agent` | 🟢 Done | [PR #49](https://github.com/arcavcwb/center-gas/pull/49) / `0eb02a4` |
 | **ISSUE-804** | Optimización Lean y Limpieza de Bloat (Ponytail Audit & Review) | `architect-agent` | 🟢 Done | [PR #52](https://github.com/arcavcwb/center-gas/pull/52) / `b2da52e` |
-| **ISSUE-805** | Integración de Caveman & Ponytail en el Flujo Agéntico | `architect-agent` | 🟡 In Review | PR pendiente / `feat/ISSUE-805` |
+| **ISSUE-805** | Integración de Caveman & Ponytail en el Flujo Agéntico | `architect-agent` | 🟢 Done | [PR #53](https://github.com/arcavcwb/center-gas/pull/53) |
+| **ISSUE-806** | Empaquetado Portable y Flujo Agéntico Dual (Enterprise / Operativo) | `architect-agent` | 🟡 In Review | PR pendiente / `feat/ISSUE-806` |
 
 ---
 
