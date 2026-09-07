@@ -1,40 +1,58 @@
 # Contexto del Proyecto: Center Gás Curitiba (AI Summary)
 
-> **Alineado con Plane API - 26 Issues (2026-07-26)**
+> **Alineado con Plane API — 28 Issues / Épicas 1 a 5 + Sprint de Rediseño Impeccable Concluidos (Septiembre 2026)**
 
-Este documento sirve como resumen del estado actual y la arquitectura del proyecto para contextualizar a un nuevo modelo de inteligencia artificial o desarrollador que se una al proyecto.
+Este documento sirve como resumen ejecutivo y técnico del estado del proyecto para contextualizar a cualquier nuevo agente de inteligencia artificial o ingeniero que interactúe con el repositorio.
 
-## 1. Estado Actual (MVP Funcional - Épicas 1 a 5 Finalizadas)
-- Se ha completado el desarrollo del MVP y su integración. Las **Épicas 1 a 5 están construidas, probadas y funcionales**.
-- El catálogo de clientes (SolidJS), panel de despacho (Next.js), App del repartidor (Mobile First) y automatización de WhatsApp (n8n + Supabase) están completamente operativos.
-- El proyecto entra en la fase final (Épica 6), centrada en pruebas e2e y monitoreo.
+---
 
-## 2. Arquitectura Técnica Definida (Monorepo)
-- **Base de Datos & Auth:** Supabase (PostgreSQL 15). Roles (Dueño, Driver) reforzados con RLS estricto.
-- **`apps/site` (Catálogo + Drivers):** Astro framework con SolidJS. Ultras livianos para móviles. UI del conductor con validación de cilindros y geolocalización.
-- **`apps/web` (Kanban Dueño):** Next.js con React. Panel Realtime que centraliza el estado de toda la operación y asignación dinámica.
-- **`packages/contracts`:** Única fuente de validación Zod compartida para payloads y llamadas a DB.
-- **Backend/Integraciones:** n8n + Evolution API para orquestar los WhatsApp inbound (generación de link seguro) y outbound (notificación de entrega dinámica).
+## 1. Estado Actual (Producción en Vercel & Sprint Impeccable Finalizado)
+- **Despliegue Productivo Dual en Vercel:**
+  - 🛒 **Catálogo Móvil B2C:** [https://center-gas-site.vercel.app](https://center-gas-site.vercel.app)
+  - 🛵 **App do Entregador:** [https://center-gas-site.vercel.app/driver](https://center-gas-site.vercel.app/driver)
+  - 💻 **Panel Operativo B2B & Kanban:** [https://center-gas-web.vercel.app](https://center-gas-web.vercel.app)
+- **Épicas 1 a 5 Completadas al 100%:** Arquitectura base, base de datos PostgreSQL con RLS, catálogo cliente, flujos de WhatsApp/n8n, panel de despacho y app móvil de motoboys.
+- **Sprint de Rediseño Impeccable:** Overhaul de diseño sin emojis, con contraste WCAG AA, targets táctiles $\ge 48\text{px}$, podio en métricas, banner simétrico bilingüe y 0 anti-patrones en el detector.
+
+---
+
+## 2. Arquitectura Técnica (Monorepo Turborepo + pnpm)
+- **Base de Datos & BaaS:** Supabase (PostgreSQL 15) con Row Level Security (RLS) estricto y funciones RPC transaccionales (`create_order_with_items`, `update_order_status`, etc.).
+- **`apps/site` (Catálogo + Drivers):** Astro 5 con SolidJS. Peso JS cercano a cero, carga instantánea en conexiones 3G/4G móviles. La ruta `/driver` cuenta con suscripción Realtime a pedidos asignados y validación de vasilhames.
+- **`apps/web` (Admin & Kanban):** Next.js 15 (App Router con Turbopack), React y TailwindCSS. Conexión WebSocket persistente con `Supabase Realtime` y KPIs en vivo del turno.
+- **`packages/contracts`:** Única fuente de verdad. Esquemas Zod y tipos TypeScript inferidos (`orderSchema`, `createOrderSchema`, `customerSchema`, `i18n`, `business-hours`). 38/38 unit tests con Vitest.
+- **Backend/Mensajería:** n8n + Evolution API v2 para orquestación de WhatsApp inbound/outbound con mitigación de baneo.
+
+---
 
 ## 3. Reglas Críticas del Dominio (The Center Gás "Gotchas")
-1. **Cascos (Vasilhames):** Distinguir siempre "Recarga" (entrega casco) de "Completo" (compra gas+casco por 1ra vez). (ISSUE-304, ISSUE-105).
-2. **Troco (Cambio):** Si el pago es efectivo, el sistema debe obligar a preguntar "Troco para R$ X", de lo contrario el motoboy no sabe con cuánto cambio salir (ISSUE-303).
-3. **Ingreso Telefónico:** El Dueño necesita un formulario para meter pedidos a mano que le llegan por audio/teléfono directamente en el Kanban (ISSUE-203).
-4. **Fidelidad Automática:** Trigger 8->1 (ISSUE-502).
+1. **Regra de Ouro (CRÍTICO):** ESTRICTAMENTE PROHIBIDO mencionar "entrega gratis" o "entrega grátis" en cualquier parte de la UI o metadatos.
+2. **Cascos / Vasilhames (BR-002):** Diferenciar siempre "Recarga" (devolución del botijão vacío) de "Venda de Casco" (+ R$ 200,00 de tasa si no se devuelve el vacío). Tanto el cliente como el repartidor confirman esta condición.
+3. **Troco Exacto (ISSUE-303):** En pagos en efectivo, el sistema exige ingresar con cuánto pagará el cliente para calcular y mostrar el troco exacto al repartidor.
+4. **Combos Automáticos (ISSUE-302):** Descuento automático de R$ 5,00 al combinar 1x Gas P13 con 1x Agua 20L en el carrito.
+5. **Horario Comercial & Agendamiento (ISSUE-703):** Ventana de entrega de 08:00 a 20:00 (`America/Sao_Paulo`). Los pedidos fuera de horario o en domingo se confirman automáticamente para salir el siguiente día hábil a partir de las 08:30.
+6. **Bilingüe Nativo (`pt-BR` / `es`):** Soporte idiomático transparente con alternancia de idioma sin recarga de página.
+7. **Fidelidad Automática (ISSUE-502):** Cada compra incrementa el contador de puntos del cliente hacia la bonificación 8->1.
 
-## 4. Diseño de Base de Datos (PostgreSQL DDL v2.1)
-Cuenta con **10 tablas** transaccionales estrictas con RLS:
-1. `profiles`: (Auth) Dueños y Repartidores.
-2. `neighborhoods`: Barrios de cobertura (Seed).
-3. `customers`: Clientes finales, historial de puntos.
-4. `catalog_sessions`: Tokens opacos para el link de catálago.
-5. `products`: SKUs, flag de si "incluye cilindro".
-6. `orders`: Transaccional (`payment_method`, `cash_change_for` [troco], `cylinder_returned`).
-7. `order_items`: Detalle carrito.
-8. `order_status_history`: **Auditoría inmutable** de cada cambio de estado, cancelaciones y reasignaciones (ISSUE-108).
-9. `system_config`: Vars operativas (precios de cascos, descuento combo).
+---
 
-## 5. Siguientes Pasos (Épica 6)
-El proyecto entra en **Pausa Estratégica / Iteración Manual** a petición del usuario. Cuando se retome, se abordará la **Épica 6**: 
-1. `webapp-testing`: Configuración de Playwright para QA End-to-End.
-2. `telemetría`: Integración de Sentry.io y OpenPanel.dev.
+## 4. Estructura de Base de Datos (PostgreSQL DDL)
+10 tablas transaccionales con RLS activo:
+1. `profiles`: Usuarios de sistema (Dueño, Repartidores).
+2. `neighborhoods`: Cobertura oficial (Pinheirinho, Capão Raso, CIC, etc.).
+3. `customers`: Clientes finales, teléfono E.164, historial y puntos.
+4. `catalog_sessions`: Tokens opacos para enlaces de acceso rápido.
+5. `products`: SKUs activos (Gas P13, Agua 20L, accesorios).
+6. `orders`: Transaccional (`payment_method`, `cash_change_for`, `cylinder_returned`, `scheduled_for`).
+7. `order_items`: Desglose del carrito.
+8. `order_status_history`: Auditoría inmutable de estados (`creado`, `asignado`, `en_camino`, `entregado`, `cancelado`).
+9. `system_config`: Parámetros operativos (precios, tasa vasilhame, combo discount).
+10. `scheduled_orders`: Registro específico de pedidos agendados para turnos futuros.
+
+---
+
+## 5. Trazabilidad y Gobernanza
+- **Filosofía:** *"Plane for the Business, Git for the Code"*.
+- **Plane:** Todas las tareas están asociadas a Issues de Plane con reporte técnico HTML al cierre.
+- **Git Flow:** Todo cambio entra mediante Pull Request, probado con unit tests y compilación estática antes de squash merge a `main`.
+- **Walkthroughs:** Documentación paso a paso de cada entrega en `docs/walkthroughs/`.

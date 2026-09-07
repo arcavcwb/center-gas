@@ -1,62 +1,40 @@
-# 🏃 Sprint Actual: Sprint 4 — Vista Motoboy, Fidelización & QA E2E
+# 🏃 Sprint Actual: Sprint 5 — Rediseño Impeccable & Producción en Vercel
 
 > **Proyecto:** Center Gás Curitiba (`center-gas-platform`)  
-> **Ciclo en Plane:** `Sprint 4: Vista Motoboy, Fidelización & QA` (`07dc4f3e-11f1-4d64-b3f5-6a907d9a6e0f`)  
+> **Ciclo en Plane:** `Sprint 5: Rediseño Impeccable & Producción en Vercel`  
 > **Gobernanza:** "Plane for the Business, Git for the Code"  
 > **Última Sincronización:** 2026-09-07  
 
 ---
 
 ## 🎯 Objetivo del Sprint
-Consolidar la experiencia integral de despacho y entrega: App PWA del Motoboy con GPS y validación de cascos vacíos, motor de fidelización (8 entregas = 1 gas gratis), automatización con WhatsApp (Evolution API v2 + n8n) y aseguramiento de calidad con suite E2E en Playwright y Dashboard de KPIs para el Dueño.
+Elevar la experiencia de usuario y la calidad visual de toda la plataforma digital de Center Gás al estándar **Impeccable Design System**, eliminando anti-patrones, garantizando contraste WCAG AA, adaptando la ergonomía táctil para exteriores (targets $\ge 48\text{px}$), e implementando las reglas críticas de negocio (devolución de cascos BR-002, combos inteligentes, agendamiento 08:00-20:00 y bilingüe `pt-BR`/`es`), todo desplegado en producción en Vercel.
 
 ---
 
-## 📊 Estado de los Tickets (Plane ↔ Git)
+## 🌐 Endpoints de Producción (Vercel)
+- 🛒 **Catálogo B2C (Cliente):** [https://center-gas-site.vercel.app](https://center-gas-site.vercel.app)
+- 🛵 **App do Entregador (/driver):** [https://center-gas-site.vercel.app/driver](https://center-gas-site.vercel.app/driver)
+- 💻 **Panel B2B Kanban & Métricas:** [https://center-gas-web.vercel.app](https://center-gas-web.vercel.app)
+
+---
+
+## 📊 Estado de los Tickets Recientes (Sprint Impeccable)
 
 | Issue | Descripción | Responsable | Estado Plane | Commit / PR |
 | :--- | :--- | :--- | :---: | :---: |
-| **ISSUE-101** | Setup Monorepo Híbrido (Next.js + Astro + SolidJS) | `devops-agent` | 🟢 Done | PR #1 / `530135d` |
-| **ISSUE-102** | Esquema DDL PostgreSQL + RLS Policies | `backend-dev-agent` | 🟢 Done | PR #2 / `c0ee521` |
-| **ISSUE-103** | Seed Inicial: Productos, Cobertura y Configuración | `backend-dev-agent` | 🟢 Done | `530135d` |
-| **ISSUE-104** | Flujo de Registro de Nuevos Clientes (RPCs) | `backend-dev-agent` | 🟢 Done | PR #19 |
-| **ISSUE-105** | Check de Cilindro Vacío en Vista Chofer | `frontend-dev-agent` | 🟢 Done | PR #25 |
-| **ISSUE-106** | Enlaces Efímeros y Sesiones Tokenizadas (LGPD) | `backend-dev-agent` | 🟢 Done | PR #23 |
-| **ISSUE-107** | Autenticación Dueño & Chofer (Supabase Auth) | `backend-dev-agent` | 🟢 Done | `530135d` |
-| **ISSUE-108** | Especificación Modelo de Datos y Máquina de Estados | `architect-agent` | 🟢 Done | `docs/09-database-design.md` |
-| **ISSUE-201** | Kanban en Tiempo Real (Next.js + Supabase Realtime) | `frontend-dev-agent` | 🟢 Done | PR #24 |
-| **ISSUE-202** | Asignación de Chofer y Modal de Cancelación | `frontend-dev-agent` | 🟢 Done | PR #24 |
-| **ISSUE-203** | Creación Manual de Pedidos (Vía telefónica) | `frontend-dev-agent` | 🟢 Done | `530135d` |
-| **ISSUE-301** | Catálogo B2C de Autoservicio con Reconocimiento Telefónico | `frontend-dev-agent` | 🟢 Done | `b1ac7ef` |
-| **ISSUE-302** | Descuento Automático de Combo y Validador de Cobertura | `frontend-dev-agent` | 🟢 Done | PR #23 |
-| **ISSUE-303** | Formas de Pago en Checkout (PIX y Efectivo con Troco) | `frontend-dev-agent` | 🟢 Done | PR #23 |
-| **ISSUE-304** | Distinción Recarga vs Casco Nuevo en Catálogo | `frontend-dev-agent` | 🟢 Done | PR #17 |
-| **ISSUE-401** | Setup n8n y Flujo Inbound de WhatsApp (Evolution API) | `automation-agent` | 🟢 Done | PR #27 / `WF-01` |
-| **ISSUE-402** | Flujo n8n Outbound de Notificaciones de Estado | `automation-agent` | 🟢 Done | PR #27 / `WF-02` |
-| **ISSUE-403** | Infraestructura Evolution API v2 y Mitigación Anti-Ban | `devops-agent` | 🟢 Done | PR #28 / `89402f4` |
-| **ISSUE-404** | Manejo de Errores n8n y Alertas al Dueño | `automation-agent` | 🟢 Done | PR #27 / `WF-04` |
-| **ISSUE-501** | App Móvil PWA del Repartidor con Enlace GPS (Maps/Waze) | `frontend-dev-agent` | 🟢 Done | PR #25 |
-| **ISSUE-502** | Trigger de Fidelización (8 pedidos = 1 recarga gratis) | `backend-dev-agent` | 🟢 Done | PR #25 |
-| **ISSUE-601** | Suite de Pruebas E2E (Playwright) y Go-Live Checklist | `qa-agent` | 🟢 Done | PR #26 |
-| **ISSUE-701** | Dashboard de Métricas y KPIs del Dueño (Next.js) | `frontend-dev-agent` | 🟢 Done | PR #26 / `97b1607` |
-| **ISSUE-703** | Horarios Comerciales y Pedidos Agendados | `frontend-dev-agent` | 🟢 Done | PR #37 |
-
----
-
-## 🔮 Backlog Priorizado (Próximo Sprint / Post-MVP)
-
-Los siguientes tickets están listados en el Backlog de Plane y representan las futuras fases de expansión:
-
-1. **`ISSUE-702`**: *[Post-MVP] Proactive Repurchase Reminder (inactive 45+ days)*
-   - Flujo n8n cron diario que audita clientes sin compras en 45 días y dispara cupón de descuento por WhatsApp.
-2. **`ISSUE-704`**: *[Post-MVP] Delivery Fee per Neighborhood*
-   - Tarificación diferenciada de entrega según la distancia y barrio de Curitiba.
+| **ISSUE-201** | Rediseño Impeccable Admin & Kanban B2B (Next.js 15 Turbopack) | `frontend-dev-agent` | 🟢 Done | [PR #45](https://github.com/arcavcwb/center-gas/pull/45) / `2bc943b` |
+| **ISSUE-301** | Pulido Simétrico de Banners y Catálogo B2C (Astro + SolidJS) | `designer-agent` | 🟢 Done | [PR #44](https://github.com/arcavcwb/center-gas/pull/44) / `fb39e01` |
+| **ISSUE-501** | Rediseño Impeccable de la Driver Mobile App con BR-002 y Maps/Waze | `frontend-dev-agent` | 🟢 Done | [PR #46](https://github.com/arcavcwb/center-gas/pull/46) / `7a16e1e` |
+| **ISSUE-601** | Suite de Pruebas E2E (Playwright) y Go-Live Checklist | `qa-agent` | 🟢 Done | [PR #26](https://github.com/arcavcwb/center-gas/pull/26) |
+| **ISSUE-701** | Dashboard de Métricas y Podio de Motoboys (Next.js) | `frontend-dev-agent` | 🟢 Done | [PR #45](https://github.com/arcavcwb/center-gas/pull/45) / `2bc943b` |
+| **ISSUE-703** | Horarios Comerciales (08:00 - 20:00) y Pedidos Agendados | `frontend-dev-agent` | 🟢 Done | [PR #37](https://github.com/arcavcwb/center-gas/pull/37) |
+| **ISSUE-801** | Actualización Integral de Documentación & Trazabilidad | `architect-agent` | 🟡 In Progress | Rama `feat/ISSUE-801` |
 
 ---
 
 ## 🛡️ Estado del Pipeline Zero-Trust CI/CD
-- **Compilación Monorepo (`turbo build`):** 🟢 **100% PASS** (2/2 tareas exitosas en ~46s)
-- **Pruebas Unitarias (`pnpm run test:unit` - Vitest):** 🟢 **100% PASS** (38/38 tests en 519ms en `@center-gas/contracts`)
-- **Pruebas de Integración (`pnpm run test:rpc`):** 🟢 **100% PASS** (Combo discount + Scheduled orders verificados en Supabase)
-- **`apps/site` (Astro 5 + SolidJS):** 🟢 Compila en 4.21s
-- **`apps/web` (Next.js 15 Turbopack):** 🟢 Compila en 10.4s
+- **Auditoría Impeccable (`impeccable detect`):** 🟢 **0 anti-patterns** en `apps/site/src` y `apps/web/src`
+- **Compilación Monorepo (`turbo build`):** 🟢 **100% PASS** (Compilación estática limpia en Next.js 15 y Astro 5)
+- **Pruebas Unitarias (`pnpm run test:unit` - Vitest):** 🟢 **100% PASS** (38/38 tests en `@center-gas/contracts`)
+- **Regla de Oro Anti-Violación:** Cero menciones de "entrega gratis" o "entrega grátis" en todo el código y traducciones.

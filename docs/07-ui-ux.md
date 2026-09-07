@@ -5,10 +5,16 @@
 ## Propósito
 Definir la guía de diseño (UI) y experiencia (UX) para la plataforma híbrida (Next.js y Astro), estableciendo los wireframes estructurales para los 26 requerimientos operativos (Troco, Cancelaciones, Ingreso Manual, Cascos).
 
-## 1. Design System y Paleta de Colores
-* **Core:** Diseño administrado mediante el paquete interno `packages/ui-tokens` (CSS variables compartidas).
-* **Colores:** Naranja Primario (`#F6842F`), Azul Secundario (`#046BD2`). Fondos grises claros (`#F8FAFC`).
-* **Estados UI:** Verde (`#16A34A` - Entregado), Amarillo (`#CA8A04` - Asignado), Rojo (`#DC2626` - Cancelado).
+## 1. Design System y Paleta de Colores (Impeccable Standards)
+* **Core:** Diseño gobernado bajo el estándar **Impeccable Design System**, con cero anti-patrones y accesibilidad garantizada para exteriores.
+* **Colores Primarios:**
+  - Naranja Corporativo: `#F6842F` (Logotipos y detalles de marca).
+  - Naranja Accesible WCAG AA: `#EA580C` (Ratio > 4.6:1 sobre fondo blanco, reservado para CTAs principales).
+  - Azul Corporativo: `#046BD2` (Acentos institucionales y productos de agua mineral).
+* **Escala de Neutros:** Familia `slate-*` (`slate-50` fondos de app, `slate-100` contenedores secundarios, `slate-200` y `slate-300` bordes limpios, `slate-900` y `slate-950` textos de máximo contraste).
+* **Estados UI:** Sucesso/Verde (`#059669` / `emerald-600`), Alerta/Ámbar (`#D97706` / `amber-600`), Perigo/Rojo (`#E11D48` / `rose-600`), Agendado/Violeta (`#7C3AED` / `violet-600`).
+* **Ergonomía Táctil:** Altura mínima de **48px** (`min-h-[48px]`) en todos los botones y campos de entrada en interfaces móviles.
+* **Iconografía:** Cero emojis unicode en botones o componentes interactivos; uso estricto de iconos vectoriales SVG con trazo consistente (viewBox 24x24, stroke-width 2, `currentColor`).
 
 ---
 
