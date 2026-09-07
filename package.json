@@ -10,6 +10,7 @@
     "test:unit": "pnpm --filter @center-gas/contracts test",
     "test:e2e": "pnpm --filter e2e test",
     "test:rpc": "node test_rpc.js",
+    "check:design": ".agents/skills/impeccable/scripts/impeccable detect",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },
   "devDependencies": {

@@ -24,8 +24,8 @@ sesión activa:
 | `pr-reviewer-agent` | Auditoría de Git Diffs y Bloqueo de Pull Requests |
 | `po-agent` | `PRD.md` e historias de usuario |
 | `scrum-master-agent` | Plane + `sprint_actual.md` |
-| `designer-agent` | Tokens visuales (Impeccable) |
-| `frontend-dev-agent` | `apps/web` (Next.js), `apps/site` (Astro/Solid) |
+| `designer-agent` | UI/UX Design System, tokens y auditoría Impeccable (Craft Floor) |
+| `frontend-dev-agent` | `apps/web` (Next.js), `apps/site` (Astro/Solid) con Impeccable mandatorio |
 | `backend-dev-agent` | `packages/contracts`, `supabase/` |
 | `qa-agent` | `tests/`, `bug_report.md` |
 | `devops-agent` | Docker, CI/CD, Staging |
@@ -95,3 +95,12 @@ El repositorio es un **Monorepo gestionado con pnpm**. Cualquier scaffolding o i
 ### PROTOCOLO ZERO-TRUST CI/CD
 - Todo código generado debe compilar estáticamente (`npm run build`).
 - Las decisiones arquitectónicas requieren un `implementation_plan.md` con aprobación explícita del humano (`request_feedback: true`) antes de ejecutar, a menos que se active el "God Mode".
+
+### ESTÁNDAR MANDATORIO DE DISEÑO UI/UX (IMPECCABLE CRAFT FLOOR)
+Todo desarrollo o rediseño de interfaz en `apps/site` y `apps/web` está gobernado obligatoriamente por el skill `impeccable`:
+- **Fuentes de Verdad Visual:** Cumplimiento estricto de `PRODUCT.md` y `DESIGN.md`.
+- **Cero Anti-Patrones:** Erradicación de los 12 anti-patrones de diseño (verificado mediante `pnpm run check:design` con 0 hallazgos).
+- **Iconografía Pura:** Cero emojis unicode en producción; uso estricto de componentes SVG limpios, accesibles y geométricos.
+- **Ergonomía Táctil:** Touch targets mínimos de 48×48px en dispositivos móviles.
+- **Accesibilidad:** Contraste estricto WCAG 2.1 AA (≥ 4.5:1 texto, ≥ 3:1 componentes interactivos).
+
