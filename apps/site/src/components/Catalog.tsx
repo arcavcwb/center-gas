@@ -1,4 +1,4 @@
-import { createSignal, createMemo, createEffect, For, Show } from 'solid-js';
+import { createSignal, createMemo, createEffect, onMount, onCleanup, For, Show } from 'solid-js';
 import { supabase } from '../lib/supabase';
 import {
   calculateComboDiscount,
@@ -78,6 +78,20 @@ export default function Catalog() {
   const [isSubmitting, setIsSubmitting] = createSignal(false);
   const [orderSuccess, setOrderSuccess] = createSignal(false);
   const [submitError, setSubmitError] = createSignal<string | null>(null);
+  const [isOnline, setIsOnline] = createSignal(typeof navigator !== 'undefined' ? navigator.onLine : true);
+
+  onMount(() => {
+    if (typeof window !== 'undefined') {
+      const handleOnline = () => setIsOnline(true);
+      const handleOffline = () => setIsOnline(false);
+      window.addEventListener('online', handleOnline);
+      window.addEventListener('offline', handleOffline);
+      onCleanup(() => {
+        window.removeEventListener('online', handleOnline);
+        window.removeEventListener('offline', handleOffline);
+      });
+    }
+  });
 
   // Fetch real products and neighborhoods on mount
   createEffect(() => {
@@ -330,6 +344,14 @@ export default function Catalog() {
   return (
     <div class="space-y-5">
 
+      {/* ----------------- ALERTA OFFLINE (Resiliencia / Harden) ----------------- */}
+      <Show when={!isOnline()}>
+        <div role="alert" class="bg-amber-50 border border-amber-200 text-amber-900 p-3.5 rounded-2xl flex items-center gap-3 text-xs font-semibold shadow-xs">
+          <span class="text-lg select-none">📡</span>
+          <p class="leading-snug">{t('offlineBanner', lang())}</p>
+        </div>
+      </Show>
+
       {/* ----------------- BANNER DE ATENDIMENTO & SELECTOR DE IDIOMA ----------------- */}
       <Show when={isScheduled()}>
         <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-3 sm:p-4 rounded-2xl shadow-md border border-indigo-500/30 flex flex-col sm:flex-row items-center justify-between gap-3">
@@ -339,7 +361,7 @@ export default function Catalog() {
               <p class="text-xs sm:text-sm font-extrabold tracking-tight text-amber-300">
                 {t('scheduledBannerTitle', lang())}
               </p>
-              <p class="text-[11px] text-indigo-200 font-medium">
+              <p class="text-xs text-indigo-200 font-medium">
                 {t('scheduledBannerDesc', lang())}
               </p>
             </div>
@@ -359,7 +381,7 @@ export default function Catalog() {
             <span class="text-xl">🚚</span>
             <div>
               <p class="text-xs sm:text-sm font-extrabold tracking-tight">{t('banner', lang())}</p>
-              <p class="text-[11px] text-orange-100 font-medium">{t('brandSubtitle', lang())}</p>
+              <p class="text-xs text-orange-100 font-medium">{t('brandSubtitle', lang())}</p>
             </div>
           </div>
           <LanguageToggle lang={lang()} onToggle={setLang} />
@@ -490,19 +512,19 @@ export default function Catalog() {
       {/* ----------------- STEP 3: CATALOG & CHECKOUT ----------------- */}
       <Show when={step() === 'catalog'}>
         <Show when={orderSuccess()}>
-          <div class="bg-emerald-50/80 border border-emerald-200 p-5 rounded-2xl shadow-xs">
-            <div class="flex">
-              <div class="flex-shrink-0">
-                <svg class="h-6 w-6 text-emerald-600" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                </svg>
-              </div>
-              <div class="ml-3">
-                <h3 class="text-base font-bold text-emerald-900">{t('successTitle', lang())}</h3>
-                <p class="mt-1 text-sm text-emerald-800">
-                  {isScheduled() ? t('scheduledSuccessMessage', lang()) : t('successMessage', lang())}
-                </p>
-              </div>
+          <div class="bg-white border border-emerald-200 p-6 sm:p-8 rounded-2xl shadow-sm text-center space-y-4">
+            <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner text-3xl">
+              ✅
+            </div>
+            <div>
+              <h3 class="text-xl font-black text-slate-900">{t('successTitle', lang())}</h3>
+              <p class="mt-2 text-sm text-slate-600 max-w-sm mx-auto leading-relaxed">
+                {isScheduled() ? t('scheduledSuccessMessage', lang()) : t('successMessage', lang())}
+              </p>
+            </div>
+            <div class="bg-emerald-50 border border-emerald-200/80 p-3.5 rounded-xl text-emerald-800 text-xs font-medium max-w-sm mx-auto flex items-center gap-2.5 text-left">
+              <span class="text-base select-none">💬</span>
+              <p class="leading-snug">{t('orderTrackingHint', lang())}</p>
             </div>
           </div>
         </Show>
@@ -528,7 +550,24 @@ export default function Catalog() {
               </div>
             </Show>
             <Show when={products().length === 0}>
-              <div class="text-center p-8 text-gray-500">{t('loadingCatalog', lang())}</div>
+              <div class="space-y-3" aria-label={t('loadingCatalog', lang())} aria-busy="true">
+                <div class="bg-white p-4 rounded-2xl shadow-xs border border-slate-100 flex justify-between items-center animate-pulse motion-reduce:animate-none">
+                  <div class="space-y-2.5 flex-1 pr-4">
+                    <div class="h-5 bg-slate-200 rounded-md w-3/5"></div>
+                    <div class="h-3.5 bg-slate-100 rounded-md w-4/5"></div>
+                    <div class="h-6 bg-slate-200 rounded-md w-24"></div>
+                  </div>
+                  <div class="w-28 h-12 bg-slate-100 rounded-full"></div>
+                </div>
+                <div class="bg-white p-4 rounded-2xl shadow-xs border border-slate-100 flex justify-between items-center animate-pulse motion-reduce:animate-none">
+                  <div class="space-y-2.5 flex-1 pr-4">
+                    <div class="h-5 bg-slate-200 rounded-md w-2/4"></div>
+                    <div class="h-3.5 bg-slate-100 rounded-md w-3/4"></div>
+                    <div class="h-6 bg-slate-200 rounded-md w-20"></div>
+                  </div>
+                  <div class="w-28 h-12 bg-slate-100 rounded-full"></div>
+                </div>
+              </div>
             </Show>
             <For each={products()}>
               {(product) => (
@@ -538,9 +577,15 @@ export default function Catalog() {
                       {product.name}
                     </h3>
                     <Show when={product.includes_cylinder}>
-                      <span class="inline-block mt-1 mb-1 px-2 py-0.5 bg-blue-100 text-blue-800 text-[10px] font-extrabold rounded-full tracking-wide">
+                      <span class="inline-block mt-1 mb-1 px-2 py-0.5 bg-blue-100 text-blue-800 text-xs font-extrabold rounded-full tracking-wide">
                         {t('badgeIncludesCylinder', lang())}
                       </span>
+                    </Show>
+                    <Show when={!product.includes_cylinder && (product.sku.toLowerCase().includes('p13') || product.sku.toLowerCase().includes('gas'))}>
+                      <p class="text-xs text-amber-700 font-medium mt-0.5 flex items-center gap-1">
+                        <span>🔄</span>
+                        <span>{t('cylinderExchangeTip', lang())}</span>
+                      </p>
                     </Show>
                     <p class="text-xs text-gray-500 mt-1 leading-tight">
                       {product.includes_cylinder ? t('descFull', lang()) : t('descRefill', lang())}
@@ -552,18 +597,18 @@ export default function Catalog() {
                       type="button"
                       onClick={() => updateQty(product.id, -1)}
                       aria-label={`Diminuir quantidade de ${product.name}`}
-                      class="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full bg-white text-slate-700 hover:text-slate-900 hover:bg-slate-50 border border-slate-200 font-extrabold text-lg shadow-xs transition-all active:scale-95 cursor-pointer"
+                      class="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full bg-white text-slate-700 hover:text-slate-900 hover:bg-slate-50 border border-slate-200 font-extrabold text-lg shadow-xs transition-transform duration-100 ease-out active:scale-90 motion-reduce:active:scale-100 cursor-pointer"
                     >
                       −
                     </button>
-                    <span class="font-bold text-slate-900 w-6 text-center text-base select-none">
+                    <span class="font-bold text-slate-900 w-6 text-center text-base select-none tabular-nums">
                       {cart()[product.id] || 0}
                     </span>
                     <button 
                       type="button"
                       onClick={() => updateQty(product.id, 1)}
                       aria-label={`Aumentar quantidade de ${product.name}`}
-                      class="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full bg-orange-600 hover:bg-orange-700 text-white font-extrabold text-lg shadow-xs transition-all active:scale-95 cursor-pointer"
+                      class="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full bg-orange-600 hover:bg-orange-700 text-white font-extrabold text-lg shadow-xs transition-transform duration-100 ease-out active:scale-90 motion-reduce:active:scale-100 cursor-pointer"
                     >
                       +
                     </button>
@@ -593,7 +638,7 @@ export default function Catalog() {
                         {t('crossSellSubtitle', lang(), { product: waterProduct.name, price: formatBRL(waterProduct.price) })}
                       </p>
                       <Show when={hasGas}>
-                        <span class="inline-block mt-1 text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                        <span class="inline-block mt-1 text-xs font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
                           {t('crossSellComboBadge', lang())}
                         </span>
                       </Show>
@@ -639,9 +684,12 @@ export default function Catalog() {
                 </div>
               </Show>
               <Show when={deliveryFee() > 0}>
-                <div class="flex justify-between text-sm text-gray-600">
-                  <span>{t('deliveryFeeLabel', lang())}</span>
-                  <span>{formatBRL(deliveryFee())}</span>
+                <div class="flex justify-between items-start text-sm text-gray-600">
+                  <div>
+                    <span>{t('deliveryFeeLabel', lang())}</span>
+                    <p class="text-xs text-slate-500 font-normal">{t('deliveryNeighborhoodTip', lang())}</p>
+                  </div>
+                  <span class="font-medium">{formatBRL(deliveryFee())}</span>
                 </div>
               </Show>
               <div class="flex justify-between text-base font-extrabold text-gray-900 border-t border-gray-200 pt-2">
@@ -655,7 +703,7 @@ export default function Catalog() {
                 <span class="text-lg">🌙</span>
                 <div>
                   <p class="font-bold text-indigo-900">{t('scheduledOrderNotice', lang())}</p>
-                  <p class="text-indigo-700 text-[11px] mt-0.5">
+                  <p class="text-indigo-700 text-xs mt-0.5">
                     {lang() === 'pt' ? deliverySlot().formattedPT : deliverySlot().formattedES}
                   </p>
                 </div>
@@ -760,21 +808,21 @@ export default function Catalog() {
       <Show when={step() === 'catalog' && total() > 0 && !orderSuccess()}>
         <aside 
           aria-label="Resumo do pedido" 
-          class="fixed bottom-0 left-0 right-0 p-3.5 bg-white/95 backdrop-blur-md shadow-2xl border-t border-slate-200 z-40"
+          class="fixed bottom-0 left-0 right-0 p-3.5 bg-white/95 backdrop-blur-md shadow-2xl border-t border-slate-200 z-40 transition-transform duration-300 ease-out motion-reduce:transition-none"
         >
           <div class="max-w-md mx-auto flex items-center justify-between gap-3">
             <div>
-              <p class="text-[11px] text-slate-500 font-medium leading-none">Total com entrega:</p>
+              <p class="text-xs text-slate-500 font-medium leading-none">Total com entrega:</p>
               <p class="text-xl font-black text-slate-900 leading-tight mt-0.5">{formatBRL(total())}</p>
               <Show when={comboDiscount() > 0}>
-                <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded inline-block">
+                <span class="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded inline-block mt-0.5">
                   Desconto combo aplicado
                 </span>
               </Show>
             </div>
             <a
               href="#checkout-form"
-              class="bg-orange-600 hover:bg-orange-700 active:scale-95 text-white font-bold text-sm px-5 py-3 rounded-xl shadow-md transition-all flex items-center gap-1.5 whitespace-nowrap"
+              class="bg-orange-600 hover:bg-orange-700 active:scale-95 motion-reduce:active:scale-100 text-white font-bold text-sm px-5 py-3 rounded-xl shadow-md transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer"
             >
               <span>{lang() === 'pt' ? 'Finalizar Pedido' : 'Finalizar Pedido'}</span>
               <span>👉</span>

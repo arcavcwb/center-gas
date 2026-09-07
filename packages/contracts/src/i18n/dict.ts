@@ -61,6 +61,10 @@ export interface TranslationSchema {
   scheduledSlotBadge: string;
   scheduledOrderNotice: string;
   scheduledSuccessMessage: string;
+  cylinderExchangeTip: string;
+  deliveryNeighborhoodTip: string;
+  offlineBanner: string;
+  orderTrackingHint: string;
 }
 
 export const translations: Record<SupportedLang, TranslationSchema> = {
@@ -124,7 +128,11 @@ export const translations: Record<SupportedLang, TranslationSchema> = {
     scheduledBannerDesc: "Nosso horário de entregas é das 08:00 às 20:00. Você pode pedir agora e sua entrega sairá amanhã a partir das 08:30!",
     scheduledSlotBadge: "Agendado para amanhã às 08:30",
     scheduledOrderNotice: "🌙 Pedido Fora de Horário: Entrega programada para amanhã às 08:30 no Pinheirinho.",
-    scheduledSuccessMessage: "Recebemos seu pedido! Como estamos fora do horário de atendimento, ele já está agendado e sairá amanhã a partir das 08:30."
+    scheduledSuccessMessage: "Recebemos seu pedido! Como estamos fora do horário de atendimento, ele já está agendado e sairá amanhã a partir das 08:30.",
+    cylinderExchangeTip: "Requer botijão vazio na troca no ato da entrega.",
+    deliveryNeighborhoodTip: "Taxa de entrega calculada conforme seu bairro em Curitiba.",
+    offlineBanner: "Você está sem conexão com a internet. Verifique sua rede para concluir o pedido.",
+    orderTrackingHint: "Acompanharemos seu pedido pelo WhatsApp até a chegada ao seu portão."
   },
   es: {
     banner: "🚚 Entrega Rápida en Pinheirinho y alrededores en 30-45 min!",
@@ -186,6 +194,10 @@ export const translations: Record<SupportedLang, TranslationSchema> = {
     scheduledBannerDesc: "Nuestro horario de entrega es de 08:00 a 20:00. ¡Puedes pedir ahora y tu entrega saldrá mañana a partir de las 08:30!",
     scheduledSlotBadge: "Agendado para mañana a las 08:30",
     scheduledOrderNotice: "🌙 Pedido Fuera de Horario: Entrega programada para mañana a las 08:30 en Pinheirinho.",
-    scheduledSuccessMessage: "¡Recibimos tu pedido! Como estamos fuera de horario comercial, ya está programado y saldrá mañana a partir de las 08:30."
+    scheduledSuccessMessage: "¡Recibimos tu pedido! Como estamos fuera de horario comercial, ya está programado y saldrá mañana a partir de las 08:30.",
+    cylinderExchangeTip: "Requiere cilindro vacío a cambio al momento de la entrega.",
+    deliveryNeighborhoodTip: "Tarifa de entrega calculada según tu barrio en Curitiba.",
+    offlineBanner: "Estás sin conexión a internet. Verifica tu red para completar el pedido.",
+    orderTrackingHint: "Acompañaremos tu pedido por WhatsApp hasta la llegada a tu portón."
   }
 };

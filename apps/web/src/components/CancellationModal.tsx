@@ -32,7 +32,7 @@ export function CancellationModal({ orderId, onConfirm, onCancel }: Cancellation
             value={reason}
             onChange={(e) => setReason(e.target.value)}
           />
-          <p className="text-right text-xs mt-2 font-medium" style={{ color: isValid ? '#16a34a' : '#ef4444' }}>
+          <p className={`text-right text-xs mt-2 font-medium ${isValid ? 'text-emerald-600' : 'text-red-600'}`}>
             {reason.length} / 10
           </p>
         </div>
