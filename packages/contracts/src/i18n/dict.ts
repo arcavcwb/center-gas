@@ -2,6 +2,8 @@ export type SupportedLang = 'pt' | 'es';
 
 export interface TranslationSchema {
   banner: string;
+  bannerTitle: string;
+  bannerDesc: string;
   brand: string;
   brandSubtitle: string;
   help: string;
@@ -70,6 +72,8 @@ export interface TranslationSchema {
 export const translations: Record<SupportedLang, TranslationSchema> = {
   pt: {
     banner: "🚚 Entrega Rápida no Pinheirinho e região em até 30-45 min!",
+    bannerTitle: "Entrega Expressa Pinheirinho",
+    bannerDesc: "Gás de cozinha e água mineral no seu endereço em 30 a 45 minutos. Peça em segundos!",
     brand: "CENTER GÁS",
     brandSubtitle: "Distribuidora no Pinheirinho - Curitiba",
     help: "Ajuda WhatsApp",
@@ -136,6 +140,8 @@ export const translations: Record<SupportedLang, TranslationSchema> = {
   },
   es: {
     banner: "🚚 Entrega Rápida en Pinheirinho y alrededores en 30-45 min!",
+    bannerTitle: "Entrega Express Pinheirinho",
+    bannerDesc: "Gas de cocina y agua mineral en tu dirección en 30 a 45 minutos. ¡Pide en segundos!",
     brand: "CENTER GÁS",
     brandSubtitle: "Distribuidora en Pinheirinho - Curitiba",
     help: "Ayuda WhatsApp",
