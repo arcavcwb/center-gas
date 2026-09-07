@@ -104,3 +104,16 @@ Todo desarrollo o rediseño de interfaz en `apps/site` y `apps/web` está gobern
 - **Ergonomía Táctil:** Touch targets mínimos de 48×48px en dispositivos móviles.
 - **Accesibilidad:** Contraste estricto WCAG 2.1 AA (≥ 4.5:1 texto, ≥ 3:1 componentes interactivos).
 
+### PROTOCOLO DE COMUNICACIÓN CONCISA Y TOKENS LEAN (CAVEMAN)
+Gobierna la forma de responder de los agentes para maximizar densidad informativa y minimizar tokens:
+- Cero relleno, cortesías innecesarias o florituras en chats y handoffs técnicos.
+- Hechos directos, comandos exactos y bloques de código funcionales.
+- Claridad técnica innegociable: no abreviar identificadores, rutas, nombres de contratos ni errores.
+
+### FILOSOFÍA DE ARQUITECTURA LEAN Y CERO SOBRE-INGENIERÍA (PONYTAIL)
+Gobierna qué y cuánto código se escribe:
+- Prioridad YAGNI: no construir para el futuro especulativo.
+- Reutilización interna y uso prioritario de la biblioteca estándar (stdlib) o plataforma nativa antes de introducir dependencias o abstracciones complejas.
+- Menor cantidad de líneas y archivos modificados para solucionar el problema raíz.
+
+
