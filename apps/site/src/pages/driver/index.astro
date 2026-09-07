@@ -3,33 +3,48 @@ import DriverApp from '../../components/DriverApp';
 import '../../styles/global.css';
 ---
 
+<!doctype html>
 <html lang="pt-BR">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
+    <title>Center Gás — App do Entregador</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   </head>
-  <body class="bg-slate-100 text-slate-900 font-sans antialiased overflow-x-hidden min-h-screen">
-    <div class="max-w-md mx-auto bg-white min-h-screen shadow-2xl relative flex flex-col">
-      <header class="bg-slate-900 text-white p-4 shadow-md flex justify-between items-center sticky top-0 z-50">
-        <div class="flex items-center space-x-2.5">
-          <span class="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse motion-reduce:animate-none ring-4 ring-emerald-950"></span>
+  <body class="bg-slate-950 text-slate-900 font-sans antialiased overflow-x-hidden min-h-screen">
+    <div class="max-w-md mx-auto bg-slate-50 min-h-screen shadow-2xl relative flex flex-col border-x border-slate-800/60">
+      <header class="bg-slate-900 text-white px-4 py-3 shadow-md flex justify-between items-center sticky top-0 z-30 border-b border-slate-800">
+        <div class="flex items-center space-x-3">
+          <div class="w-9 h-9 rounded-xl bg-orange-600 flex items-center justify-center font-black text-white text-sm tracking-tighter shadow-sm">
+            CG
+          </div>
           <div>
-            <h1 class="font-extrabold text-base tracking-tight leading-none">Centro de Entregas</h1>
+            <div class="flex items-center gap-2">
+              <h1 class="font-extrabold text-base tracking-tight leading-none text-white">App Entregas</h1>
+              <span class="inline-flex items-center gap-1 text-xs font-bold text-emerald-400 bg-emerald-950/80 border border-emerald-800/80 px-2 py-0.5 rounded-full">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse motion-reduce:animate-none"></span>
+                Online
+              </span>
+            </div>
             <p class="text-xs text-slate-400 font-medium mt-0.5">Pinheirinho • Curitiba</p>
           </div>
         </div>
         <button 
+          type="button"
           onClick="window.location.reload()"
-          class="text-xs font-semibold bg-slate-800 hover:bg-slate-700 px-3.5 py-1.5 rounded-full border border-slate-700 transition-colors cursor-pointer"
+          class="min-h-[44px] min-w-[44px] flex items-center justify-center gap-1.5 text-xs font-bold text-slate-200 bg-slate-800 hover:bg-slate-700 active:bg-slate-950 px-3.5 py-2 rounded-xl border border-slate-700 transition-colors cursor-pointer"
+          aria-label="Atualizar pedidos"
         >
-          Atualizar
+          <svg class="w-3.5 h-3.5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          <span>Atualizar</span>
         </button>
       </header>
 
-      <main class="w-full p-4 pb-32 flex-1">
+      <main class="w-full p-4 pb-28 flex-1">
         <!-- Isla Interactiva de SolidJS (UI do entregador em PT-BR) -->
         <DriverApp client:load />
       </main>
