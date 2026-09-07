@@ -80,6 +80,46 @@ async function testRpc() {
 
     console.log('✅ REGLA BR-001 VERIFICADA: El descuento de R$ 5,00 se aplicó correctamente en la base de datos!');
 
+    // 4. Probar creación de orden PROGRAMADA / FUERA DE HORARIO (ISSUE-703)
+    console.log('🌙 Enviando pedido agendado fuera de horario (ISSUE-703)...');
+    const scheduledDateIso = new Date(Date.now() + 24 * 3600 * 1000).toISOString();
+    const scheduledPayload = {
+      p_phone: TEST_PHONE,
+      p_address_line: 'Rua Teste de Integracao, 100 - Curitiba',
+      p_items: [
+        { product_id: gasProduct.id, quantity: 1 }
+      ],
+      p_payment_method: 'pix',
+      p_is_scheduled: true,
+      p_scheduled_for: scheduledDateIso
+    };
+
+    const { data: schedOrderId, error: schedRpcErr } = await anonSupabase.rpc('create_b2c_order', scheduledPayload);
+    if (schedRpcErr) {
+      throw new Error(`RPC Error al crear orden programada: ${schedRpcErr.message}`);
+    }
+
+    createdOrderIds.push(schedOrderId);
+    console.log(`✓ Orden programada creada con ID: ${schedOrderId}`);
+
+    const { data: schedOrder, error: schedOrderErr } = await adminSupabase
+      .from('orders')
+      .select('id, is_scheduled, scheduled_for')
+      .eq('id', schedOrderId)
+      .single();
+
+    if (schedOrderErr) throw schedOrderErr;
+
+    if (!schedOrder.is_scheduled) {
+      throw new Error(`Se esperaba is_scheduled = true, pero se obtuvo: ${schedOrder.is_scheduled}`);
+    }
+
+    if (!schedOrder.scheduled_for) {
+      throw new Error('Se esperaba scheduled_for con fecha, pero se obtuvo nulo');
+    }
+
+    console.log(`✅ ISSUE-703 VERIFICADO: Pedido programado guardado correctamente con is_scheduled=true y scheduled_for=${schedOrder.scheduled_for}!`);
+
   } catch (error) {
     console.error('❌ Error en test_rpc:', error.message || error);
     process.exitCode = 1;

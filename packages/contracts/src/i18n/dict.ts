@@ -56,6 +56,11 @@ export interface TranslationSchema {
   verifyPhoneAddressError: string;
   successTitle: string;
   successMessage: string;
+  scheduledBannerTitle: string;
+  scheduledBannerDesc: string;
+  scheduledSlotBadge: string;
+  scheduledOrderNotice: string;
+  scheduledSuccessMessage: string;
 }
 
 export const translations: Record<SupportedLang, TranslationSchema> = {
@@ -114,7 +119,12 @@ export const translations: Record<SupportedLang, TranslationSchema> = {
     emptyCartError: "O carrinho está vazio.",
     verifyPhoneAddressError: "Por favor, verifique seu telefone e endereço.",
     successTitle: "🎉 Pedido Confirmado!",
-    successMessage: "Seu pedido foi recebido e nossa equipe no Pinheirinho já está preparando a entrega. Entraremos em contato pelo WhatsApp!"
+    successMessage: "Seu pedido foi recebido e nossa equipe no Pinheirinho já está preparando a entrega. Entraremos em contato pelo WhatsApp!",
+    scheduledBannerTitle: "Atendimento Fora de Horário Comercial",
+    scheduledBannerDesc: "Nosso horário de entregas é das 08:00 às 20:00. Você pode pedir agora e sua entrega sairá amanhã a partir das 08:30!",
+    scheduledSlotBadge: "Agendado para amanhã às 08:30",
+    scheduledOrderNotice: "🌙 Pedido Fora de Horário: Entrega programada para amanhã às 08:30 no Pinheirinho.",
+    scheduledSuccessMessage: "Recebemos seu pedido! Como estamos fora do horário de atendimento, ele já está agendado e sairá amanhã a partir das 08:30."
   },
   es: {
     banner: "🚚 Entrega Rápida en Pinheirinho y alrededores en 30-45 min!",
@@ -171,6 +181,11 @@ export const translations: Record<SupportedLang, TranslationSchema> = {
     emptyCartError: "El carrito está vacío.",
     verifyPhoneAddressError: "Por favor verifica tu teléfono y dirección.",
     successTitle: "🎉 ¡Pedido Confirmado!",
-    successMessage: "Tu pedido ha sido recibido y nuestro equipo en Pinheirinho ya lo está preparando. Te contactaremos por WhatsApp."
+    successMessage: "Tu pedido ha sido recibido y nuestro equipo en Pinheirinho ya lo está preparando. Te contactaremos por WhatsApp.",
+    scheduledBannerTitle: "Atención Fuera de Horario Comercial",
+    scheduledBannerDesc: "Nuestro horario de entrega es de 08:00 a 20:00. ¡Puedes pedir ahora y tu entrega saldrá mañana a partir de las 08:30!",
+    scheduledSlotBadge: "Agendado para mañana a las 08:30",
+    scheduledOrderNotice: "🌙 Pedido Fuera de Horario: Entrega programada para mañana a las 08:30 en Pinheirinho.",
+    scheduledSuccessMessage: "¡Recibimos tu pedido! Como estamos fuera de horario comercial, ya está programado y saldrá mañana a partir de las 08:30."
   }
 };

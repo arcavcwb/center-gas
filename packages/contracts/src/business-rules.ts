@@ -93,3 +93,146 @@ export function normalizeWhatsAppPhone(rawPhone: string): string {
 export function formatBRL(amount: number): string {
   return `R$ ${amount.toFixed(2).replace('.', ',')}`;
 }
+
+/**
+ * BR-005: Horarios Comerciales y Pedidos Programados (ISSUE-703)
+ * Center Gás Curitiba opera de Lunes a Sábado de 08:00 a 20:00 (America/Sao_Paulo).
+ * Fuera de este horario, la plataforma nunca rechaza pedidos, sino que los captura
+ * y programa para el siguiente turno disponible (08:30 del próximo día hábil).
+ */
+
+export interface BusinessHoursConfig {
+  startHour: number;
+  startMinute: number;
+  endHour: number;
+  endMinute: number;
+  timezone: string;
+  operatingDays: number[]; // 1 = Lunes, ..., 6 = Sábado. 0 = Domingo
+}
+
+export const DEFAULT_BUSINESS_HOURS: BusinessHoursConfig = {
+  startHour: 8,
+  startMinute: 0,
+  endHour: 20,
+  endMinute: 0,
+  timezone: 'America/Sao_Paulo',
+  operatingDays: [1, 2, 3, 4, 5, 6], // Lunes a Sábado
+};
+
+/**
+ * Obtiene la fecha/hora en la zona horaria de Curitiba / São Paulo
+ */
+export function getCuritibaDateTime(date: Date = new Date()): {
+  year: number;
+  month: number;
+  day: number;
+  dayOfWeek: number;
+  hours: number;
+  minutes: number;
+  isoString: string;
+} {
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Sao_Paulo',
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    weekday: 'short',
+    hour: 'numeric',
+    minute: 'numeric',
+    second: 'numeric',
+    hour12: false,
+  });
+
+  const parts = formatter.formatToParts(date);
+  const findPart = (type: string) => parts.find(p => p.type === type)?.value || '';
+
+  const month = parseInt(findPart('month'), 10) - 1;
+  const day = parseInt(findPart('day'), 10);
+  const year = parseInt(findPart('year'), 10);
+  let hours = parseInt(findPart('hour'), 10);
+  if (hours === 24) hours = 0;
+  const minutes = parseInt(findPart('minute'), 10);
+
+  const weekdayStr = findPart('weekday');
+  const dayOfWeekMap: Record<string, number> = {
+    Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6
+  };
+  const dayOfWeek = dayOfWeekMap[weekdayStr] ?? date.getDay();
+
+  return { year, month, day, dayOfWeek, hours, minutes, isoString: date.toISOString() };
+}
+
+/**
+ * Determina si una fecha/hora dada está dentro del horario operativo de entrega inmediata
+ */
+export function isWithinBusinessHours(
+  date: Date = new Date(),
+  config: BusinessHoursConfig = DEFAULT_BUSINESS_HOURS
+): boolean {
+  const local = getCuritibaDateTime(date);
+
+  // Validar si el día de la semana opera
+  if (!config.operatingDays.includes(local.dayOfWeek)) {
+    return false;
+  }
+
+  const currentMinutes = local.hours * 60 + local.minutes;
+  const startMinutes = config.startHour * 60 + config.startMinute;
+  const endMinutes = config.endHour * 60 + config.endMinute;
+
+  return currentMinutes >= startMinutes && currentMinutes < endMinutes;
+}
+
+/**
+ * Calcula el siguiente horario de entrega programada (próximo día hábil a las 08:30)
+ */
+export function getNextDeliverySlot(
+  date: Date = new Date(),
+  config: BusinessHoursConfig = DEFAULT_BUSINESS_HOURS
+): {
+  isScheduled: boolean;
+  scheduledDate: Date;
+  timeSlot: string;
+  formattedPT: string;
+  formattedES: string;
+} {
+  const local = getCuritibaDateTime(date);
+  const isOperating = isWithinBusinessHours(date, config);
+
+  if (isOperating) {
+    return {
+      isScheduled: false,
+      scheduledDate: date,
+      timeSlot: 'imediato',
+      formattedPT: 'Entrega Imediata (30-45 min)',
+      formattedES: 'Entrega Inmediata (30-45 min)',
+    };
+  }
+
+  const isEarlyMorning = config.operatingDays.includes(local.dayOfWeek) && local.hours < config.startHour;
+
+  let daysToAdd = isEarlyMorning ? 0 : 1;
+  let targetDayOfWeek = (local.dayOfWeek + daysToAdd) % 7;
+
+  while (!config.operatingDays.includes(targetDayOfWeek)) {
+    daysToAdd++;
+    targetDayOfWeek = (local.dayOfWeek + daysToAdd) % 7;
+  }
+
+  // Target 08:30 São Paulo (UTC-3 => 11:30 UTC)
+  const targetDate = new Date(date.getTime() + daysToAdd * 24 * 60 * 60 * 1000);
+  const targetLocal = getCuritibaDateTime(targetDate);
+  const scheduledDate = new Date(Date.UTC(targetLocal.year, targetLocal.month, targetLocal.day, 11, 30, 0));
+
+  const dayLabelPT = isEarlyMorning ? 'Hoje' : (daysToAdd === 1 ? 'Amanhã' : 'Segunda-feira');
+  const dayLabelES = isEarlyMorning ? 'Hoy' : (daysToAdd === 1 ? 'Mañana' : 'Lunes');
+
+  return {
+    isScheduled: true,
+    scheduledDate,
+    timeSlot: '08:30',
+    formattedPT: `${dayLabelPT} a partir das 08:30`,
+    formattedES: `${dayLabelES} a partir de las 08:30`,
+  };
+}
+

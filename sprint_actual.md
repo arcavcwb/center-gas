@@ -39,6 +39,7 @@ Consolidar la experiencia integral de despacho y entrega: App PWA del Motoboy co
 | **ISSUE-502** | Trigger de Fidelización (8 pedidos = 1 recarga gratis) | `backend-dev-agent` | 🟢 Done | PR #25 |
 | **ISSUE-601** | Suite de Pruebas E2E (Playwright) y Go-Live Checklist | `qa-agent` | 🟢 Done | PR #26 |
 | **ISSUE-701** | Dashboard de Métricas y KPIs del Dueño (Next.js) | `frontend-dev-agent` | 🟢 Done | PR #26 / `97b1607` |
+| **ISSUE-703** | Horarios Comerciales y Pedidos Agendados | `frontend-dev-agent` | 🟢 Done | PR #37 |
 
 ---
 
@@ -48,16 +49,14 @@ Los siguientes tickets están listados en el Backlog de Plane y representan las 
 
 1. **`ISSUE-702`**: *[Post-MVP] Proactive Repurchase Reminder (inactive 45+ days)*
    - Flujo n8n cron diario que audita clientes sin compras en 45 días y dispara cupón de descuento por WhatsApp.
-2. **`ISSUE-703`**: *[Post-MVP] Business Hours & Scheduled Orders*
-   - Validación de horario comercial (08:00 - 20:00) y posibilidad de agendar pedido para el día siguiente.
-3. **`ISSUE-704`**: *[Post-MVP] Delivery Fee per Neighborhood*
+2. **`ISSUE-704`**: *[Post-MVP] Delivery Fee per Neighborhood*
    - Tarificación diferenciada de entrega según la distancia y barrio de Curitiba.
 
 ---
 
 ## 🛡️ Estado del Pipeline Zero-Trust CI/CD
-- **Compilación Monorepo (`turbo build`):** 🟢 **100% PASS** (2/2 tareas exitosas en ~29s)
-- **Pruebas Unitarias (`pnpm run test:unit` - Vitest):** 🟢 **100% PASS** (24/24 tests en 336ms en `@center-gas/contracts`)
-- **Pruebas de Integración (`pnpm run test:rpc`):** 🟢 **100% PASS** (RPC `create_b2c_order` verificado en Supabase)
-- **`apps/site` (Astro 5 + SolidJS):** 🟢 Compila en 12.4s
-- **`apps/web` (Next.js 15 Turbopack):** 🟢 Compila en 7.2s
+- **Compilación Monorepo (`turbo build`):** 🟢 **100% PASS** (2/2 tareas exitosas en ~46s)
+- **Pruebas Unitarias (`pnpm run test:unit` - Vitest):** 🟢 **100% PASS** (38/38 tests en 519ms en `@center-gas/contracts`)
+- **Pruebas de Integración (`pnpm run test:rpc`):** 🟢 **100% PASS** (Combo discount + Scheduled orders verificados en Supabase)
+- **`apps/site` (Astro 5 + SolidJS):** 🟢 Compila en 4.21s
+- **`apps/web` (Next.js 15 Turbopack):** 🟢 Compila en 10.4s
