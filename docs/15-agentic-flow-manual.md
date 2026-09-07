@@ -608,6 +608,8 @@ graph LR
 | Dejar de documentar en Plane | El PO pierde visibilidad. El proyecto se vuelve una caja negra. |
 | Auto-aprobarse | El mismo modelo que escribe el código NO puede ser el que lo revisa. |
 | Ignorar el Craft Floor de Impeccable | Genera degradación de UI ("AI slop", texto gris ilegible, botones táctiles < 48px, emojis rotos). |
+| Verbose Slop / Fluff en interacciones | Desperdicia tokens de contexto; viola el protocolo Caveman de concisión técnica directa. |
+| Sobre-ingeniería y abstracciones prematuras | Viola la directriz Ponytail (YAGNI); genera deuda técnica y mantenimiento innecesario. |
 
 ### 12.2 Reglas de Seguridad del Pipeline
 
@@ -625,6 +627,8 @@ graph LR
 | Término | Definición |
 |---|---|
 | **Agent / Agente** | Un modelo de IA especializado con un rol definido (arquitecto, desarrollador, revisor, etc.) que ejecuta tareas dentro de reglas estrictas. |
+| **Caveman** | Protocolo de comunicación ultra-comprimido para eliminar rodeos y optimizar consumo de tokens en handoffs y reportes. |
+| **Ponytail** | Filosofía de diseño minimalista (YAGNI, stdlib first) que fuerza la solución más simple y corta que realmente funcione. |
 | **Gate** | Punto de control donde el proceso se detiene hasta que el Humano aprueba. |
 | **Handoff** | Momento en que un agente termina su trabajo y pasa la responsabilidad al siguiente. |
 | **Issue** | Unidad atómica de trabajo en Plane. Todo lo que se hace en el proyecto nace y muere como un Issue. |

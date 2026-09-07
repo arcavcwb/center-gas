@@ -33,6 +33,22 @@ Impeccable es el motor y skill FIJO, OBLIGATORIO E INNEGOCIABLE para todo trabaj
 - **Contraste WCAG 2.1 AA:** Legibilidad estricta bajo luz solar directa (`bg-slate-50`, bordes visibles, texto oscuro sobre fondo claro o claro sobre oscuro con ratio ≥ 4.5:1). Prohibido gray-on-color.
 - **Verificación Mecánica Inmediata:** Antes de abrir PR de frontend, debe ejecutarse `.agents/skills/impeccable/scripts/impeccable detect` (o `pnpm run check:design`), certificando 0 violaciones de anti-patrones.
 
+⚡ PROTOCOLO DE COMUNICACIÓN CONCISA Y TOKENS LEAN (CAVEMAN)
+- **Cero Fluff ni Relleno:** Eliminar cortesías innecesarias, introducciones vacías, rodeos y florituras de texto en respuestas técnicas e interacciones entre agentes.
+- **Formato Directo y de Alto Impacto:** Hechos, código y comandos exactos. Responder con máxima densidad técnica y mínimo consumo de tokens (`[cosa] [acción] [motivo]. [siguiente paso]`).
+- **Claridad Técnica Innegociable:** La compresión nunca sacrifica precisión técnica, nombres de contratos, comandos CLI ni mensajes de error exactos.
+
+✂️ FILOSOFÍA DE ARQUITECTURA LEAN Y CERO SOBRE-INGENIERÍA (PONYTAIL)
+- **Escalera YAGNI Estricta:** Antes de escribir una sola línea de código:
+  1. ¿Tiene que existir esto? Si es especulativo -> SKIP (YAGNI).
+  2. ¿Ya existe en el monorepo? -> REUTILIZAR.
+  3. ¿La biblioteca estándar (stdlib) lo resuelve? -> USAR STDLIB (ej: `Intl.NumberFormat`, `Intl.DateTimeFormat`, Node `--env-file`).
+  4. ¿La plataforma nativa lo cubre? -> USAR PLATAFORMA (HTML nativo, CSS, constraints SQL en Supabase).
+  5. ¿Una dependencia ya instalada lo soluciona? -> USARLA (prohibido agregar librerías para tareas triviales).
+  6. ¿Puede ser una sola línea? -> UNA LÍNEA.
+  7. Solo entonces: el mínimo código funcional necesario.
+- **Auditoría Anticomplejidad:** Prohibidas las abstracciones con una sola implementación, factories para un solo producto o scaffolding para el futuro.
+
 🏗️ ARQUITECTURA Y STACK TECNOLÓGICO HÍBRIDO
 El repositorio es un Monorepo gestionado con pnpm y Turborepo. Cualquier scaffolding o instalación debe usar pnpm.
 

@@ -114,5 +114,13 @@ Todo desarrollo que involucre pantallas, interfaces, componentes o estilos en `a
 
 ---
 
-## 7. Gobernanza y Estado Actual
-Con el protocolo **Gherkin BDD + Pirámide de Pruebas + Red-Team Auditor + Impeccable Craft Floor** formalizado, el escuadrón agéntico cuenta con todas las garantías de seguridad técnica y excelencia visual en producción.
+## 7. Protocolo de Eficiencia Lean: Caveman & Ponytail
+
+Para garantizar máxima velocidad, menor consumo de tokens y código libre de sobre-ingeniería:
+- **Caveman (Comunicación Lean & Ultra-Comprimida):** Comunicación técnica directa sin relleno, florituras ni rodeos en el chat de los agentes y reportes intermedios.
+- **Ponytail (Arquitectura & Código Lean):** Filosofía senior perezosa: YAGNI estricto, priorizar stdlib y plataforma nativa, evitar abstracciones prematuras y preferir siempre el diff más corto y limpio que resuelva la causa raíz.
+
+---
+
+## 8. Gobernanza y Estado Actual
+Con el protocolo **Gherkin BDD + Pirámide de Pruebas + Red-Team Auditor + Impeccable Craft Floor + Caveman & Ponytail Lean Engine** formalizado, el escuadrón agéntico cuenta con todas las garantías de seguridad técnica, excelencia visual y eficiencia operativa en producción.
