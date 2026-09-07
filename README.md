@@ -51,16 +51,16 @@ Este repositorio es gobernado y desarrollado por un **Squad de 10 Agentes de IA 
 ### Nuestro Squad de Agentes
 | Especialidad | Agente (ID) | Modelo Asignado |
 |---|---|---|
-| 🏛️ **Arquitectura** | `@architect-agent` | 👑 `claude-3-opus` |
-| 🛡️ **Seguridad / Review** | `@pr-reviewer-agent` | ⚡ `gemini-3.6-flash` |
-| 🧪 **QA & Testing** | `@qa-agent` | 🟠 `claude-3.5-sonnet` |
-| 💻 **Frontend Dev** | `@frontend-dev-agent` | 🟠 `claude-3.5-sonnet` |
-| 💾 **Backend & DB** | `@backend-dev-agent` | 🟠 `claude-3.5-sonnet` |
-| 🎨 **UI/UX Design** | `@designer-agent` | 🟠 `claude-3.5-sonnet` |
-| 📈 **Product Owner** | `@po-agent` | 🟠 `claude-3.5-sonnet` |
-| ⏱️ **Scrum Master** | `@scrum-master-agent` | 🟠 `claude-3.5-sonnet` |
-| ⚙️ **DevOps & CI/CD** | `@devops-agent` | 🟠 `claude-3.5-sonnet` |
-| 🤖 **Automatización** | `@automation-agent` | 🟠 `claude-3.5-sonnet` |
+| 🏛️ **Arquitectura** | `@architect-agent` | 👑 `claude-opus-4-6-thinking` |
+| 🛡️ **Seguridad / Review** | `@pr-reviewer-agent` | 🔬 `gemini-3.1-pro-high` |
+| 🧪 **QA & Testing** | `@qa-agent` | 🔬 `gemini-3.1-pro-high` |
+| 💻 **Frontend Dev** | `@frontend-dev-agent` | 🟠 `claude-sonnet-4-6` |
+| 💾 **Backend & DB** | `@backend-dev-agent` | 🟠 `claude-sonnet-4-6` |
+| 🎨 **UI/UX Design** | `@designer-agent` | ⚡ `gemini-3.8-flash-high` |
+| 📈 **Product Owner** | `@po-agent` | ⚡ `gemini-3.8-flash-high` |
+| ⏱️ **Scrum Master** | `@scrum-master-agent` | ⚡ `gemini-3.8-flash-high` |
+| ⚙️ **DevOps & CI/CD** | `@devops-agent` | 🟠 `claude-sonnet-4-6` |
+| 🤖 **Automatización** | `@automation-agent` | ⚡ `gemini-3.8-flash-high` |
 
 ---
 

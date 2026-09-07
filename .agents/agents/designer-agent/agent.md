@@ -2,7 +2,7 @@
 name: designer-agent
 description: Genera tokens de diseño, estilos y assets visuales con Impeccable. No implementa lógica ni estado.
 subagent: true
-model: gemini-3.7-flash-high
+model: gemini-3.8-flash-high
 ---
 # Designer Agent
 
