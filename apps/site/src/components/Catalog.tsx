@@ -364,15 +364,30 @@ export default function Catalog() {
       <Show 
         when={isScheduled()}
         fallback={
-          <div class="bg-gradient-to-r from-orange-600 via-primary to-orange-500 text-white p-4 rounded-2xl shadow-sm flex items-center justify-between gap-3">
-            <div class="flex items-center gap-2.5 min-w-0">
-              <span class="text-xl shrink-0">🚚</span>
-              <div class="min-w-0">
-                <p class="text-xs sm:text-sm font-extrabold tracking-tight truncate">{t('banner', lang())}</p>
-                <p class="text-xs text-orange-100 font-medium truncate">{t('brandSubtitle', lang())}</p>
+          <div class="bg-gradient-to-r from-orange-600 via-primary to-orange-500 text-white p-4 rounded-2xl shadow-sm space-y-2.5">
+            {/* Fila Superior: Título + Selector de Idioma */}
+            <div class="flex items-center justify-between gap-2.5">
+              <div class="flex items-center gap-2 min-w-0">
+                <span class="text-xl shrink-0">🚚</span>
+                <p class="text-xs sm:text-sm font-extrabold tracking-tight text-white leading-tight">
+                  {t('bannerTitle', lang())}
+                </p>
               </div>
+              <LanguageToggle lang={lang()} onToggle={setLang} />
             </div>
-            <LanguageToggle lang={lang()} onToggle={setLang} />
+
+            {/* Descripción / Promesa */}
+            <p class="text-xs text-orange-100 font-medium leading-relaxed">
+              {t('bannerDesc', lang())}
+            </p>
+
+            {/* Badge de Localización Pinheirinho */}
+            <div class="pt-0.5">
+              <span class="inline-flex items-center gap-1.5 bg-black/20 backdrop-blur-xs border border-white/20 text-xs font-semibold px-3 py-1 rounded-xl text-orange-100 shadow-xs">
+                <span>📍</span>
+                <span>{t('brandSubtitle', lang())}</span>
+              </span>
+            </div>
           </div>
         }
       >
