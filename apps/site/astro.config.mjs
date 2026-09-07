@@ -4,6 +4,9 @@ import tailwind from '@astrojs/tailwind';
 
 // https://astro.build/config
 export default defineConfig({
+  devToolbar: {
+    enabled: false
+  },
   integrations: [solidJs(), tailwind()],
   server: {
     port: 3001
