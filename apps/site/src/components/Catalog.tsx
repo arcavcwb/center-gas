@@ -79,8 +79,13 @@ export default function Catalog() {
   const [orderSuccess, setOrderSuccess] = createSignal(false);
   const [submitError, setSubmitError] = createSignal<string | null>(null);
   const [isOnline, setIsOnline] = createSignal(true);
+  const [now, setNow] = createSignal(new Date());
 
   onMount(() => {
+    setNow(new Date());
+    const clockInterval = setInterval(() => setNow(new Date()), 60000);
+    onCleanup(() => clearInterval(clockInterval));
+
     if (typeof window !== 'undefined' && typeof navigator !== 'undefined') {
       if (typeof navigator.onLine === 'boolean') {
         setIsOnline(navigator.onLine);
@@ -179,7 +184,7 @@ export default function Catalog() {
     return Array.from(set).sort((a, b) => a - b);
   });
 
-  const deliverySlot = createMemo(() => getNextDeliverySlot(new Date()));
+  const deliverySlot = createMemo(() => getNextDeliverySlot(now()));
   const isScheduled = createMemo(() => deliverySlot().isScheduled);
 
   const updateQty = (id: string, delta: number) => {
@@ -356,7 +361,21 @@ export default function Catalog() {
       </Show>
 
       {/* ----------------- BANNER DE ATENDIMENTO & SELECTOR DE IDIOMA ----------------- */}
-      <Show when={isScheduled()}>
+      <Show 
+        when={isScheduled()}
+        fallback={
+          <div class="bg-gradient-to-r from-orange-600 via-primary to-orange-500 text-white p-4 rounded-2xl shadow-sm flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <span class="text-xl shrink-0">🚚</span>
+              <div class="min-w-0">
+                <p class="text-xs sm:text-sm font-extrabold tracking-tight truncate">{t('banner', lang())}</p>
+                <p class="text-xs text-orange-100 font-medium truncate">{t('brandSubtitle', lang())}</p>
+              </div>
+            </div>
+            <LanguageToggle lang={lang()} onToggle={setLang} />
+          </div>
+        }
+      >
         <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-4 rounded-2xl shadow-md border border-indigo-500/30 space-y-3">
           {/* Fila Superior: Título + Selector de Idioma */}
           <div class="flex items-center justify-between gap-2.5">
@@ -381,19 +400,6 @@ export default function Catalog() {
               <span>{lang() === 'pt' ? deliverySlot().formattedPT : deliverySlot().formattedES}</span>
             </span>
           </div>
-        </div>
-      </Show>
-
-      <Show when={!isScheduled()}>
-        <div class="bg-gradient-to-r from-orange-600 via-primary to-orange-500 text-white p-4 rounded-2xl shadow-sm flex items-center justify-between gap-3">
-          <div class="flex items-center gap-2.5 min-w-0">
-            <span class="text-xl shrink-0">🚚</span>
-            <div class="min-w-0">
-              <p class="text-xs sm:text-sm font-extrabold tracking-tight truncate">{t('banner', lang())}</p>
-              <p class="text-xs text-orange-100 font-medium truncate">{t('brandSubtitle', lang())}</p>
-            </div>
-          </div>
-          <LanguageToggle lang={lang()} onToggle={setLang} />
         </div>
       </Show>
 
