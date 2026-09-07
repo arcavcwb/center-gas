@@ -40,3 +40,6 @@ pnpm-debug.log*
 # Python (Scripts utilitarios)
 __pycache__/
 *.pyc
+
+# Impeccable binary cache
+**/impeccable/scripts/bin/

@@ -283,10 +283,12 @@ export default function DriverApp() {
               </Show>
 
               <button 
+                type="button"
                 onClick={() => setShowModal(true)}
-                class="w-full py-6 mt-4 bg-green-600 active:bg-green-700 text-white font-black text-2xl rounded-2xl shadow-xl border-b-4 border-green-800 active:border-b-0 active:translate-y-1 transition-all"
+                class="w-full py-5 mt-4 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-black text-xl tracking-wide rounded-2xl shadow-lg hover:shadow-xl active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2"
               >
-                MARCAR COMO ENTREGUE
+                <span>✅</span>
+                <span>MARCAR COMO ENTREGUE</span>
               </button>
             </div>
           </div>

@@ -7,22 +7,23 @@ import '../../styles/global.css';
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
-    <title>Entregador - Center Gás Pinheirinho</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   </head>
-  <body class="bg-gray-100 text-gray-900 font-sans antialiased overflow-x-hidden min-h-screen">
-    <div class="max-w-md mx-auto bg-surface min-h-screen shadow-2xl relative flex flex-col">
-      <header class="bg-gray-900 text-white p-4 shadow-lg flex justify-between items-center sticky top-0 z-50">
-        <div class="flex items-center space-x-2">
-          <span class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></span>
+  <body class="bg-slate-100 text-slate-900 font-sans antialiased overflow-x-hidden min-h-screen">
+    <div class="max-w-md mx-auto bg-white min-h-screen shadow-2xl relative flex flex-col">
+      <header class="bg-slate-900 text-white p-4 shadow-md flex justify-between items-center sticky top-0 z-50">
+        <div class="flex items-center space-x-2.5">
+          <span class="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse motion-reduce:animate-none ring-4 ring-emerald-950"></span>
           <div>
-            <h1 class="font-bold text-base tracking-tight leading-none">Centro de Entregas</h1>
-            <p class="text-[10px] text-gray-400 font-medium mt-0.5">Pinheirinho • Curitiba</p>
+            <h1 class="font-extrabold text-base tracking-tight leading-none">Centro de Entregas</h1>
+            <p class="text-[10px] text-slate-400 font-medium mt-0.5">Pinheirinho • Curitiba</p>
           </div>
         </div>
         <button 
           onClick="window.location.reload()"
-          class="text-xs font-semibold bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-full border border-gray-700 transition-colors"
+          class="text-xs font-semibold bg-slate-800 hover:bg-slate-700 px-3.5 py-1.5 rounded-full border border-slate-700 transition-colors cursor-pointer"
         >
           Atualizar
         </button>
