@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import CustomersTable from '@/components/CustomersTable';
 
@@ -22,11 +22,7 @@ export default function MetricsPage() {
   const [period, setPeriod] = useState('all');
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchMetrics();
-  }, [period]);
-
-  const fetchMetrics = async () => {
+  const fetchMetrics = useCallback(async () => {
     setLoading(true);
     
     // Fetch drivers
@@ -38,7 +34,11 @@ export default function MetricsPage() {
     if (!lError && loyaltyData) setLoyalty(loyaltyData as LoyaltyMetrics);
 
     setLoading(false);
-  };
+  }, [period]);
+
+  useEffect(() => {
+    fetchMetrics();
+  }, [fetchMetrics]);
 
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-8">
