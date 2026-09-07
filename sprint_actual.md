@@ -57,5 +57,7 @@ Los siguientes tickets están listados en el Backlog de Plane y representan las 
 
 ## 🛡️ Estado del Pipeline Zero-Trust CI/CD
 - **Compilación Monorepo (`turbo build`):** 🟢 **100% PASS** (2/2 tareas exitosas en ~29s)
+- **Pruebas Unitarias (`pnpm run test:unit` - Vitest):** 🟢 **100% PASS** (24/24 tests en 336ms en `@center-gas/contracts`)
+- **Pruebas de Integración (`pnpm run test:rpc`):** 🟢 **100% PASS** (RPC `create_b2c_order` verificado en Supabase)
 - **`apps/site` (Astro 5 + SolidJS):** 🟢 Compila en 12.4s
 - **`apps/web` (Next.js 15 Turbopack):** 🟢 Compila en 7.2s
