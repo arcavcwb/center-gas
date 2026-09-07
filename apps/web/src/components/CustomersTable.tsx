@@ -88,9 +88,9 @@ export default function CustomersTable() {
                     )}
                   </td>
                   <td className="px-4 py-4 text-center font-medium text-gray-700">{c.total_orders}</td>
-                  <td className="px-4 py-4 text-right font-bold text-gray-800">R$ {c.total_spent}</td>
+                  <td className="px-4 py-4 text-right font-bold text-gray-800">R$ {Number(c.total_spent || 0).toFixed(2).replace('.', ',')}</td>
                   <td className="px-4 py-4 text-right text-gray-500">
-                    {c.last_order_date ? new Date(c.last_order_date).toLocaleDateString() : 'N/A'}
+                    {c.last_order_date ? new Date(c.last_order_date).toLocaleDateString('pt-BR') : 'N/A'}
                   </td>
                 </tr>
               ))

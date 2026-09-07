@@ -71,6 +71,8 @@ export default function Catalog() {
   
   const [paymentMethod, setPaymentMethod] = createSignal<'cash' | 'pix'>('cash');
   const [changeFor, setChangeFor] = createSignal<number | null>(null);
+  const [isCustomChange, setIsCustomChange] = createSignal(false);
+  const [customChangeInput, setCustomChangeInput] = createSignal('');
   const [token, setToken] = createSignal<string | null>(null);
   
   const [isSubmitting, setIsSubmitting] = createSignal(false);
@@ -399,7 +401,7 @@ export default function Catalog() {
             <button 
               type="submit" 
               disabled={isSubmitting()}
-              class="w-full py-3 px-6 border border-transparent rounded-xl shadow-sm text-lg font-bold text-white bg-primary hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 transition-all"
+              class="w-full py-3.5 px-6 border border-transparent rounded-xl shadow-md text-base font-extrabold text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 transition-all cursor-pointer"
             >
               {isSubmitting() ? t('phoneVerifying', lang()) : t('phoneBtn', lang())}
             </button>
@@ -475,7 +477,7 @@ export default function Catalog() {
             <button 
               type="submit" 
               disabled={isSubmitting()}
-              class="w-full py-3 px-6 mt-4 border border-transparent rounded-xl shadow-sm text-lg font-bold text-white bg-primary hover:bg-orange-600 focus:outline-none transition-all"
+              class="w-full py-3.5 px-6 mt-4 border border-transparent rounded-xl shadow-md text-base font-extrabold text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 transition-all cursor-pointer"
             >
               {isSubmitting() ? t('registerBtnLoading', lang()) : t('registerBtn', lang())}
             </button>
@@ -540,19 +542,25 @@ export default function Catalog() {
                     <p class="text-xs text-gray-500 mt-1 leading-tight">
                       {product.includes_cylinder ? t('descFull', lang()) : t('descRefill', lang())}
                     </p>
-                    <p class="text-primary font-semibold mt-1.5 text-lg">{formatBRL(product.price)}</p>
+                    <p class="text-orange-700 font-extrabold mt-1.5 text-lg">{formatBRL(product.price)}</p>
                   </div>
-                  <div class="flex items-center space-x-3 bg-surface p-1 rounded-full border border-gray-100">
+                  <div class="flex items-center space-x-2 bg-slate-100 p-1.5 rounded-full border border-slate-200">
                     <button 
+                      type="button"
                       onClick={() => updateQty(product.id, -1)}
-                      class="w-8 h-8 flex items-center justify-center rounded-full bg-white text-gray-600 hover:text-primary shadow-sm transition-colors"
+                      aria-label={`Diminuir quantidade de ${product.name}`}
+                      class="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full bg-white text-slate-700 hover:text-slate-900 hover:bg-slate-50 border border-slate-200 font-extrabold text-lg shadow-xs transition-all active:scale-95 cursor-pointer"
                     >
-                      -
+                      −
                     </button>
-                    <span class="font-medium text-gray-800 w-4 text-center">{cart()[product.id] || 0}</span>
+                    <span class="font-bold text-slate-900 w-6 text-center text-base select-none">
+                      {cart()[product.id] || 0}
+                    </span>
                     <button 
+                      type="button"
                       onClick={() => updateQty(product.id, 1)}
-                      class="w-8 h-8 flex items-center justify-center rounded-full bg-primary text-white shadow-sm transition-transform active:scale-95"
+                      aria-label={`Aumentar quantidade de ${product.name}`}
+                      class="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full bg-orange-600 hover:bg-orange-700 text-white font-extrabold text-lg shadow-xs transition-all active:scale-95 cursor-pointer"
                     >
                       +
                     </button>
@@ -562,7 +570,7 @@ export default function Catalog() {
             </For>
           </div>
 
-          <form onSubmit={handleSubmitOrder} class="mt-6 space-y-6 bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+          <form id="checkout-form" onSubmit={handleSubmitOrder} class="mt-6 space-y-6 bg-white p-5 rounded-2xl shadow-sm border border-gray-100 scroll-mt-20">
             {/* ----------------- CROSS-SELLING (Water) ----------------- */}
             <Show when={products().find(p => (p.sku.toLowerCase().includes('water') || p.sku.toLowerCase().includes('agua')) && !cart()[p.id])}>
               {() => {
@@ -635,7 +643,7 @@ export default function Catalog() {
               </Show>
               <div class="flex justify-between text-base font-extrabold text-gray-900 border-t border-gray-200 pt-2">
                 <span>{t('totalLabel', lang())}</span>
-                <span class="text-primary text-xl font-black">{formatBRL(total())}</span>
+                <span class="text-orange-700 text-2xl font-black">{formatBRL(total())}</span>
               </div>
             </div>
 
@@ -654,22 +662,35 @@ export default function Catalog() {
             <h3 class="font-bold text-gray-800 border-b pb-2 mt-6">{t('paymentTitle', lang())}</h3>
             
             <div class="space-y-3">
-              <label class="flex items-center p-3 border rounded-xl cursor-pointer hover:bg-gray-50 transition-colors" classList={{'border-primary bg-orange-50/30': paymentMethod() === 'cash'}}>
-                <input type="radio" name="payment" value="cash" checked={paymentMethod() === 'cash'} onChange={() => setPaymentMethod('cash')} class="text-primary focus:ring-primary" />
-                <span class="ml-3 font-medium text-gray-900">{t('paymentCash', lang())}</span>
+              <label class="flex items-center p-3.5 border rounded-xl cursor-pointer hover:bg-gray-50 transition-colors" classList={{'border-orange-500 bg-orange-50/40 ring-1 ring-orange-500/20': paymentMethod() === 'cash'}}>
+                <input type="radio" name="payment" value="cash" checked={paymentMethod() === 'cash'} onChange={() => setPaymentMethod('cash')} class="text-orange-600 focus:ring-orange-500 w-4 h-4" />
+                <span class="ml-3 font-semibold text-gray-900 text-sm">{t('paymentCash', lang())}</span>
               </label>
-              <label class="flex items-center p-3 border rounded-xl cursor-pointer hover:bg-gray-50 transition-colors" classList={{'border-secondary bg-blue-50/30': paymentMethod() === 'pix'}}>
-                <input type="radio" name="payment" value="pix" checked={paymentMethod() === 'pix'} onChange={() => {setPaymentMethod('pix'); setChangeFor(null);}} class="text-secondary focus:ring-secondary" />
-                <span class="ml-3 font-medium text-gray-900">{t('paymentPix', lang())}</span>
+              <label class="flex items-center p-3.5 border rounded-xl cursor-pointer hover:bg-gray-50 transition-colors" classList={{'border-blue-500 bg-blue-50/40 ring-1 ring-blue-500/20': paymentMethod() === 'pix'}}>
+                <input type="radio" name="payment" value="pix" checked={paymentMethod() === 'pix'} onChange={() => {setPaymentMethod('pix'); setChangeFor(null); setIsCustomChange(false);}} class="text-blue-600 focus:ring-blue-500 w-4 h-4" />
+                <span class="ml-3 font-semibold text-gray-900 text-sm">{t('paymentPix', lang())}</span>
               </label>
             </div>
 
             <Show when={paymentMethod() === 'cash'}>
-              <div class="bg-surface p-4 rounded-xl border border-gray-100 mt-3">
-                <label class="block text-sm font-medium text-gray-700 mb-2">{t('trocoTitle', lang())}</label>
+              <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 mt-3 space-y-3">
+                <label class="block text-sm font-semibold text-slate-800">{t('trocoTitle', lang())}</label>
                 <select 
-                  class="w-full border-gray-300 rounded-lg shadow-sm focus:border-primary focus:ring-primary py-2 px-3 border outline-none bg-white"
-                  onChange={(e) => setChangeFor(e.currentTarget.value ? Number(e.currentTarget.value) : null)}
+                  class="w-full border-slate-300 rounded-lg shadow-xs focus:border-orange-600 focus:ring-orange-600 py-2.5 px-3 border outline-none bg-white text-sm font-medium text-slate-800 cursor-pointer"
+                  onChange={(e) => {
+                    const val = e.currentTarget.value;
+                    if (val === 'custom') {
+                      setIsCustomChange(true);
+                      const num = Number(customChangeInput());
+                      setChangeFor(num > 0 ? num : null);
+                    } else if (val === '') {
+                      setIsCustomChange(false);
+                      setChangeFor(null);
+                    } else {
+                      setIsCustomChange(false);
+                      setChangeFor(Number(val));
+                    }
+                  }}
                 >
                   <option value="">{t('trocoExact', lang(), { amount: formatBRL(total()) })}</option>
                   <For each={suggestedCashOptions()}>
@@ -679,19 +700,84 @@ export default function Catalog() {
                       </option>
                     )}
                   </For>
+                  <option value="custom">
+                    {lang() === 'pt' ? 'Outro valor (digitar troco)...' : 'Otro monto (escribir cambio)...'}
+                  </option>
                 </select>
+
+                <Show when={isCustomChange()}>
+                  <div class="pt-1">
+                    <label class="block text-xs font-medium text-slate-600 mb-1">
+                      {lang() === 'pt' ? 'Pagar com nota de quanto? (R$)' : '¿Pagar con billete de cuánto? (R$)'}
+                    </label>
+                    <input 
+                      type="number" 
+                      step="1"
+                      min={total()}
+                      placeholder="Ex: 150"
+                      value={customChangeInput()}
+                      onInput={(e) => {
+                        setCustomChangeInput(e.currentTarget.value);
+                        const val = Number(e.currentTarget.value);
+                        setChangeFor(val > 0 ? val : null);
+                      }}
+                      class="w-full border-slate-300 rounded-lg shadow-xs focus:border-orange-600 focus:ring-orange-600 py-2.5 px-3 border outline-none bg-white text-sm font-semibold"
+                    />
+                    <Show when={changeFor() && changeFor()! > total()}>
+                      <p class="text-xs font-semibold text-emerald-700 mt-1.5">
+                        {lang() === 'pt' 
+                          ? `✅ Troco a receber: ${formatBRL(changeFor()! - total())}` 
+                          : `✅ Cambio a recibir: ${formatBRL(changeFor()! - total())}`}
+                      </p>
+                    </Show>
+                    <Show when={changeFor() && changeFor()! <= total()}>
+                      <p class="text-xs font-semibold text-amber-700 mt-1.5">
+                        {lang() === 'pt' 
+                          ? `⚠️ O valor precisa ser maior que o total (${formatBRL(total())})` 
+                          : `⚠️ El monto debe ser mayor al total (${formatBRL(total())})`}
+                      </p>
+                    </Show>
+                  </div>
+                </Show>
               </div>
             </Show>
 
             <button 
               type="submit" 
               disabled={total() === 0 || isSubmitting()}
-              class="w-full py-4 px-6 border border-transparent rounded-xl shadow-sm text-lg font-bold text-white bg-primary hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all transform active:scale-[0.98]"
+              class="w-full py-4 px-6 border border-transparent rounded-xl shadow-md hover:shadow-lg text-lg font-extrabold text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform active:scale-[0.98] cursor-pointer"
             >
               {isSubmitting() ? t('submittingOrder', lang()) : t('submitOrderBtn', lang(), { amount: formatBRL(total()) })}
             </button>
           </form>
         </Show>
+      </Show>
+
+      {/* ----------------- BARRA FLOTANTE DE CHECKOUT RÁPIDO MOBILE ----------------- */}
+      <Show when={step() === 'catalog' && total() > 0 && !orderSuccess()}>
+        <aside 
+          aria-label="Resumo do pedido" 
+          class="fixed bottom-0 left-0 right-0 p-3.5 bg-white/95 backdrop-blur-md shadow-2xl border-t border-slate-200 z-40"
+        >
+          <div class="max-w-md mx-auto flex items-center justify-between gap-3">
+            <div>
+              <p class="text-[11px] text-slate-500 font-medium leading-none">Total com entrega:</p>
+              <p class="text-xl font-black text-slate-900 leading-tight mt-0.5">{formatBRL(total())}</p>
+              <Show when={comboDiscount() > 0}>
+                <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded inline-block">
+                  Desconto combo aplicado
+                </span>
+              </Show>
+            </div>
+            <a
+              href="#checkout-form"
+              class="bg-orange-600 hover:bg-orange-700 active:scale-95 text-white font-bold text-sm px-5 py-3 rounded-xl shadow-md transition-all flex items-center gap-1.5 whitespace-nowrap"
+            >
+              <span>{lang() === 'pt' ? 'Finalizar Pedido' : 'Finalizar Pedido'}</span>
+              <span>👉</span>
+            </a>
+          </div>
+        </aside>
       </Show>
     </div>
   );

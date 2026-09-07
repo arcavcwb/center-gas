@@ -16,6 +16,7 @@ export default function DriverApp() {
   const [showModal, setShowModal] = createSignal(false);
   const [cylinderReceived, setCylinderReceived] = createSignal<boolean | null>(null);
   const [isFinishing, setIsFinishing] = createSignal(false);
+  const [modalError, setModalError] = createSignal<string | null>(null);
   const [completed, setCompleted] = createSignal(false);
 
   // Check initial session
@@ -106,7 +107,11 @@ export default function DriverApp() {
   };
 
   const handleFinish = async () => {
-    if (cylinderReceived() === null) return alert("Você deve confirmar se recolheu o botijão vazio.");
+    setModalError(null);
+    if (cylinderReceived() === null) {
+      setModalError("Por favor, confirme se recolheu o botijão vazio.");
+      return;
+    }
     
     setIsFinishing(true);
     
@@ -119,7 +124,7 @@ export default function DriverApp() {
     setIsFinishing(false);
 
     if (error) {
-      alert("Erro ao atualizar o pedido: " + error.message);
+      setModalError("Erro ao atualizar o pedido: " + error.message);
       return;
     }
 
@@ -129,6 +134,10 @@ export default function DriverApp() {
 
   const mapsUrl = () => order() && order().customer?.address_line 
     ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(order().customer.address_line)}`
+    : '#';
+
+  const wazeUrl = () => order() && order().customer?.address_line
+    ? `https://waze.com/ul?q=${encodeURIComponent(order().customer.address_line)}&navigate=yes`
     : '#';
 
   const orderItemsText = () => {
@@ -153,7 +162,7 @@ export default function DriverApp() {
             <Show when={authError()}>
               <p class="text-red-500 text-sm font-medium">{authError()}</p>
             </Show>
-            <button type="submit" disabled={loadingAuth()} class="w-full bg-primary text-white font-bold py-4 rounded-xl active:bg-blue-800 transition-colors">
+            <button type="submit" disabled={loadingAuth()} class="w-full bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white font-extrabold py-4 rounded-xl shadow-md transition-colors cursor-pointer">
               {loadingAuth() ? 'Entrando...' : 'Entrar'}
             </button>
           </form>
@@ -199,35 +208,62 @@ export default function DriverApp() {
             
             <div class="p-5 space-y-5">
               <div>
-                <p class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Cliente</p>
-                <p class="text-xl font-bold text-gray-900">{order().customer?.name || 'Cliente'}</p>
-                <a href={`https://wa.me/${order().customer?.phone?.replace(/\D/g, '')}`} target="_blank" class="text-primary font-bold underline text-lg mt-1 inline-block">WhatsApp: {order().customer?.phone}</a>
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Cliente</p>
+                <p class="text-xl font-extrabold text-slate-900">{order().customer?.name || 'Cliente'}</p>
+                <div class="flex flex-wrap items-center gap-2 mt-2">
+                  <a 
+                    href={`https://wa.me/${order().customer?.phone?.replace(/\D/g, '')}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    class="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 font-bold text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-xs"
+                  >
+                    <span>💬</span>
+                    <span>WhatsApp: {order().customer?.phone}</span>
+                  </a>
+                  <a 
+                    href={`tel:${order().customer?.phone?.replace(/\D/g, '')}`} 
+                    class="bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200 font-bold text-xs px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-xs"
+                  >
+                    <span>📞</span>
+                    <span>Ligar</span>
+                  </a>
+                </div>
               </div>
               
-              <div class="bg-blue-50/50 p-4 rounded-2xl border border-blue-100">
-                <p class="text-sm font-semibold text-blue-800 uppercase tracking-wider mb-1">Endereço de Entrega</p>
-                <p class="text-lg font-medium text-gray-900 leading-tight mb-4">{order().customer?.address_line}</p>
+              <div class="bg-slate-100 p-4 rounded-2xl border-2 border-slate-300 shadow-xs">
+                <p class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">📍 Endereço de Entrega</p>
+                <p class="text-xl font-black text-slate-950 leading-snug mb-4 select-all">{order().customer?.address_line}</p>
                 
-                <a 
-                  href={mapsUrl()}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="flex items-center justify-center w-full py-4 bg-secondary text-white font-bold rounded-xl active:bg-blue-800 transition-colors shadow-md text-lg"
-                >
-                  🗺️ NAVEGAR COM GOOGLE MAPS
-                </a>
+                <div class="grid grid-cols-2 gap-2.5">
+                  <a 
+                    href={mapsUrl()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="flex items-center justify-center py-3.5 px-3 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold rounded-xl transition-colors shadow-sm text-sm"
+                  >
+                    🗺️ Google Maps
+                  </a>
+                  <a 
+                    href={wazeUrl()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="flex items-center justify-center py-3.5 px-3 bg-sky-500 hover:bg-sky-600 active:bg-sky-700 text-white font-bold rounded-xl transition-colors shadow-sm text-sm"
+                  >
+                    🚙 Waze
+                  </a>
+                </div>
               </div>
 
               <div class="pt-2 border-t border-dashed border-gray-200">
-                <p class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Detalhes da Entrega</p>
-                <div class="bg-gray-50 p-4 rounded-xl space-y-2">
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Detalhes da Entrega</p>
+                <div class="bg-gray-50 p-4 rounded-xl space-y-2 border border-slate-200">
                   <div class="flex justify-between items-center">
                     <span class="font-medium text-gray-700">Entregar:</span>
                     <span class="font-bold text-gray-900 text-lg">{orderItemsText()}</span>
                   </div>
                   <div class="flex justify-between items-center">
                     <span class="font-medium text-gray-700">Total:</span>
-                    <span class="font-black text-primary text-2xl">R$ {Number(order().total_amount).toFixed(2)}</span>
+                    <span class="font-black text-orange-700 text-2xl">R$ {Number(order().total_amount).toFixed(2)}</span>
                   </div>
                 </div>
               </div>
@@ -292,6 +328,12 @@ export default function DriverApp() {
                 </div>
 
                 <div class="space-y-3">
+                  <Show when={modalError()}>
+                    <div class="bg-red-50 border border-red-200 text-red-700 text-sm font-semibold p-3.5 rounded-xl">
+                      ⚠️ {modalError()}
+                    </div>
+                  </Show>
+
                   <Show when={cylinderReceived() === false}>
                     <div class="bg-red-100 p-4 rounded-xl text-center border border-red-200 mb-4">
                       <p class="text-red-900 font-bold uppercase text-sm">Novo Total a Cobrar</p>
@@ -307,7 +349,7 @@ export default function DriverApp() {
                     {isFinishing() ? 'PROCESSANDO...' : 'FINALIZAR ENTREGA'}
                   </button>
                   <button 
-                    onClick={() => setShowModal(false)}
+                    onClick={() => { setShowModal(false); setModalError(null); }}
                     disabled={isFinishing()}
                     class="w-full py-4 text-lg font-bold text-gray-500 active:text-gray-800"
                   >
