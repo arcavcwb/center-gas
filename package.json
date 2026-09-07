@@ -7,6 +7,9 @@
     "dev": "turbo dev",
     "lint": "turbo lint",
     "test": "turbo test",
+    "test:unit": "pnpm --filter @center-gas/contracts test",
+    "test:e2e": "pnpm --filter e2e test",
+    "test:rpc": "node test_rpc.js",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },
   "devDependencies": {

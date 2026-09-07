@@ -1,3 +1,5 @@
+const path = require('path');
+module.paths.push(path.resolve(__dirname, 'apps/web/node_modules'));
 const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config();
 
