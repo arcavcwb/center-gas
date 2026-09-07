@@ -8,8 +8,20 @@ import { NewOrderModal } from './NewOrderModal';
 import type { Order } from '@center-gas/contracts';
 import { PhoneCall } from 'lucide-react';
 
+interface Driver {
+  id: string;
+  full_name: string;
+}
+
+const DEFAULT_DRIVERS: Driver[] = [
+  { id: '40516925-d458-4fea-926e-1f942b51681b', full_name: 'Carlos (Motoboy)' },
+  { id: '55555555-5555-5555-5555-555555555551', full_name: 'João (Motoboy)' },
+  { id: '55555555-5555-5555-5555-555555555552', full_name: 'Marcos (Motoboy)' },
+];
+
 export function KanbanBoard() {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [drivers, setDrivers] = useState<Driver[]>(DEFAULT_DRIVERS);
   const [cancelingOrderId, setCancelingOrderId] = useState<string | null>(null);
   const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState(false);
 
@@ -32,7 +44,20 @@ export function KanbanBoard() {
       }
     };
 
+    const fetchDrivers = async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .eq('role', 'driver')
+        .eq('is_active', true);
+
+      if (data && !error && data.length > 0) {
+        setDrivers(data as Driver[]);
+      }
+    };
+
     fetchOrders();
+    fetchDrivers();
 
     // Subscribe to realtime changes
     const channel = supabase.channel('realtime_orders')
@@ -120,7 +145,7 @@ export function KanbanBoard() {
           </div>
           <div className="flex flex-col gap-3">
             {newOrders.map(order => (
-              <OrderCard key={order.id} order={order} onUpdateStatus={handleUpdateStatus} onCancelRequest={setCancelingOrderId} />
+              <OrderCard key={order.id} order={order} drivers={drivers} onUpdateStatus={handleUpdateStatus} onCancelRequest={setCancelingOrderId} />
             ))}
             {newOrders.length === 0 && (
               <p className="text-slate-500 text-center py-8 text-sm">Sin pedidos nuevos.</p>
@@ -138,7 +163,7 @@ export function KanbanBoard() {
           </div>
           <div className="flex flex-col gap-3">
             {activeOrders.map(order => (
-              <OrderCard key={order.id} order={order} onUpdateStatus={handleUpdateStatus} onCancelRequest={setCancelingOrderId} />
+              <OrderCard key={order.id} order={order} drivers={drivers} onUpdateStatus={handleUpdateStatus} onCancelRequest={setCancelingOrderId} />
             ))}
             {activeOrders.length === 0 && (
               <p className="text-slate-500 text-center py-8 text-sm">Sin pedidos activos.</p>

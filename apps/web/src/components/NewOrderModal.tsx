@@ -19,6 +19,7 @@ export function NewOrderModal({ onConfirm, onCancel }: NewOrderModalProps) {
   const [productId, setProductId] = useState('');
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.from('products').select('*').eq('is_active', true).then(({ data }) => {
@@ -34,18 +35,19 @@ export function NewOrderModal({ onConfirm, onCancel }: NewOrderModalProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     if (!selectedProduct) return;
 
     const normalizedPhone = normalizeWhatsAppPhone(phone);
     if (!normalizedPhone) {
-      alert('Por favor ingresa un número de teléfono válido.');
+      setError('Por favor ingresa un número de teléfono válido.');
       return;
     }
 
     if (paymentMethod === 'cash' && cashChange !== '') {
       const val = validateCashChange(totalAmount, Number(cashChange));
       if (!val.isValid) {
-        alert(val.error || 'El monto para el cambio es inválido.');
+        setError(val.error || 'El monto para el cambio es inválido.');
         return;
       }
     }
@@ -92,9 +94,10 @@ export function NewOrderModal({ onConfirm, onCancel }: NewOrderModalProps) {
       });
 
       onConfirm(); // Just close modal, Realtime handles the UI update!
-    } catch (error) {
-      console.error('Error creating order:', error);
-      alert('Error al crear el pedido.');
+    } catch (err: unknown) {
+      console.error('Error creating order:', err);
+      const message = err instanceof Error ? err.message : 'Error al crear el pedido.';
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -109,6 +112,12 @@ export function NewOrderModal({ onConfirm, onCancel }: NewOrderModalProps) {
         </div>
         
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {error && (
+            <div className="bg-red-50 border-l-4 border-red-500 p-3.5 rounded-xl text-red-700 text-xs font-semibold flex items-center justify-between shadow-xs">
+              <span>⚠️ {error}</span>
+              <button type="button" onClick={() => setError(null)} className="text-red-500 hover:text-red-800 text-sm font-bold ml-2">✕</button>
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">Nombre</label>

@@ -8,9 +8,10 @@ interface OrderCardProps {
   order: Order;
   onUpdateStatus: (orderId: string, newStatus: string, driverId?: string) => void;
   onCancelRequest: (orderId: string) => void;
+  drivers?: { id: string; full_name: string }[];
 }
 
-export function OrderCard({ order, onUpdateStatus, onCancelRequest }: OrderCardProps) {
+export function OrderCard({ order, onUpdateStatus, onCancelRequest, drivers = [] }: OrderCardProps) {
   const isNew = order.status === 'nuevo' || order.status === 'confirmado';
   
   return (
@@ -67,7 +68,15 @@ export function OrderCard({ order, onUpdateStatus, onCancelRequest }: OrderCardP
             className="flex-1 bg-slate-50 border border-slate-200 text-slate-700 py-2.5 px-3 rounded-lg font-medium text-sm outline-none focus:border-brand-blue focus:ring-1 focus:ring-brand-blue transition-colors cursor-pointer appearance-none"
           >
             <option value="" disabled>Asignar Motoboy...</option>
-            <option value="40516925-d458-4fea-926e-1f942b51681b">Carlos (Motoboy)</option>
+            {drivers.length > 0 ? (
+              drivers.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.full_name}
+                </option>
+              ))
+            ) : (
+              <option value="40516925-d458-4fea-926e-1f942b51681b">Carlos (Motoboy)</option>
+            )}
           </select>
         ) : (
           <button 
