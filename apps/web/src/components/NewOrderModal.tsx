@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import type { Product } from '@center-gas/contracts';
+import { type Product, normalizeWhatsAppPhone, validateCashChange } from '@center-gas/contracts';
 
 interface NewOrderModalProps {
   onConfirm: () => void;
@@ -35,12 +35,27 @@ export function NewOrderModal({ onConfirm, onCancel }: NewOrderModalProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedProduct) return;
+
+    const normalizedPhone = normalizeWhatsAppPhone(phone);
+    if (!normalizedPhone) {
+      alert('Por favor ingresa un número de teléfono válido.');
+      return;
+    }
+
+    if (paymentMethod === 'cash' && cashChange !== '') {
+      const val = validateCashChange(totalAmount, Number(cashChange));
+      if (!val.isValid) {
+        alert(val.error || 'El monto para el cambio es inválido.');
+        return;
+      }
+    }
+
     setLoading(true);
 
     try {
       // 1. Upsert Customer by Phone
       let customerId;
-      const { data: existing } = await supabase.from('customers').select('id').eq('phone', phone).single();
+      const { data: existing } = await supabase.from('customers').select('id').eq('phone', normalizedPhone).single();
       
       if (existing) {
         customerId = existing.id;
@@ -48,7 +63,7 @@ export function NewOrderModal({ onConfirm, onCancel }: NewOrderModalProps) {
         await supabase.from('customers').update({ name: customerName, address_line: address }).eq('id', customerId);
       } else {
         const { data: newCust, error: errCust } = await supabase.from('customers').insert({
-          phone,
+          phone: normalizedPhone,
           name: customerName,
           address_line: address
         }).select().single();

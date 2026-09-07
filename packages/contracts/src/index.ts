@@ -22,6 +22,7 @@ export const OrderSchema = z.object({
   payment_method: z.enum(['pix', 'cash']),
   cash_change_for: z.number().nullable().optional(),
   cylinder_returned: z.boolean().nullable().optional(),
+  discount_applied: z.number().nullable().optional(),
   total_amount: z.number(),
   created_at: z.string(),
   // Campos opcionales si hacemos JOIN

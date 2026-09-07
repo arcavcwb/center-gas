@@ -1,9 +1,17 @@
 import { createSignal, createMemo, createEffect, For, Show } from 'solid-js';
 import { supabase } from '../lib/supabase';
+import {
+  calculateComboDiscount,
+  validateCashChange,
+  normalizeWhatsAppPhone,
+  formatBRL,
+  type CartItemLike
+} from '@center-gas/contracts';
 
 interface Product {
   id: string;
   name: string;
+  sku: string;
   type: string;
   price: number;
   desc: string;
@@ -13,6 +21,7 @@ interface Product {
 interface Neighborhood {
   id: string;
   name: string;
+  delivery_fee?: number;
 }
 
 export default function Catalog() {
@@ -48,16 +57,23 @@ export default function Catalog() {
         setProducts(data.map(p => ({
           id: p.id,
           name: p.name,
+          sku: p.sku,
           type: p.sku,
-          price: p.price,
+          price: Number(p.price),
           desc: p.includes_cylinder ? 'Líquido + Casco Plástico.' : 'Debes entregar un envase vacío al motoboy.',
           includes_cylinder: p.includes_cylinder || false
         })));
       }
     });
 
-    supabase.from('neighborhoods').select('id, name').eq('is_active', true).then(({ data }) => {
-      if (data) setNeighborhoods(data);
+    supabase.from('neighborhoods').select('id, name, delivery_fee').eq('is_active', true).then(({ data }) => {
+      if (data) {
+        setNeighborhoods(data.map(n => ({
+          id: n.id,
+          name: n.name,
+          delivery_fee: Number(n.delivery_fee || 0)
+        })));
+      }
     });
     
     // Check URL for token (WhatsApp flow)
@@ -68,11 +84,44 @@ export default function Catalog() {
     }
   });
 
-  const total = createMemo(() => {
+  const subtotal = createMemo(() => {
     return Object.entries(cart()).reduce((acc, [id, qty]) => {
       const product = products().find(p => p.id === id);
       return acc + (product ? product.price * qty : 0);
     }, 0);
+  });
+
+  const comboDiscount = createMemo(() => {
+    const items: CartItemLike[] = Object.entries(cart()).map(([id, qty]) => {
+      const p = products().find(prod => prod.id === id);
+      return {
+        sku: p?.sku || '',
+        price: p?.price || 0,
+        quantity: qty,
+        includes_cylinder: p?.includes_cylinder
+      };
+    });
+    return calculateComboDiscount(items);
+  });
+
+  const deliveryFee = createMemo(() => {
+    const n = neighborhoods().find(item => item.id === neighborhoodId());
+    return n?.delivery_fee || 0;
+  });
+
+  const total = createMemo(() => {
+    return Math.max(0, subtotal() + deliveryFee() - comboDiscount());
+  });
+
+  const suggestedCashOptions = createMemo(() => {
+    const currentTotal = total();
+    if (currentTotal <= 0) return [];
+    const opt50 = Math.ceil(currentTotal / 50) * 50;
+    const opt100 = Math.ceil(currentTotal / 100) * 100;
+    const set = new Set<number>();
+    set.add(opt50 > currentTotal ? opt50 : opt50 + 50);
+    set.add(opt100 > currentTotal ? opt100 : opt100 + 100);
+    return Array.from(set).sort((a, b) => a - b);
   });
 
   const updateQty = (id: string, delta: number) => {
@@ -115,9 +164,15 @@ export default function Catalog() {
   };
 
   const handlePhoneCheck = async (checkPhone: string) => {
+    const normalized = normalizeWhatsAppPhone(checkPhone);
+    if (!normalized) {
+      setSubmitError('Por favor ingresa un número de teléfono válido.');
+      return;
+    }
+    setPhone(normalized);
     setIsSubmitting(true);
     setSubmitError(null);
-    const { data, error } = await supabase.rpc('check_customer_exists', { p_phone: checkPhone });
+    const { data, error } = await supabase.rpc('check_customer_exists', { p_phone: normalized });
     setIsSubmitting(false);
     
     if (error) {
@@ -166,10 +221,11 @@ export default function Catalog() {
       setSubmitError('Completa todos los campos');
       return;
     }
+    const normalized = normalizeWhatsAppPhone(phone());
     setIsSubmitting(true);
     setSubmitError(null);
     const { error } = await supabase.rpc('register_b2c_customer', {
-      p_phone: phone(),
+      p_phone: normalized,
       p_name: name(),
       p_neighborhood_id: neighborhoodId(),
       p_address_line: address()
@@ -195,6 +251,15 @@ export default function Catalog() {
       return;
     }
 
+    if (paymentMethod() === 'cash' && changeFor() !== null) {
+      const validation = validateCashChange(total(), changeFor());
+      if (!validation.isValid) {
+        setSubmitError(validation.error || 'El monto para el cambio no puede ser menor al total.');
+        return;
+      }
+    }
+
+    const normalized = normalizeWhatsAppPhone(phone());
     setIsSubmitting(true);
 
     const p_items = Object.entries(cart()).map(([id, qty]) => ({
@@ -203,7 +268,7 @@ export default function Catalog() {
     }));
 
     const { error } = await supabase.rpc('create_b2c_order', {
-      p_phone: phone(),
+      p_phone: normalized,
       p_address_line: address(),
       p_items,
       p_payment_method: paymentMethod(),
@@ -312,7 +377,11 @@ export default function Catalog() {
               >
                 <option value="" disabled>Selecciona tu barrio...</option>
                 <For each={neighborhoods()}>
-                  {(n) => <option value={n.id}>{n.name}</option>}
+                  {(n) => (
+                    <option value={n.id}>
+                      {n.name} {n.delivery_fee ? `(+ ${formatBRL(n.delivery_fee)})` : '(Entrega gratis)'}
+                    </option>
+                  )}
                 </For>
               </select>
             </div>
@@ -387,7 +456,7 @@ export default function Catalog() {
                       </span>
                     </Show>
                     <p class="text-xs text-gray-500 mt-1 leading-tight">{product.desc}</p>
-                    <p class="text-primary font-semibold mt-1.5 text-lg">R$ {product.price.toFixed(2)}</p>
+                    <p class="text-primary font-semibold mt-1.5 text-lg">{formatBRL(product.price)}</p>
                   </div>
                   <div class="flex items-center space-x-3 bg-surface p-1 rounded-full border border-gray-100">
                     <button 
@@ -410,20 +479,34 @@ export default function Catalog() {
           </div>
 
           <form onSubmit={handleSubmitOrder} class="mt-8 space-y-6 bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-            {/* ----------------- CROSS-SELLING ----------------- */}
-            <Show when={products().find(p => p.type === 'agua_20L' && !cart()[p.id])}>
+            {/* ----------------- CROSS-SELLING (Water) ----------------- */}
+            <Show when={products().find(p => (p.sku.toLowerCase().includes('water') || p.sku.toLowerCase().includes('agua')) && !cart()[p.id])}>
               {() => {
-                const waterProduct = products().find(p => p.type === 'agua_20L')!;
+                const waterProduct = products().find(p => (p.sku.toLowerCase().includes('water') || p.sku.toLowerCase().includes('agua')) && !cart()[p.id])!;
+                const hasGas = Object.entries(cart()).some(([id, qty]) => {
+                  const prod = products().find(p => p.id === id);
+                  return prod && (prod.sku.toLowerCase().includes('p13') || prod.sku.toLowerCase().includes('gas')) && qty > 0;
+                });
                 return (
-                  <div class="bg-blue-50/50 border border-blue-100 p-4 rounded-xl mb-4 flex items-center justify-between">
+                  <div class="bg-blue-50/70 border border-blue-200 p-4 rounded-xl mb-4 flex items-center justify-between shadow-sm">
                     <div>
-                      <h4 class="font-bold text-gray-800 text-sm">¿Deseas agregar algo más?</h4>
-                      <p class="text-xs text-gray-600 mt-0.5">Lleva un Botellón de Agua 20L por R$ {waterProduct.price.toFixed(2)}</p>
+                      <div class="flex items-center gap-1.5">
+                        <span class="text-base">💧</span>
+                        <h4 class="font-bold text-gray-800 text-sm">¿Deseas agregar agua mineral?</h4>
+                      </div>
+                      <p class="text-xs text-gray-600 mt-0.5">
+                        {waterProduct.name} por solo {formatBRL(waterProduct.price)}
+                      </p>
+                      <Show when={hasGas}>
+                        <span class="inline-block mt-1 text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                          🎉 ¡Ahorra R$ 5,00 con el Combo Gás + Água!
+                        </span>
+                      </Show>
                     </div>
                     <button
                       type="button"
                       onClick={() => updateQty(waterProduct.id, 1)}
-                      class="px-4 py-2 bg-white border border-blue-200 text-blue-700 font-bold text-sm rounded-lg hover:bg-blue-50 transition-colors shadow-sm"
+                      class="px-4 py-2 bg-secondary text-white font-bold text-sm rounded-lg hover:bg-blue-700 transition-colors shadow-sm active:scale-95"
                     >
                       + Agregar
                     </button>
@@ -448,7 +531,31 @@ export default function Catalog() {
               </div>
             </div>
 
-            <h3 class="font-bold text-gray-800 border-b pb-2 mt-6">Pago (Total: R$ {total().toFixed(2)})</h3>
+            {/* Resumen Financiero con Descuento de Combo */}
+            <div class="bg-gray-50 p-4 rounded-xl space-y-2 border border-gray-100">
+              <div class="flex justify-between text-sm text-gray-600">
+                <span>Subtotal productos:</span>
+                <span>{formatBRL(subtotal())}</span>
+              </div>
+              <Show when={comboDiscount() > 0}>
+                <div class="flex justify-between text-sm font-bold text-emerald-700 bg-emerald-100/70 px-2.5 py-1 rounded-lg">
+                  <span>🔥 Descuento Combo (Gás + Água):</span>
+                  <span>-{formatBRL(comboDiscount())}</span>
+                </div>
+              </Show>
+              <Show when={deliveryFee() > 0}>
+                <div class="flex justify-between text-sm text-gray-600">
+                  <span>Tasa de Entrega:</span>
+                  <span>{formatBRL(deliveryFee())}</span>
+                </div>
+              </Show>
+              <div class="flex justify-between text-base font-extrabold text-gray-900 border-t border-gray-200 pt-2">
+                <span>Total a Pagar:</span>
+                <span class="text-primary text-xl font-black">{formatBRL(total())}</span>
+              </div>
+            </div>
+
+            <h3 class="font-bold text-gray-800 border-b pb-2 mt-6">Forma de Pago</h3>
             
             <div class="space-y-3">
               <label class="flex items-center p-3 border rounded-xl cursor-pointer hover:bg-gray-50 transition-colors" classList={{'border-primary bg-orange-50/30': paymentMethod() === 'cash'}}>
@@ -465,12 +572,15 @@ export default function Catalog() {
               <div class="bg-surface p-4 rounded-xl border border-gray-100 mt-3">
                 <label class="block text-sm font-medium text-gray-700 mb-2">¿Necesitas vuelto (Troco)?</label>
                 <select 
-                  class="w-full border-gray-300 rounded-lg shadow-sm focus:border-primary focus:ring-primary py-2 px-3 border outline-none"
+                  class="w-full border-gray-300 rounded-lg shadow-sm focus:border-primary focus:ring-primary py-2 px-3 border outline-none bg-white"
                   onChange={(e) => setChangeFor(e.currentTarget.value ? Number(e.currentTarget.value) : null)}
                 >
-                  <option value="">No, pagaré el monto exacto</option>
-                  <option value={Math.ceil(total() / 50) * 50}>Troco para R$ {Math.ceil(total() / 50) * 50}</option>
-                  <option value={Math.ceil(total() / 100) * 100}>Troco para R$ {Math.ceil(total() / 100) * 100}</option>
+                  <option value="">No, pagaré el monto exacto ({formatBRL(total())})</option>
+                  <For each={suggestedCashOptions()}>
+                    {(opt) => (
+                      <option value={opt}>Troco para {formatBRL(opt)} (Vuelto: {formatBRL(opt - total())})</option>
+                    )}
+                  </For>
                 </select>
               </div>
             </Show>
@@ -480,7 +590,7 @@ export default function Catalog() {
               disabled={total() === 0 || isSubmitting()}
               class="w-full py-4 px-6 border border-transparent rounded-xl shadow-sm text-lg font-bold text-white bg-primary hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all transform active:scale-[0.98]"
             >
-              {isSubmitting() ? 'Procesando...' : `PEDIR AHORA (R$ ${total().toFixed(2)})`}
+              {isSubmitting() ? 'Procesando...' : `PEDIR AHORA (${formatBRL(total())})`}
             </button>
           </form>
         </Show>
