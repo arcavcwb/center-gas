@@ -17,38 +17,38 @@ export function OrderCard({ order, onUpdateStatus, onCancelRequest, drivers = []
   return (
     <div className="bg-white p-5 rounded-xl shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 border border-slate-200 hover:border-slate-300 flex flex-col gap-4 group">
       <div className="flex justify-between items-start">
-        <div>
+        <div className="min-w-0 flex-1 mr-3">
           <div className="flex items-center gap-2">
             <span className="font-bold text-slate-800 tracking-tight">#{order.display_id}</span>
             {order.is_scheduled && (
-              <span className="px-2 py-0.5 text-[9px] font-bold tracking-wider bg-purple-100 text-purple-800 border border-purple-200 rounded-full flex items-center gap-1 shadow-xs">
+              <span className="px-2 py-0.5 text-xs font-bold tracking-wider bg-purple-100 text-purple-800 border border-purple-200 rounded-full flex items-center gap-1 shadow-xs">
                 🌙 Agendado (08:30)
               </span>
             )}
             {order.status === 'nuevo' && (
-              <span className="px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-red-50 text-red-700 border border-red-200 rounded-full animate-pulse motion-reduce:animate-none">🔥 Reciente</span>
+              <span className="px-2 py-0.5 text-xs font-bold uppercase tracking-wider bg-red-50 text-red-700 border border-red-200 rounded-full animate-pulse motion-reduce:animate-none">🔥 Reciente</span>
             )}
           </div>
-          <p className="text-sm font-semibold text-slate-700 mt-1">{order.customer?.name || order.customer_id}</p>
-          <p className="text-xs text-slate-500 mt-0.5">{order.customer?.address_line || 'Sin dirección'}</p>
+          <p className="text-sm font-semibold text-slate-700 mt-1 truncate">{order.customer?.name || order.customer_id}</p>
+          <p className="text-xs text-slate-500 mt-0.5 line-clamp-2 break-words">{order.customer?.address_line || 'Sin dirección'}</p>
           
           {order.customer && (
             <div className="flex flex-wrap gap-2 mt-3">
               {(order.customer.available_free_cylinders ?? 0) > 0 ? (
-                <span className="text-[11px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm bg-indigo-50 text-indigo-700 ring-1 ring-inset ring-indigo-700/10">
+                <span className="text-xs font-bold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm bg-indigo-50 text-indigo-700 ring-1 ring-inset ring-indigo-700/10">
                   🎁 ¡Tiene Botellón Gratis!
                 </span>
               ) : (
-                <span className="text-[11px] font-medium px-2.5 py-1 rounded-full flex items-center gap-1 bg-slate-50 text-slate-600 ring-1 ring-inset ring-slate-500/10">
+                <span className="text-xs font-medium px-2.5 py-1 rounded-full flex items-center gap-1 bg-slate-50 text-slate-600 ring-1 ring-inset ring-slate-500/10">
                   ⭐️ {order.customer.loyalty_points || 0}/8 Puntos
                 </span>
               )}
             </div>
           )}
         </div>
-        <div className="text-right flex flex-col items-end">
+        <div className="text-right flex flex-col items-end shrink-0">
           <span className="font-bold text-brand-orange text-lg tracking-tight">R$ {order.total_amount.toFixed(2)}</span>
-          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider bg-slate-100 px-2 py-0.5 rounded mt-1">{order.payment_method}</span>
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider bg-slate-100 px-2 py-0.5 rounded mt-1">{order.payment_method}</span>
         </div>
       </div>
       
