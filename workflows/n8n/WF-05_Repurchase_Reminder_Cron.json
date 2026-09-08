@@ -1,0 +1,285 @@
+{
+  "name": "WF-05: Recordatorio Proactivo de Recompra (45+ dias)",
+  "nodes": [
+    {
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "mode": "everyDay",
+              "hour": 10,
+              "minute": 0
+            }
+          ]
+        }
+      },
+      "id": "cron-daily-10am",
+      "name": "Cron Diario (10:00 AM)",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [ 200, 300 ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/rpc/get_inactive_customers_for_repurchase_reminder",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $env.SUPABASE_SERVICE_ROLE_KEY }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.SUPABASE_SERVICE_ROLE_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "p_days_inactive",
+              "value": 45
+            },
+            {
+              "name": "p_limit",
+              "value": 50
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "http-get-inactive-customers",
+      "name": "Obtener Clientes Inactivos (45d+)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [ 420, 300 ]
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "split-customers",
+      "name": "Procesar 1 a 1",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [ 640, 300 ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/rpc/generate_catalog_session",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $env.SUPABASE_SERVICE_ROLE_KEY }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.SUPABASE_SERVICE_ROLE_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "p_phone",
+              "value": "={{ $json.customer_phone }}"
+            },
+            {
+              "name": "p_rate_limit_minutes",
+              "value": 0
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "http-generate-catalog-token",
+      "name": "Generar Token de Catálogo",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [ 860, 300 ]
+    },
+    {
+      "parameters": {
+        "amount": "={{ Math.floor(Math.random() * 6) + 5 }}",
+        "unit": "seconds"
+      },
+      "id": "wait-anti-ban-delay",
+      "name": "Delay Anti-Ban (5-10s)",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [ 1080, 300 ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.EVOLUTION_API_URL }}/message/sendText/{{ $env.EVOLUTION_INSTANCE_NAME }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $env.EVOLUTION_API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "={{ $('Procesar 1 a 1').item.json.customer_phone }}"
+            },
+            {
+              "name": "text",
+              "value": "=Olá, {{ $('Procesar 1 a 1').item.json.customer_name }}! 👋\n\nNotamos que já faz cerca de {{ $('Procesar 1 a 1').item.json.days_since_last_order }} dias desde sua última entrega com a Center Gás.\n\nO seu botijão ou água mineral já está acabando? Garanta o seu refil com entrega rápida pelo link direto:\n🔗 {{ $env.CATALOG_DOMAIN }}/{{ $('Generar Token de Catálogo').item.json.token }}\n\n(Caso não deseje mais receber lembretes de reposição, responda SAIR a qualquer momento)"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "http-send-whatsapp-reminder",
+      "name": "Enviar WhatsApp de Reposicion",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [ 1300, 300 ],
+      "retryOnFail": true,
+      "maxTries": 3
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/rpc/record_repurchase_reminder_sent",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $env.SUPABASE_SERVICE_ROLE_KEY }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.SUPABASE_SERVICE_ROLE_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "p_customer_id",
+              "value": "={{ $('Procesar 1 a 1').item.json.customer_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "http-record-reminder-sent",
+      "name": "Registrar Envio en DB",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [ 1520, 300 ]
+    }
+  ],
+  "connections": {
+    "Cron Diario (10:00 AM)": {
+      "main": [
+        [
+          {
+            "node": "Obtener Clientes Inactivos (45d+)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener Clientes Inactivos (45d+)": {
+      "main": [
+        [
+          {
+            "node": "Procesar 1 a 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Procesar 1 a 1": {
+      "main": [
+        [
+          {
+            "node": "Generar Token de Catálogo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generar Token de Catálogo": {
+      "main": [
+        [
+          {
+            "node": "Delay Anti-Ban (5-10s)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delay Anti-Ban (5-10s)": {
+      "main": [
+        [
+          {
+            "node": "Enviar WhatsApp de Reposicion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar WhatsApp de Reposicion": {
+      "main": [
+        [
+          {
+            "node": "Registrar Envio en DB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar Envio en DB": {
+      "main": [
+        [
+          {
+            "node": "Procesar 1 a 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
