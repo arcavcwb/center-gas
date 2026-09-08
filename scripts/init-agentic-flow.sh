@@ -122,16 +122,17 @@ run_doctor() {
 
   # 4. Verificar Skills esenciales
   local skills_found=0
-  for sk in impeccable caveman ponytail; do
+  local all_skills=(impeccable caveman ponytail contract-first-api vite-modernizer web-vitals-heavy-media pnpm-monorepo-architect playwright-e2e-suite)
+  for sk in "${all_skills[@]}"; do
     if [[ -d "$TARGET_DIR/.agents/skills/$sk" ]]; then
       skills_found=$((skills_found + 1))
     fi
   done
 
-  if [[ $skills_found -eq 3 ]]; then
-    echo -e "  ${GREEN}✓${NC} Skills maestras presentes: Impeccable, Caveman, Ponytail"
+  if [[ $skills_found -eq ${#all_skills[@]} ]]; then
+    echo -e "  ${GREEN}✓${NC} Todas las skills maestras presentes (${skills_found}/${#all_skills[@]})"
   else
-    echo -e "  ${YELLOW}⚠${NC} Faltan skills maestras en .agents/skills/ (${skills_found}/3 encontradas)"
+    echo -e "  ${YELLOW}⚠${NC} Faltan skills maestras en .agents/skills/ (${skills_found}/${#all_skills[@]} encontradas)"
     issues=$((issues + 1))
   fi
 
@@ -213,10 +214,8 @@ cp "${SRC_TEMPLATE}/AGENTS.md" "$TARGET_DIR/AGENTS.md"
 cp "${SRC_TEMPLATE}/task-template.md" "$TARGET_DIR/task.md"
 
 # 4. Copiar core skills
-echo -e "  ${CYAN}•${NC} Instalando skills maestras (Impeccable, Caveman, Ponytail)..."
-cp -r "${TEMPLATES_DIR}/core-skills/impeccable" "$TARGET_DIR/.agents/skills/"
-cp -r "${TEMPLATES_DIR}/core-skills/caveman" "$TARGET_DIR/.agents/skills/"
-cp -r "${TEMPLATES_DIR}/core-skills/ponytail" "$TARGET_DIR/.agents/skills/"
+echo -e "  ${CYAN}•${NC} Instalando skills maestras (Impeccable, Caveman, Ponytail, Contracts, Vite, Web Vitals, Monorepo, Playwright)..."
+cp -r "${TEMPLATES_DIR}/core-skills/"* "$TARGET_DIR/.agents/skills/"
 
 # 5. Generar .env.example y .env inicial
 echo -e "  ${CYAN}•${NC} Configurando variables de entorno (.env.example)..."
