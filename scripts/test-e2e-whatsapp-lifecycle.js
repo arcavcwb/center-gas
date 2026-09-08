@@ -127,9 +127,32 @@ async function main() {
     }
 
     const catalogSession = sessions[0];
-    console.log(`   ✅ Token de Catálogo Generado en Supabase: ${catalogSession.token}`);
+    if (!catalogSession.token || catalogSession.token.length !== 6 || !/^[a-zA-Z0-9]{6}$/.test(catalogSession.token)) {
+      throw new Error(`Token inválido generado en Supabase: "${catalogSession.token}". Se esperaba token Base62 de exactamente 6 caracteres.`);
+    }
+
+    const shortLink = `center-gas-site.vercel.app/${catalogSession.token}`;
+    console.log(`   ✅ Token Compacto Generado en Supabase (6 chars Base62): ${catalogSession.token}`);
     console.log(`      Expiración: ${catalogSession.expires_at}`);
-    console.log(`      Link entregado al cliente: https://center-gas-site.vercel.app/?token=${catalogSession.token}`);
+    console.log(`      Link Auto-Link WhatsApp (33 chars): ${shortLink}`);
+
+    // 1.4 Simular apertura del enlace por el cliente y validar Click Tracking (used_at)
+    console.log('   🖱️  Simulando apertura del enlace por el cliente en el navegador móvil...');
+    const { data: resolveData, error: resolveErr } = await adminSupabase.rpc('resolve_catalog_session', { p_token: catalogSession.token });
+    if (resolveErr || !resolveData?.valid) {
+      throw new Error(`Fallo al resolver sesión con token corto "${catalogSession.token}": ${resolveErr?.message || resolveData?.message}`);
+    }
+
+    const { data: updatedSessions } = await adminSupabase
+      .from('catalog_sessions')
+      .select('used_at')
+      .eq('token', catalogSession.token)
+      .limit(1);
+
+    if (!updatedSessions?.[0]?.used_at) {
+      throw new Error(`Click Tracking falló: used_at no fue actualizado en catalog_sessions para el token ${catalogSession.token}`);
+    }
+    console.log(`   ✅ Click Tracking Validado en Supabase: used_at = ${updatedSessions[0].used_at}`);
 
     // -------------------------------------------------------------
     // FASE 2: FLUJO DE COMPRA (CHECKOUT B2C CON COMBO BR-001)

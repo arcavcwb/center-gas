@@ -1,4 +1,19 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": "astro"
+  "framework": "astro",
+  "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/driver",
+      "destination": "/driver"
+    },
+    {
+      "source": "/driver/:match*",
+      "destination": "/driver/:match*"
+    },
+    {
+      "source": "/:token([a-zA-Z0-9]{6,64})",
+      "destination": "/index.html"
+    }
+  ]
 }

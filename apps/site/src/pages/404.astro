@@ -1,0 +1,44 @@
+---
+import Catalog from '../components/Catalog';
+import '../styles/global.css';
+---
+
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <title>Center Gás Curitiba - Gás P13 e Água Mineral no Pinheirinho</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  </head>
+  <body class="bg-slate-50 text-slate-900 font-sans antialiased min-h-screen">
+    <header class="bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 py-3 shadow-xs flex justify-between items-center sticky top-0 z-50">
+      <div class="flex items-center gap-2.5">
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-4 ring-emerald-100 inline-block" title="Aberto agora"></span>
+        <div>
+          <div class="flex items-center gap-1.5">
+            <span class="font-black text-lg tracking-tight text-slate-900">CENTER</span>
+            <span class="font-black text-lg tracking-tight text-primary">GÁS</span>
+          </div>
+          <p class="text-xs text-slate-500 font-medium -mt-1">Pinheirinho • Curitiba - PR</p>
+        </div>
+      </div>
+      <a 
+        href="https://wa.me/5541999999999?text=Ol%C3%A1%2C%20gostaria%20de%20fazer%20um%20pedido%20na%20Center%20G%C3%A1s" 
+        target="_blank"
+        rel="noopener noreferrer"
+        class="text-xs font-bold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 px-3.5 py-1.5 rounded-full transition-colors flex items-center gap-1.5 shadow-xs"
+        aria-label="Falar no WhatsApp"
+      >
+        <span class="text-sm">💬</span>
+        <span>WhatsApp</span>
+      </a>
+    </header>
+
+    <main class="max-w-md mx-auto p-4 pb-28">
+      <!-- Isla Interactiva de SolidJS: resuelve tokens de cualquier ruta o muestra fallback de teléfono -->
+      <Catalog client:load />
+    </main>
+  </body>
+</html>

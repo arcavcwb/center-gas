@@ -31,7 +31,10 @@ interface Neighborhood {
 
 export default function Catalog() {
   const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-  const hasTokenFromUrl = !!urlParams?.get('token');
+  const pathToken = typeof window !== 'undefined' ? window.location.pathname.replace(/^\/+/, '').split('/')[0] : '';
+  const isPathToken = /^[a-zA-Z0-9]{6,64}$/.test(pathToken) && pathToken !== 'driver';
+  const activeToken = isPathToken ? pathToken : (urlParams?.get('token') || null);
+  const hasTokenFromUrl = !!activeToken;
   
   // Idioma inicial (Português PT-BR por defecto, o persistido)
   const getInitialLang = (): SupportedLang => {
@@ -136,11 +139,10 @@ export default function Catalog() {
       }
     });
     
-    // Check URL for token (WhatsApp flow)
-    const urlToken = urlParams?.get('token');
-    if (urlToken && (step() === 'phone' || step() === 'loading')) {
-      setToken(urlToken);
-      handleTokenCheck(urlToken);
+    // Check URL for token (WhatsApp flow: /xxxxxx or ?token=...)
+    if (activeToken && (step() === 'phone' || step() === 'loading')) {
+      setToken(activeToken);
+      handleTokenCheck(activeToken);
     }
   });
 
@@ -210,6 +212,14 @@ export default function Catalog() {
       return;
     }
     
+    // Limpieza silenciosa de URL (URL Stripping): oculta token y limpia barra de direcciones
+    if (typeof window !== 'undefined' && (isPathToken || urlParams?.has('token'))) {
+      const cleanUrl = new URL(window.location.href);
+      cleanUrl.pathname = '/';
+      cleanUrl.searchParams.delete('token');
+      window.history.replaceState({}, '', cleanUrl.toString());
+    }
+
     if (data && data.valid) {
       setPhone(data.phone || '');
       if (data.exists) {
