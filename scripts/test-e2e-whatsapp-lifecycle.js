@@ -154,6 +154,20 @@ async function main() {
     }
     console.log(`   ✅ Click Tracking Validado en Supabase: used_at = ${updatedSessions[0].used_at}`);
 
+    // 1.5 Validar Resiliencia e Idempotencia (ISSUE-810): Cliente re-escribe dentro de la ventana de 10 min
+    console.log('   🔄 [ISSUE-810] Validando re-escritura en ventana de rate limit (Reenvío de Enlace Activo)...');
+    const { data: resilientData, error: resilientErr } = await adminSupabase.rpc('generate_catalog_session', {
+      p_phone: TEST_PHONE,
+      p_rate_limit_minutes: 10
+    });
+    if (resilientErr || !resilientData?.token) {
+      throw new Error(`Fallo en resiliencia de generate_catalog_session: ${resilientErr?.message || JSON.stringify(resilientData)}`);
+    }
+    if (resilientData.token !== catalogSession.token || resilientData.reused !== true) {
+      throw new Error(`Se esperaba reutilización del token "${catalogSession.token}", pero se recibió: ${JSON.stringify(resilientData)}`);
+    }
+    console.log(`   ✅ Resiliencia Validada (ISSUE-810): Token reenviado idéntico "${resilientData.token}" con reused = true.`);
+
     // -------------------------------------------------------------
     // FASE 2: FLUJO DE COMPRA (CHECKOUT B2C CON COMBO BR-001)
     // -------------------------------------------------------------
