@@ -23,6 +23,7 @@ export const OrderSchema = z.object({
   cash_change_for: z.number().nullable().optional(),
   cylinder_returned: z.boolean().nullable().optional(),
   discount_applied: z.number().nullable().optional(),
+  delivery_fee: z.number().nullable().optional(),
   total_amount: z.number(),
   is_scheduled: z.boolean().default(false),
   scheduled_for: z.string().nullable().optional(),

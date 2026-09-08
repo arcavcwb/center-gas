@@ -1,12 +1,21 @@
 ---
 import Catalog from '../components/Catalog';
 import '../styles/global.css';
+
+// Horário comercial Pinheirinho (Curitiba): Seg-Sáb 08h-20h, Dom 08h-14h
+const now = new Date();
+const curitibaDate = new Date(now.toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
+const curitibaHour = curitibaDate.getHours();
+const curitibaDay = curitibaDate.getDay(); // 0: Dom, 1: Seg, ..., 6: Sab
+
+const isOpen = (curitibaDay >= 1 && curitibaDay <= 6 && curitibaHour >= 8 && curitibaHour < 20) ||
+               (curitibaDay === 0 && curitibaHour >= 8 && curitibaHour < 14);
 ---
 
 <html lang="pt-BR">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Center Gás Curitiba - Gás P13 e Água Mineral no Pinheirinho</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -15,13 +24,18 @@ import '../styles/global.css';
   <body class="bg-slate-50 text-slate-900 font-sans antialiased min-h-screen">
     <header class="bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 py-3 shadow-xs flex justify-between items-center sticky top-0 z-50">
       <div class="flex items-center gap-2.5">
-        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-4 ring-emerald-100 inline-block" title="Aberto agora"></span>
+        <span 
+          class={`w-2.5 h-2.5 rounded-full inline-block ${isOpen ? 'bg-emerald-500 ring-4 ring-emerald-100' : 'bg-amber-500 ring-4 ring-amber-100'}`} 
+          title={isOpen ? "Aberto agora (Entregas rápidas)" : "Fora do horário comercial (Entrega agendada)"}
+        ></span>
         <div>
           <div class="flex items-center gap-1.5">
             <span class="font-black text-lg tracking-tight text-slate-900">CENTER</span>
             <span class="font-black text-lg tracking-tight text-primary">GÁS</span>
           </div>
-          <p class="text-xs text-slate-500 font-medium -mt-1">Pinheirinho • Curitiba - PR</p>
+          <p class="text-xs text-slate-500 font-medium -mt-1">
+            Pinheirinho • {isOpen ? 'Aberto agora' : 'Entrega agendada'}
+          </p>
         </div>
       </div>
       <a 

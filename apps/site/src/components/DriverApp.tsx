@@ -1,7 +1,6 @@
 import { createSignal, createEffect, onCleanup, Show } from 'solid-js';
 import { supabase } from '../lib/supabase';
-
-const PENALTY_FEE = 200.00; // Taxa de vasilhame caso o cliente não entregue o botijão vazio (BR-002)
+import { formatBRL } from '@center-gas/contracts';
 
 // Ícones SVG consistentes (Design System Impeccable - sem emojis)
 function IconMotorcycle(props: { class?: string }) {
@@ -188,7 +187,7 @@ export default function DriverApp() {
         cash_change_for,
         total_amount,
         customer:customer_id ( name, address_line, phone ),
-        items:order_items ( quantity, product:product_id ( name ) )
+        items:order_items ( quantity, product:product_id ( name, sku, price, includes_cylinder ) )
       `)
       .eq('driver_id', driverId)
       .in('status', ['asignado', 'en_camino'])
@@ -227,9 +226,29 @@ export default function DriverApp() {
     setSession(null);
   };
 
+  // Cálculo dinámico de penalidad de casco según el producto (ISSUE-817)
+  const penaltyFee = () => {
+    if (!order() || !order().items) return 0;
+    return (order().items as any[]).reduce((acc: number, item: any) => {
+      const prod = item.product;
+      if (!prod) return acc;
+      // Si el producto ya incluía el casco, el cliente ya pagó el vasilhame
+      if (prod.includes_cylinder) return acc;
+
+      const sku = (prod.sku || prod.name || '').toLowerCase();
+      const qty = Number(item.quantity) || 1;
+
+      if (sku.includes('water') || sku.includes('agua') || sku.includes('água')) {
+        return acc + (qty * 20.00); // Diferencia vasilhame galão 20L (R$ 35 - R$ 15)
+      } else {
+        return acc + (qty * 170.00); // Diferencia botijão GLP 13kg (R$ 280 - R$ 110)
+      }
+    }, 0);
+  };
+
   const finalTotal = () => {
     if (!order()) return 0;
-    return Number(order().total_amount) + (cylinderReceived() === false ? PENALTY_FEE : 0);
+    return Number(order().total_amount) + (cylinderReceived() === false ? penaltyFee() : 0);
   };
 
   const changeFor = () => {
@@ -434,7 +453,7 @@ export default function DriverApp() {
                 'bg-emerald-100 text-emerald-800': lastCylinderReceived() === true,
                 'bg-amber-100 text-amber-900': lastCylinderReceived() === false
               }}>
-                {lastCylinderReceived() === true ? 'Botijão vazio recolhido' : 'Vasilhame cobrado (+R$ 200,00)'}
+                {lastCylinderReceived() === true ? 'Vasilhame vazio recolhido' : 'Taxa de vasilhame incluída'}
               </span>
             </div>
 
@@ -681,7 +700,7 @@ export default function DriverApp() {
                       </div>
                       <div>
                         <span class="block leading-tight">Não entregou o vazio</span>
-                        <span class="text-xs font-semibold text-rose-700">Adicionar taxa de casco: R$ {PENALTY_FEE.toFixed(2)}</span>
+                        <span class="text-xs font-semibold text-rose-700">Adicionar taxa de casco: R$ {penaltyFee().toFixed(2)}</span>
                       </div>
                     </div>
                   </button>
@@ -691,12 +710,12 @@ export default function DriverApp() {
                 <Show when={cylinderReceived() === false}>
                   <div class="bg-rose-50 p-4 rounded-xl border border-rose-200 mb-5">
                     <div class="flex justify-between items-center text-xs font-semibold text-rose-800">
-                      <span>Valor do Gás:</span>
+                      <span>Valor do Pedido:</span>
                       <span>R$ {Number(order().total_amount).toFixed(2)}</span>
                     </div>
                     <div class="flex justify-between items-center text-xs font-semibold text-rose-800 mt-1">
-                      <span>+ Taxa Vasilhame (BR-002):</span>
-                      <span>R$ {PENALTY_FEE.toFixed(2)}</span>
+                      <span>+ Taxa Vasilhame:</span>
+                      <span>R$ {penaltyFee().toFixed(2)}</span>
                     </div>
                     <div class="flex justify-between items-center pt-2 mt-2 border-t border-rose-200">
                       <span class="text-xs font-black uppercase text-rose-950">Novo Total a Cobrar:</span>

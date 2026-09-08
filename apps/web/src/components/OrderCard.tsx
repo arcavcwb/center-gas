@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { XCircle, CheckCircle2, Clock, AlertCircle, Flame, Calendar, MessageSquare, MapPin, Truck } from 'lucide-react';
+import { XCircle, CheckCircle2, Clock, AlertCircle, Flame, Calendar, MessageSquare, MapPin, Truck, Gift, Star } from 'lucide-react';
 import type { Order } from '@center-gas/contracts';
 
 interface OrderCardProps {
@@ -119,11 +119,13 @@ export function OrderCard({ order, onUpdateStatus, onCancelRequest, drivers = []
         {order.customer && (
           (order.customer.available_free_cylinders ?? 0) > 0 ? (
             <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
-              🎁 Tem Botijão Grátis!
+              <Gift size={13} className="text-indigo-600 shrink-0" />
+              <span>Tem Botijão Grátis!</span>
             </span>
           ) : (
             <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
-              ⭐️ {order.customer.loyalty_points || 0}/8 Pontos
+              <Star size={13} className="text-amber-500 fill-amber-400 shrink-0" />
+              <span>{order.customer.loyalty_points || 0}/8 Pontos</span>
             </span>
           )
         )}
@@ -154,7 +156,7 @@ export function OrderCard({ order, onUpdateStatus, onCancelRequest, drivers = []
               defaultValue=""
               className="w-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 py-2.5 px-3 rounded-xl font-bold text-xs outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all cursor-pointer appearance-none"
             >
-              <option value="" disabled>🛵 Despachar para Motoboy...</option>
+              <option value="" disabled>Despachar para entregador...</option>
               {drivers.length > 0 ? (
                 drivers.map((d) => (
                   <option key={d.id} value={d.id}>
@@ -162,7 +164,7 @@ export function OrderCard({ order, onUpdateStatus, onCancelRequest, drivers = []
                   </option>
                 ))
               ) : (
-                <option value="40516925-d458-4fea-926e-1f942b51681b">Carlos (Motoboy)</option>
+                <option value="" disabled>Nenhum entregador disponível</option>
               )}
             </select>
           </div>
