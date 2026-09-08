@@ -37,10 +37,10 @@ describe('i18n Localization & Pinheirinho Consistency', () => {
 
   it('should correctly interpolate params with helper t()', () => {
     const ptGreeting = t('welcomeBack', 'pt', { name: 'Carlos' });
-    expect(ptGreeting).toBe('Olá, Carlos! 👋');
+    expect(ptGreeting).toBe('Olá, Carlos!');
 
     const esGreeting = t('welcomeBack', 'es', { name: 'Maria' });
-    expect(esGreeting).toBe('¡Hola, Maria! 👋');
+    expect(esGreeting).toBe('¡Hola, Maria!');
 
     const trocoOpt = t('trocoOption', 'pt', { amount: 'R$ 150,00', change: 'R$ 30,00' });
     expect(trocoOpt).toBe('Troco para R$ 150,00 (Volta: R$ 30,00)');

@@ -59,7 +59,8 @@ export default function Catalog() {
     }
   };
 
-  const [step, setStep] = createSignal<'loading' | 'phone' | 'register' | 'catalog'>(hasTokenFromUrl ? 'loading' : 'phone');
+  const savedPhone = typeof window !== 'undefined' ? localStorage.getItem('center_gas_customer_phone') : null;
+  const [step, setStep] = createSignal<'loading' | 'phone' | 'register' | 'catalog'>((hasTokenFromUrl || savedPhone) ? 'loading' : 'phone');
   const [customerName, setCustomerName] = createSignal('');
   
   const [products, setProducts] = createSignal<Product[]>([]);
@@ -144,6 +145,8 @@ export default function Catalog() {
     if (activeToken && (step() === 'phone' || step() === 'loading')) {
       setToken(activeToken);
       handleTokenCheck(activeToken);
+    } else if (!hasTokenFromUrl && savedPhone && step() === 'loading') {
+      handleSavedCustomerCheck(savedPhone);
     }
   });
 
@@ -201,6 +204,38 @@ export default function Catalog() {
     });
   };
 
+  const handleSavedCustomerCheck = async (saved: string) => {
+    setIsSubmitting(true);
+    setSubmitError(null);
+    const { data, error } = await supabase.rpc('check_customer_exists', { p_phone: saved });
+    setIsSubmitting(false);
+
+    if (!error && data && data.exists) {
+      setPhone(data.phone || saved);
+      setCustomerName(data.name || '');
+      setAddress(data.address_line || '');
+      setNeighborhoodId(data.neighborhood_id || '');
+      setStep('catalog');
+    } else {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('center_gas_customer_phone');
+      }
+      setStep('phone');
+    }
+  };
+
+  const handleResetCustomer = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('center_gas_customer_phone');
+    }
+    setPhone('');
+    setName('');
+    setCustomerName('');
+    setAddress('');
+    setCart({});
+    setStep('phone');
+  };
+
   const handleTokenCheck = async (checkToken: string) => {
     setIsSubmitting(true);
     setSubmitError(null);
@@ -227,6 +262,9 @@ export default function Catalog() {
         setCustomerName(data.name || '');
         setAddress(data.address_line || '');
         setNeighborhoodId(data.neighborhood_id || '');
+        if (typeof window !== 'undefined' && data.phone) {
+          localStorage.setItem('center_gas_customer_phone', data.phone);
+        }
         setStep('catalog');
       } else {
         setStep('register');
@@ -255,9 +293,13 @@ export default function Catalog() {
     }
     
     if (data && data.exists) {
+      setPhone(data.phone || normalized);
       setCustomerName(data.name || '');
       setAddress(data.address_line || '');
       setNeighborhoodId(data.neighborhood_id || '');
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('center_gas_customer_phone', data.phone || normalized);
+      }
       setStep('catalog');
     } else {
       setStep('register');
@@ -308,6 +350,10 @@ export default function Catalog() {
     if (error) {
       setSubmitError(error.message);
     } else {
+      setCustomerName(name());
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('center_gas_customer_phone', normalized);
+      }
       setStep('catalog');
     }
   };
@@ -356,6 +402,9 @@ export default function Catalog() {
       console.error("Error creating order:", error);
       setSubmitError(error.message || JSON.stringify(error));
     } else {
+      if (typeof window !== 'undefined' && phone()) {
+        localStorage.setItem('center_gas_customer_phone', phone());
+      }
       if (data && typeof data === 'object' && (data as any).display_id) {
         setCreatedDisplayId((data as any).display_id);
       }
@@ -369,7 +418,9 @@ export default function Catalog() {
       {/* ----------------- ALERTA OFFLINE (Resiliencia / Harden) ----------------- */}
       <Show when={!isOnline()}>
         <div role="alert" class="bg-amber-50 border border-amber-200 text-amber-900 p-3.5 rounded-2xl flex items-center gap-3 text-xs font-semibold shadow-xs">
-          <span class="text-lg select-none">📡</span>
+          <svg class="w-5 h-5 text-amber-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" />
+          </svg>
           <p class="leading-snug">{t('offlineBanner', lang())}</p>
         </div>
       </Show>
@@ -382,7 +433,10 @@ export default function Catalog() {
             {/* Fila Superior: Título + Selector de Idioma */}
             <div class="flex items-center justify-between gap-2.5">
               <div class="flex items-center gap-2 min-w-0">
-                <span class="text-xl shrink-0">🚚</span>
+                <svg class="w-5 h-5 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8h4.586a1 1 0 01.707.293l2.414 2.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h4" />
+                </svg>
                 <p class="text-xs sm:text-sm font-extrabold tracking-tight text-white leading-tight">
                   {t('bannerTitle', lang())}
                 </p>
@@ -398,7 +452,10 @@ export default function Catalog() {
             {/* Badge de Localización Pinheirinho */}
             <div class="pt-0.5">
               <span class="inline-flex items-center gap-1.5 bg-black/20 backdrop-blur-xs border border-white/20 text-xs font-semibold px-3 py-1 rounded-xl text-orange-100 shadow-xs">
-                <span>📍</span>
+                <svg class="w-3.5 h-3.5 text-orange-200 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
                 <span>{t('brandSubtitle', lang())}</span>
               </span>
             </div>
@@ -409,7 +466,9 @@ export default function Catalog() {
           {/* Fila Superior: Título + Selector de Idioma */}
           <div class="flex items-center justify-between gap-2.5">
             <div class="flex items-center gap-2 min-w-0">
-              <span class="text-2xl shrink-0">🌙</span>
+              <svg class="w-5 h-5 text-amber-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+              </svg>
               <p class="text-xs sm:text-sm font-extrabold tracking-tight text-amber-300">
                 {t('scheduledBannerTitle', lang())}
               </p>
@@ -425,7 +484,9 @@ export default function Catalog() {
           {/* Badge de Horario de Entrega */}
           <div class="pt-0.5">
             <span class="inline-flex items-center gap-1.5 bg-indigo-900/90 text-amber-300 border border-amber-400/30 text-xs font-bold px-3 py-1.5 rounded-xl shadow-inner">
-              <span>📅</span>
+              <svg class="w-3.5 h-3.5 text-amber-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
               <span>{lang() === 'pt' ? deliverySlot().formattedPT : deliverySlot().formattedES}</span>
             </span>
           </div>
@@ -449,7 +510,9 @@ export default function Catalog() {
           
           <Show when={submitError()}>
             <div data-testid="submit-error" class="bg-red-50/80 border border-red-200 p-3.5 rounded-xl text-red-700 text-sm font-medium shadow-xs mb-4 flex items-start gap-2.5">
-              <span class="text-base leading-none select-none">⚠️</span>
+              <svg class="w-4 h-4 text-red-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
               <p class="leading-snug">{submitError()}</p>
             </div>
           </Show>
@@ -480,11 +543,35 @@ export default function Catalog() {
       <Show when={step() === 'register'}>
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
           <h2 class="text-xl font-bold text-gray-800 mb-2">{t('registerTitle', lang())}</h2>
-          <p class="text-sm text-gray-500 mb-6">{t('registerDesc', lang())}</p>
+          <p class="text-sm text-gray-500 mb-4">{t('registerDesc', lang())}</p>
+
+          {/* Badge de Teléfono Verificado (sin re-escritura) */}
+          <Show when={phone()}>
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-between shadow-2xs mb-5">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                </svg>
+                <div class="truncate">
+                  <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider">{t('verifiedPhoneBadge', lang())}</p>
+                  <p class="text-sm font-mono font-bold text-slate-800 tracking-wide">+{phone()}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setStep('phone')}
+                class="text-xs text-orange-600 hover:text-orange-700 font-bold underline cursor-pointer shrink-0 ml-2"
+              >
+                {t('changePhone', lang())}
+              </button>
+            </div>
+          </Show>
           
           <Show when={submitError()}>
             <div data-testid="submit-error" class="bg-red-50/80 border border-red-200 p-3.5 rounded-xl text-red-700 text-sm font-medium shadow-xs mb-4 flex items-start gap-2.5">
-              <span class="text-base leading-none select-none">⚠️</span>
+              <svg class="w-4 h-4 text-red-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
               <p class="leading-snug">{submitError()}</p>
             </div>
           </Show>
@@ -586,19 +673,30 @@ export default function Catalog() {
           <div class="space-y-4">
             {/* Banner de bienvenida para clientes recurrentes */}
             <Show when={customerName()}>
-              <div class="bg-orange-50/70 border border-orange-200 p-4 rounded-xl shadow-xs">
-                <p class="text-base font-bold text-slate-800">
-                  {t('welcomeBack', lang(), { name: customerName() })}
-                </p>
-                <p class="text-sm text-slate-600 mt-0.5">
-                  {t('yourAddress', lang(), { address: address() })}
-                </p>
+              <div class="bg-orange-50/70 border border-orange-200 p-4 rounded-xl shadow-xs flex items-center justify-between gap-3">
+                <div class="min-w-0">
+                  <p class="text-base font-bold text-slate-800 truncate">
+                    {t('welcomeBack', lang(), { name: customerName() })}
+                  </p>
+                  <p class="text-xs sm:text-sm text-slate-600 mt-0.5 line-clamp-2">
+                    {t('yourAddress', lang(), { address: address() })}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleResetCustomer}
+                  class="text-xs font-bold text-slate-600 hover:text-slate-900 bg-white border border-slate-200 hover:border-slate-300 px-3 py-1.5 rounded-lg shadow-2xs transition-colors shrink-0 cursor-pointer"
+                >
+                  {t('changeAccount', lang())}
+                </button>
               </div>
             </Show>
 
             <Show when={submitError()}>
               <div data-testid="submit-error" class="bg-red-50/80 border border-red-200 p-3.5 rounded-xl text-red-700 text-sm font-medium shadow-xs mb-4 flex items-start gap-2.5">
-                <span class="text-base leading-none select-none">⚠️</span>
+                <svg class="w-4 h-4 text-red-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
                 <p class="leading-snug">{submitError()}</p>
               </div>
             </Show>
@@ -635,8 +733,10 @@ export default function Catalog() {
                       </span>
                     </Show>
                     <Show when={!product.includes_cylinder && (product.sku.toLowerCase().includes('p13') || product.sku.toLowerCase().includes('gas'))}>
-                      <p class="text-xs text-amber-700 font-medium mt-0.5 flex items-center gap-1">
-                        <span>🔄</span>
+                      <p class="text-xs text-amber-700 font-medium mt-0.5 flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 text-amber-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
                         <span>{t('cylinderExchangeTip', lang())}</span>
                       </p>
                     </Show>
@@ -684,7 +784,9 @@ export default function Catalog() {
                   <div class="bg-blue-50/70 border border-blue-200 p-4 rounded-xl mb-4 flex items-center justify-between shadow-sm">
                     <div>
                       <div class="flex items-center gap-1.5">
-                        <span class="text-base">💧</span>
+                        <svg class="w-4 h-4 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a8 8 0 11-14.856 0 9.043 9.043 0 011.026-1.528L12 3l6.402 10.9a9.043 9.043 0 011.026 1.528z" />
+                        </svg>
                         <h4 class="font-bold text-gray-800 text-sm">{t('crossSellTitle', lang())}</h4>
                       </div>
                       <p class="text-xs text-gray-600 mt-0.5">
@@ -699,7 +801,7 @@ export default function Catalog() {
                     <button
                       type="button"
                       onClick={() => updateQty(waterProduct.id, 1)}
-                      class="px-4 py-2 bg-secondary text-white font-bold text-sm rounded-lg hover:bg-blue-700 transition-colors shadow-sm active:scale-95"
+                      class="px-4 py-2 bg-secondary text-white font-bold text-sm rounded-lg hover:bg-blue-700 transition-colors shadow-sm active:scale-95 cursor-pointer"
                     >
                       {t('crossSellAdd', lang())}
                     </button>
@@ -753,7 +855,9 @@ export default function Catalog() {
 
             <Show when={isScheduled()}>
               <div class="bg-indigo-50 border border-indigo-200 text-indigo-950 p-3.5 rounded-xl text-xs flex items-center gap-2.5 font-medium shadow-sm mt-4">
-                <span class="text-lg">🌙</span>
+                <svg class="w-5 h-5 text-indigo-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
                 <div>
                   <p class="font-bold text-indigo-900">{t('scheduledOrderNotice', lang())}</p>
                   <p class="text-indigo-700 text-xs mt-0.5">
@@ -828,17 +932,27 @@ export default function Catalog() {
                       class="w-full border-slate-300 rounded-lg shadow-xs focus:border-orange-600 focus:ring-orange-600 py-2.5 px-3 border outline-none bg-white text-sm font-semibold"
                     />
                     <Show when={changeFor() && changeFor()! > total()}>
-                      <p class="text-xs font-semibold text-emerald-700 mt-1.5">
-                        {lang() === 'pt' 
-                          ? `✅ Troco a receber: ${formatBRL(changeFor()! - total())}` 
-                          : `✅ Cambio a recibir: ${formatBRL(changeFor()! - total())}`}
+                      <p class="text-xs font-semibold text-emerald-700 mt-1.5 flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>
+                          {lang() === 'pt' 
+                            ? `Troco a receber: ${formatBRL(changeFor()! - total())}` 
+                            : `Cambio a recibir: ${formatBRL(changeFor()! - total())}`}
+                        </span>
                       </p>
                     </Show>
                     <Show when={changeFor() && changeFor()! <= total()}>
-                      <p class="text-xs font-semibold text-amber-700 mt-1.5">
-                        {lang() === 'pt' 
-                          ? `⚠️ O valor precisa ser maior que o total (${formatBRL(total())})` 
-                          : `⚠️ El monto debe ser mayor al total (${formatBRL(total())})`}
+                      <p class="text-xs font-semibold text-amber-700 mt-1.5 flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        <span>
+                          {lang() === 'pt' 
+                            ? `O valor precisa ser maior que o total (${formatBRL(total())})` 
+                            : `El monto debe ser mayor al total (${formatBRL(total())})`}
+                        </span>
                       </p>
                     </Show>
                   </div>
@@ -878,7 +992,9 @@ export default function Catalog() {
               class="bg-orange-600 hover:bg-orange-700 active:scale-95 motion-reduce:active:scale-100 text-white font-bold text-sm px-5 py-3 rounded-xl shadow-md transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer"
             >
               <span>{lang() === 'pt' ? 'Finalizar Pedido' : 'Finalizar Pedido'}</span>
-              <span>👉</span>
+              <svg class="w-4 h-4 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
             </a>
           </div>
         </aside>

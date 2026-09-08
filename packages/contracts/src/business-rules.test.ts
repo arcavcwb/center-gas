@@ -3,6 +3,8 @@ import {
   calculateComboDiscount,
   validateCashChange,
   normalizeWhatsAppPhone,
+  getPhoneVariants,
+  arePhonesEquivalent,
   formatBRL,
   isWithinBusinessHours,
   getNextDeliverySlot
@@ -88,6 +90,48 @@ describe('Business Rules Unit Tests (Center Gás)', () => {
 
     it('debe manejar cadenas vacías correctamente', () => {
       expect(normalizeWhatsAppPhone('')).toBe('');
+    });
+  });
+
+  describe('BR-003b: Variantes Canónicas y Tolerancia al 9° Dígito Móvil (Brasil)', () => {
+    it('debe generar variante con 9° dígito cuando recibe 12 dígitos (55 + DDD + 8 dígitos)', () => {
+      // Armando Castro WhatsApp format: 554198450477
+      const variants = getPhoneVariants('554198450477');
+      expect(variants).toHaveLength(2);
+      expect(variants).toContain('554198450477');
+      expect(variants).toContain('5541998450477');
+    });
+
+    it('debe generar variante sin 9° dígito cuando recibe 13 dígitos (55 + DDD + 9 + 8 dígitos)', () => {
+      // Armando Castro customer format: 5541998450477
+      const variants = getPhoneVariants('5541998450477');
+      expect(variants).toHaveLength(2);
+      expect(variants).toContain('5541998450477');
+      expect(variants).toContain('554198450477');
+    });
+
+    it('debe anteponer 55 y generar variantes para formato local de 10 u 11 dígitos', () => {
+      // Formato local 10 dígitos (DDD 41 + 8 dígitos)
+      const variants10 = getPhoneVariants('4198450477');
+      expect(variants10).toContain('554198450477');
+      expect(variants10).toContain('5541998450477');
+
+      // Formato local 11 dígitos (DDD 41 + 9 + 8 dígitos)
+      const variants11 = getPhoneVariants('41998450477');
+      expect(variants11).toContain('5541998450477');
+      expect(variants11).toContain('554198450477');
+    });
+
+    it('debe retornar array vacío para inputs vacíos o nulos', () => {
+      expect(getPhoneVariants('')).toEqual([]);
+      expect(getPhoneVariants('   ')).toEqual([]);
+    });
+
+    it('debe comparar teléfonos equivalentes independientemente de la presencia del 9° dígito', () => {
+      expect(arePhonesEquivalent('554198450477', '5541998450477')).toBe(true);
+      expect(arePhonesEquivalent('5541998450477', '554198450477')).toBe(true);
+      expect(arePhonesEquivalent('+55 (41) 9845-0477', '(41) 99845-0477')).toBe(true);
+      expect(arePhonesEquivalent('554198450477', '5541912345678')).toBe(false);
     });
   });
 
