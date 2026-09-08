@@ -2,12 +2,20 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { LayoutGrid, BarChart3 } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { LayoutGrid, BarChart3, LogOut } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 export function Header() {
   const pathname = usePathname();
+  const router = useRouter();
   const isLoginPage = pathname === '/login';
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push('/login');
+    router.refresh();
+  };
 
   if (isLoginPage) return null;
 
@@ -58,19 +66,29 @@ export function Header() {
             </nav>
           </div>
 
-          {/* Right Status */}
+          {/* Right Status & Actions */}
           <div className="flex items-center gap-3">
             <div className="hidden sm:inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
-              <span>Realtime Activo</span>
+              <span>Realtime Ativo</span>
             </div>
 
-            <div className="px-3 py-1 bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg">
-              Panel de Despacho
+            <div className="hidden lg:block px-3 py-1 bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg">
+              Painel de Despacho
             </div>
+
+            <button
+              type="button"
+              onClick={handleLogout}
+              title="Sair do sistema"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 active:bg-rose-200 border border-rose-200 transition-colors cursor-pointer min-h-[36px]"
+            >
+              <LogOut size={14} className="text-rose-600" />
+              <span>Sair</span>
+            </button>
           </div>
         </div>
       </div>

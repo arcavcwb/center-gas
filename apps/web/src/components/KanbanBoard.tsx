@@ -13,15 +13,9 @@ interface Driver {
   full_name: string;
 }
 
-const DEFAULT_DRIVERS: Driver[] = [
-  { id: '40516925-d458-4fea-926e-1f942b51681b', full_name: 'Carlos (Motoboy)' },
-  { id: '55555555-5555-5555-5555-555555555551', full_name: 'João (Motoboy)' },
-  { id: '55555555-5555-5555-5555-555555555552', full_name: 'Marcos (Motoboy)' },
-];
-
 export function KanbanBoard() {
   const [orders, setOrders] = useState<Order[]>([]);
-  const [drivers, setDrivers] = useState<Driver[]>(DEFAULT_DRIVERS);
+  const [drivers, setDrivers] = useState<Driver[]>([]);
   const [cancelingOrderId, setCancelingOrderId] = useState<string | null>(null);
   const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -53,7 +47,7 @@ export function KanbanBoard() {
       .eq('role', 'driver')
       .eq('is_active', true);
 
-    if (data && !error && data.length > 0) {
+    if (data && !error) {
       setDrivers(data as Driver[]);
     }
   };
@@ -214,7 +208,7 @@ export function KanbanBoard() {
             <Users size={20} />
           </div>
           <div>
-            <span className="text-xs font-semibold text-slate-500 block">Motoboys</span>
+            <span className="text-xs font-semibold text-slate-500 block">Entregadores</span>
             <span className="text-xl font-black text-slate-900 tracking-tight">
               {drivers.length}
             </span>
@@ -328,6 +322,7 @@ export function KanbanBoard() {
       {cancelingOrderId && (
         <CancellationModal 
           orderId={cancelingOrderId} 
+          displayId={orders.find(o => o.id === cancelingOrderId)?.display_id}
           onConfirm={handleCancelOrder} 
           onCancel={() => setCancelingOrderId(null)} 
         />
