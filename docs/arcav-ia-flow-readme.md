@@ -1,8 +1,8 @@
 <div align="center">
 
 # ⚡ @arcav-ia/flow ⚡
-### Universal CLI & GitHub Template for Antigravity Agentic Architecture
-**El Squad de 10 Agentes • 8 Core Skills Maestras • Gobernanza Zero-Trust • Diagnóstico Doctor**
+### Mi Toolkit Personal para Acelerar el Desarrollo con Flujo Agéntico
+**Personal Agentic CLI & Scaffolder • 10 Agentes del Squad • 8 Core Skills • Gobernanza Zero-Trust**
 
 [![GitHub Template](https://img.shields.io/badge/GitHub-Template_Repo-blue.svg?logo=github)](https://github.com/arcavcwb/arcav-ia-flow)
 [![NPM Version](https://img.shields.io/badge/npm-%40arcav--ia%2Fflow-cb3837.svg?logo=npm)](https://www.npmjs.com/package/@arcav-ia/flow)
@@ -16,12 +16,13 @@
 
 ## 🎯 ¿Qué es `@arcav-ia/flow`?
 
-**`@arcav-ia/flow`** es la herramienta oficial de andamiaje (scaffolding) y gobernanza para equipos y desarrolladores que operan con **Google Antigravity**, Cursor, Windsurf y agentes autónomos de IA.
+**`@arcav-ia/flow`** es mi herramienta personal de andamiaje (*scaffolding*) y gobernanza, diseñada para agilizar, estandarizar y acelerar mis propios procesos de desarrollo de software al trabajar en pareja con **Google Antigravity**, Cursor, Windsurf y agentes autónomos de IA.
 
-Permite transformar **cualquier repositorio (nuevo o existente)** en un entorno agéntico de élite en **menos de 3 segundos**, inyectando automáticamente el **Trinomio de Calidad**:
-1. **🤖 El Antigravity Squad (10 Agentes Especializados):** División de trabajo cognitivo con Single Responsibility y separación estricta de poderes (el que programa nunca audita ni aprueba su propio código).
-2. **🧠 Las 8 Skills Maestras Canónicas:** Protocolos especializados de UI/UX Impeccable, optimización de tokens Caveman, arquitectura lean Ponytail, contratos Zod, performance web y testing E2E determinista.
-3. **🏛️ Gobernanza Zero-Trust & Modos Duales:** Reglas de cero asunción, anclaje anti-olvido y elección entre **Modo Operativo** (Git-First) o **Modo Enterprise** (Plane.so + Scrum).
+Nació de la necesidad de **no reinventar la rueda en cada nuevo repositorio**: me permite transformar cualquier proyecto (nuevo o preexistente) en un entorno de desarrollo agéntico de élite en **menos de 3 segundos**, inyectando automáticamente mi metodología probada:
+
+1. **🤖 Mi Squad de 10 Agentes Especializados:** División clara de responsabilidades cognitivas con Single Responsibility y separación estricta de poderes (quien programa nunca audita ni aprueba su propio código).
+2. **🧠 Mis 8 Skills Maestras Canónicas:** Protocolos prácticos que aplico a diario (UI/UX Impeccable, ahorro de tokens Caveman, arquitectura lean Ponytail, contratos Zod, performance web y testing Playwright).
+3. **🏛️ Mi Gobernanza Zero-Trust & Modos Duales:** Regla estricta de cero asunción, anclaje anti-olvido en `task.md` y elección entre **Modo Operativo** (Git-First ágil) o **Modo Enterprise** (Plane.so + Scrum).
 
 ---
 
@@ -58,9 +59,9 @@ curl -fsSL https://raw.githubusercontent.com/arcavcwb/arcav-ia-flow/main/install
 
 ## 🤖 El Antigravity Squad: 10 Agentes Autónomos Especializados
 
-¿Por qué un equipo de 10 agentes en vez de un único chat monolítico?
+¿Por qué opero con un equipo de 10 agentes en vez de un único chat monolítico?
 - **Cero Sobrecarga Cognitiva:** Cada agente tiene un ámbito restringido y una única misión.
-- **Separación de Poderes:** Quien programa (`frontend-dev-agent` o `backend-dev-agent`) **nunca** audita el PR (`pr-reviewer-agent`) ni valida los tests dinámicos (`qa-agent`).
+- **Separación de Poderes (Checks & Balances):** Quien programa (`frontend-dev-agent` o `backend-dev-agent`) **nunca** audita el PR (`pr-reviewer-agent`) ni valida los tests dinámicos (`qa-agent`).
 - **Especialización de Modelos:** Razonamiento Frontier (Claude Opus 4.6 Thinking / Gemini 3.1 Pro) para Arquitectura y Revisión; modelos ultra-rápidos (Gemini 3.8 Flash) para automatizaciones y pruebas.
 
 ```mermaid
@@ -122,7 +123,7 @@ Durante la inicialización, el CLI te permite elegir el modo adecuado para tu fl
 | **Filosofía** | Git-First, máxima agilidad, lean | Trazabilidad corporativa estricta |
 | **Gestión de Tareas** | `task.md` local + Pull Requests | Plane.so (Issues, Cycles, Sprints) |
 | **Dependencias Externas** | Cero (sólo Git y tu editor) | Requiere API Key y Workspace en Plane |
-| **Ideal para** | MVPs, startups, microservicios, open-source | Proyectos corporativos y equipos multi-agente |
+| **Ideal para** | MVPs, proyectos personales, startups, open-source | Proyectos corporativos y equipos multi-agente |
 | **Flag CLI** | `--mode operative` | `--mode enterprise` |
 
 ---
@@ -140,7 +141,7 @@ npx @arcav-ia/flow --doctor
 🩺 Ejecutando Antigravity Doctor en: /mi-proyecto
 
   ✓ Repositorio Git detectado e inicializado
-  ✓ GitHub CLI (gh) autenticado como: @tu-usuario
+  ✓ GitHub CLI (gh) autenticado como: @arcavcwb
   ✓ Entorno de ejecución: Node.js v24.12.0
   ✓ Archivo .env presente
   ✓ Todas las skills maestras presentes (8/8)
@@ -197,5 +198,5 @@ tu-proyecto/
 Distribuido bajo la Licencia **MIT**. Consulta [LICENSE](LICENSE) para más información.
 
 <div align="center">
-Desarrollado con ❤️ por <b>Arcav IA</b> para la comunidad de desarrolladores agénticos.
+Desarrollado con ❤️ por <b>Arcav</b> para agilizar procesos de desarrollo agéntico.
 </div>
