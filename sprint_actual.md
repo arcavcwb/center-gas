@@ -33,6 +33,8 @@ Elevar la experiencia de usuario y la calidad visual de toda la plataforma digit
 | **ISSUE-804** | Optimización Lean y Limpieza de Bloat (Ponytail Audit & Review) | `architect-agent` | 🟢 Done | [PR #52](https://github.com/arcavcwb/center-gas/pull/52) / `b2da52e` |
 | **ISSUE-805** | Integración de Caveman & Ponytail en el Flujo Agéntico | `architect-agent` | 🟢 Done | [PR #53](https://github.com/arcavcwb/center-gas/pull/53) |
 | **ISSUE-806** | Empaquetado Portable y Flujo Agéntico Dual (Enterprise / Operativo) | `architect-agent` | 🟢 Done | [PR #54](https://github.com/arcavcwb/center-gas/pull/54) / `eafe8d7` |
+| **ISSUE-807** | Actualización de Modelos de IA del Squad Agéntico | `architect-agent` | 🟢 Done | [PR #55](https://github.com/arcavcwb/center-gas/pull/55) / `919525d` |
+| **ISSUE-808** | Test E2E Integral: Flujo WhatsApp Inbound y Outbound (Supabase + n8n + Evolution API) | `architect-agent` | 🟢 Done | [PR #56](https://github.com/arcavcwb/center-gas/pull/56) / `a577ff7` |
 
 ---
 

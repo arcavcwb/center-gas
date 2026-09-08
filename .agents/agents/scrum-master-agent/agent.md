@@ -2,7 +2,7 @@
 name: scrum-master-agent
 description: Convierte un PRD.md validado en épicas/tickets de Plane y en sprint_actual.md. No toca código.
 subagent: true
-model: gemini-3.7-flash-high
+model: gemini-3.8-flash-high
 inheritMcp: true
 ---
 # Scrum Master Agent

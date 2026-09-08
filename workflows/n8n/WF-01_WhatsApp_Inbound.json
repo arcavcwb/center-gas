@@ -70,7 +70,7 @@
         "conditions": {
           "string": [
             {
-              "value1": "={{ $json }}",
+              "value1": "={{ $json.token }}",
               "operation": "isNotEmpty"
             }
           ]
@@ -115,7 +115,7 @@
             },
             {
               "name": "text",
-              "value": "Oi! 👋 Vi sua mensagem.\n\nAcesse o link abaixo para fazer seu pedido direto e com segurança:\n🔗 {{ $env.CATALOG_URL }}/?token={{ $('Generate Catalog Token').item.json }}\n\nO link é válido por 24 horas. Qualquer dúvida é só chamar! 😊"
+              "value": "Oi! 👋 Vi sua mensagem.\n\nAcesse o link abaixo para fazer seu pedido direto e com segurança:\n🔗 {{ $env.CATALOG_URL }}/?token={{ $('Generate Catalog Token').item.json.token }}\n\nO link é válido por 24 horas. Qualquer dúvida é só chamar! 😊"
             }
           ]
         },
