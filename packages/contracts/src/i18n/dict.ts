@@ -70,6 +70,14 @@ export interface TranslationSchema {
   changeAccount: string;
   verifiedPhoneBadge: string;
   changePhone: string;
+  categoryAll: string;
+  categoryGas: string;
+  categoryWater: string;
+  optionWithExchange: string;
+  optionWithCylinder: string;
+  tipExchangeRequired: string;
+  tipNewCylinderIncluded: string;
+  itemsInCartSummary: string;
 }
 
 export const translations: Record<SupportedLang, TranslationSchema> = {
@@ -142,10 +150,18 @@ export const translations: Record<SupportedLang, TranslationSchema> = {
     orderTrackingHint: "Acompanharemos seu pedido pelo WhatsApp até a chegada ao seu portão.",
     changeAccount: "Trocar de conta",
     verifiedPhoneBadge: "WhatsApp identificado",
-    changePhone: "Corrigir número"
+    changePhone: "Corrigir número",
+    categoryAll: "Todos",
+    categoryGas: "Gás P13",
+    categoryWater: "Água Mineral",
+    optionWithExchange: "Já tenho o vazio",
+    optionWithCylinder: "Comprar vasilhame novo",
+    tipExchangeRequired: "Requer botijão/galão vazio na troca no ato da entrega.",
+    tipNewCylinderIncluded: "Líquido + vasilhame novo. Não precisa ter vazio para troca.",
+    itemsInCartSummary: "{refill}x recarga + {full}x com casco no pedido"
   },
   es: {
-    banner: "🚚 Entrega Rápida en Pinheirinho y alrededores en 30-45 min!",
+    banner: "Entrega Rápida en Pinheirinho y alrededores en 30-45 min!",
     bannerTitle: "Entrega Express Pinheirinho",
     bannerDesc: "Gas de cocina y agua mineral en tu dirección en 30 a 45 minutos. ¡Pide en segundos!",
     brand: "CENTER GÁS",
@@ -213,6 +229,14 @@ export const translations: Record<SupportedLang, TranslationSchema> = {
     orderTrackingHint: "Acompañaremos tu pedido por WhatsApp hasta la llegada a tu portón.",
     changeAccount: "Cambiar de cuenta",
     verifiedPhoneBadge: "WhatsApp identificado",
-    changePhone: "Corregir número"
+    changePhone: "Corregir número",
+    categoryAll: "Todos",
+    categoryGas: "Gas P13",
+    categoryWater: "Agua Mineral",
+    optionWithExchange: "Tengo envase vacío",
+    optionWithCylinder: "Comprar envase nuevo",
+    tipExchangeRequired: "Requiere envase vacío para el intercambio al recibir.",
+    tipNewCylinderIncluded: "Líquido + envase nuevo. No necesitas vacío para intercambio.",
+    itemsInCartSummary: "{refill}x recarga + {full}x con casco en el pedido"
   }
 };

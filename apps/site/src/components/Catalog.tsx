@@ -12,6 +12,7 @@ import {
   type SupportedLang
 } from '@center-gas/contracts';
 import LanguageToggle from './LanguageToggle';
+import ProductFamilyCard, { type ProductFamily } from './ProductFamilyCard';
 
 interface Product {
   id: string;
@@ -66,6 +67,64 @@ export default function Catalog() {
   const [products, setProducts] = createSignal<Product[]>([]);
   const [neighborhoods, setNeighborhoods] = createSignal<Neighborhood[]>([]);
   const [cart, setCart] = createSignal<Record<string, number>>({});
+  const [selectedCategory, setSelectedCategory] = createSignal<'all' | 'gas' | 'water'>('all');
+
+  const productFamilies = createMemo<ProductFamily[]>(() => {
+    const prods = products();
+    if (prods.length === 0) return [];
+
+    const familyMap = new Map<string, ProductFamily>();
+
+    for (const p of prods) {
+      const skuLower = p.sku.toLowerCase();
+      const nameLower = p.name.toLowerCase();
+
+      const isGas = skuLower.includes('p13') || skuLower.includes('gas') || nameLower.includes('gás') || nameLower.includes('gas');
+      const isWater = skuLower.includes('water') || skuLower.includes('agua') || nameLower.includes('água') || nameLower.includes('agua');
+
+      let familyId = p.id;
+      let category: 'gas' | 'water' = isGas ? 'gas' : 'water';
+      let defaultTitle = p.name;
+      let defaultSubtitle = p.desc;
+
+      if (isGas) {
+        familyId = 'gas_p13';
+        category = 'gas';
+        defaultTitle = lang() === 'pt' ? 'Gás GLP 13kg' : 'Gas GLP 13kg';
+        defaultSubtitle = lang() === 'pt' ? 'Botijão padrão residencial (Ultragaz / Nacional)' : 'Cilindro estándar residencial';
+      } else if (isWater) {
+        familyId = 'water_20l';
+        category = 'water';
+        defaultTitle = lang() === 'pt' ? 'Água Mineral 20L' : 'Agua Mineral 20L';
+        defaultSubtitle = lang() === 'pt' ? 'Galão retornável padrão 20 litros' : 'Bidón retornable estándar 20 litros';
+      }
+
+      if (!familyMap.has(familyId)) {
+        familyMap.set(familyId, {
+          id: familyId,
+          category,
+          title: defaultTitle,
+          subtitle: defaultSubtitle,
+        });
+      }
+
+      const fam = familyMap.get(familyId)!;
+      if (p.includes_cylinder) {
+        fam.fullVariant = p;
+      } else {
+        fam.refillVariant = p;
+      }
+    }
+
+    return Array.from(familyMap.values());
+  });
+
+  const filteredFamilies = createMemo(() => {
+    const cat = selectedCategory();
+    const fams = productFamilies();
+    if (cat === 'all') return fams;
+    return fams.filter(f => f.category === cat);
+  });
   
   const [phone, setPhone] = createSignal('');
   const [name, setName] = createSignal('');
@@ -700,75 +759,160 @@ export default function Catalog() {
                 <p class="leading-snug">{submitError()}</p>
               </div>
             </Show>
+            {/* ----------------- SELECTOR DE CATEGORÍAS CIRCULAR ----------------- */}
+            <div class="space-y-2 pt-1 pb-1">
+              <div class="flex items-center justify-between px-1">
+                <span class="text-xs font-black uppercase tracking-wider text-slate-500">
+                  {lang() === 'pt' ? 'Categorias' : 'Categorías'}
+                </span>
+                <span class="text-2xs font-semibold text-slate-500">
+                  {selectedCategory() === 'all' 
+                    ? (lang() === 'pt' ? 'Exibindo tudo' : 'Mostrando todo')
+                    : selectedCategory() === 'gas' 
+                      ? (lang() === 'pt' ? 'Filtrado por Gás' : 'Filtrado por Gas')
+                      : (lang() === 'pt' ? 'Filtrado por Água' : 'Filtrado por Agua')}
+                </span>
+              </div>
+
+              <div class="grid grid-cols-3 gap-2.5 sm:gap-3.5" role="tablist" aria-label="Categorias de produtos">
+                {/* Botón: Todos */}
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={selectedCategory() === 'all'}
+                  onClick={() => setSelectedCategory('all')}
+                  class="flex flex-col items-center gap-1.5 p-2 sm:p-2.5 rounded-2xl border transition-all duration-150 cursor-pointer min-h-[76px]"
+                  classList={{
+                    'bg-slate-900 text-white border-slate-900 shadow-md ring-2 ring-slate-900/20': selectedCategory() === 'all',
+                    'bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50 shadow-2xs': selectedCategory() !== 'all'
+                  }}
+                >
+                  <div 
+                    class="w-11 h-11 rounded-full flex items-center justify-center transition-colors"
+                    classList={{
+                      'bg-white/20 text-white': selectedCategory() === 'all',
+                      'bg-slate-100 text-slate-700': selectedCategory() !== 'all'
+                    }}
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                    </svg>
+                  </div>
+                  <span class="text-xs font-black leading-tight">
+                    {t('categoryAll', lang())}
+                  </span>
+                </button>
+
+                {/* Botón: Gás P13 */}
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={selectedCategory() === 'gas'}
+                  onClick={() => setSelectedCategory('gas')}
+                  class="flex flex-col items-center gap-1.5 p-2 sm:p-2.5 rounded-2xl border transition-all duration-150 cursor-pointer min-h-[76px]"
+                  classList={{
+                    'bg-orange-600 text-white border-orange-600 shadow-md ring-2 ring-orange-600/20': selectedCategory() === 'gas',
+                    'bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50 shadow-2xs': selectedCategory() !== 'gas'
+                  }}
+                >
+                  <div 
+                    class="w-11 h-11 rounded-full flex items-center justify-center transition-colors"
+                    classList={{
+                      'bg-white/20 text-white': selectedCategory() === 'gas',
+                      'bg-orange-50 text-orange-600': selectedCategory() !== 'gas'
+                    }}
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343a7.975 7.975 0 012.344 5.657c0 2.12-.837 4.14-2.343 5.657z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.879 16.121A3 3 0 1012.001 11c-.753 1.657-1.372 2.657-2.122 5.121z" />
+                    </svg>
+                  </div>
+                  <span class="text-xs font-black leading-tight">
+                    {t('categoryGas', lang())}
+                  </span>
+                </button>
+
+                {/* Botón: Água Mineral */}
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={selectedCategory() === 'water'}
+                  onClick={() => setSelectedCategory('water')}
+                  class="flex flex-col items-center gap-1.5 p-2 sm:p-2.5 rounded-2xl border transition-all duration-150 cursor-pointer min-h-[76px]"
+                  classList={{
+                    'bg-blue-600 text-white border-blue-600 shadow-md ring-2 ring-blue-600/20': selectedCategory() === 'water',
+                    'bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50 shadow-2xs': selectedCategory() !== 'water'
+                  }}
+                >
+                  <div 
+                    class="w-11 h-11 rounded-full flex items-center justify-center transition-colors"
+                    classList={{
+                      'bg-white/20 text-white': selectedCategory() === 'water',
+                      'bg-blue-50 text-blue-600': selectedCategory() !== 'water'
+                    }}
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a8 8 0 11-14.856 0 9.043 9.043 0 011.026-1.528L12 3l6.402 10.9a9.043 9.043 0 011.026 1.528z" />
+                    </svg>
+                  </div>
+                  <span class="text-xs font-black leading-tight">
+                    {t('categoryWater', lang())}
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {/* Skeleton Loading */}
             <Show when={products().length === 0}>
               <div class="space-y-3" aria-label={t('loadingCatalog', lang())} aria-busy="true">
-                <div class="bg-white p-4 rounded-2xl shadow-xs border border-slate-100 flex justify-between items-center animate-pulse motion-reduce:animate-none">
+                <div class="bg-white p-5 rounded-2xl shadow-xs border border-slate-100 flex justify-between items-center animate-pulse motion-reduce:animate-none">
                   <div class="space-y-2.5 flex-1 pr-4">
                     <div class="h-5 bg-slate-200 rounded-md w-3/5"></div>
                     <div class="h-3.5 bg-slate-100 rounded-md w-4/5"></div>
+                    <div class="h-8 bg-slate-100 rounded-xl w-full max-w-[200px]"></div>
                     <div class="h-6 bg-slate-200 rounded-md w-24"></div>
                   </div>
                   <div class="w-28 h-12 bg-slate-100 rounded-full"></div>
                 </div>
-                <div class="bg-white p-4 rounded-2xl shadow-xs border border-slate-100 flex justify-between items-center animate-pulse motion-reduce:animate-none">
+                <div class="bg-white p-5 rounded-2xl shadow-xs border border-slate-100 flex justify-between items-center animate-pulse motion-reduce:animate-none">
                   <div class="space-y-2.5 flex-1 pr-4">
                     <div class="h-5 bg-slate-200 rounded-md w-2/4"></div>
                     <div class="h-3.5 bg-slate-100 rounded-md w-3/4"></div>
+                    <div class="h-8 bg-slate-100 rounded-xl w-full max-w-[200px]"></div>
                     <div class="h-6 bg-slate-200 rounded-md w-20"></div>
                   </div>
                   <div class="w-28 h-12 bg-slate-100 rounded-full"></div>
                 </div>
               </div>
             </Show>
-            <For each={products()}>
-              {(product) => (
-                <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-center transition-all hover:shadow-md">
-                  <div>
-                    <h3 class="font-bold text-gray-900 flex items-center gap-2">
-                      {product.name}
-                    </h3>
-                    <Show when={product.includes_cylinder}>
-                      <span class="inline-block mt-1 mb-1 px-2 py-0.5 bg-blue-100 text-blue-800 text-xs font-extrabold rounded-full tracking-wide">
-                        {t('badgeIncludesCylinder', lang())}
-                      </span>
-                    </Show>
-                    <Show when={!product.includes_cylinder && (product.sku.toLowerCase().includes('p13') || product.sku.toLowerCase().includes('gas'))}>
-                      <p class="text-xs text-amber-700 font-medium mt-0.5 flex items-center gap-1.5">
-                        <svg class="w-3.5 h-3.5 text-amber-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                        </svg>
-                        <span>{t('cylinderExchangeTip', lang())}</span>
-                      </p>
-                    </Show>
-                    <p class="text-xs text-gray-500 mt-1 leading-tight">
-                      {product.includes_cylinder ? t('descFull', lang()) : t('descRefill', lang())}
-                    </p>
-                    <p class="text-orange-700 font-extrabold mt-1.5 text-lg">{formatBRL(product.price)}</p>
-                  </div>
-                  <div class="flex items-center space-x-2 bg-slate-100 p-1.5 rounded-full border border-slate-200">
-                    <button 
-                      type="button"
-                      onClick={() => updateQty(product.id, -1)}
-                      aria-label={`Diminuir quantidade de ${product.name}`}
-                      class="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full bg-white text-slate-700 hover:text-slate-900 hover:bg-slate-50 border border-slate-200 font-extrabold text-lg shadow-xs transition-transform duration-100 ease-out active:scale-90 motion-reduce:active:scale-100 cursor-pointer"
-                    >
-                      −
-                    </button>
-                    <span class="font-bold text-slate-900 w-6 text-center text-base select-none tabular-nums">
-                      {cart()[product.id] || 0}
-                    </span>
-                    <button 
-                      type="button"
-                      onClick={() => updateQty(product.id, 1)}
-                      aria-label={`Aumentar quantidade de ${product.name}`}
-                      class="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full bg-orange-600 hover:bg-orange-700 text-white font-extrabold text-lg shadow-xs transition-transform duration-100 ease-out active:scale-90 motion-reduce:active:scale-100 cursor-pointer"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
+
+            {/* Listado de Tarjetas Maestras Unificadas */}
+            <For each={filteredFamilies()}>
+              {(family) => (
+                <ProductFamilyCard
+                  family={family}
+                  cart={cart()}
+                  onUpdateQty={updateQty}
+                  lang={lang()}
+                />
               )}
             </For>
+
+            {/* Fallback si el filtro no tiene productos */}
+            <Show when={products().length > 0 && filteredFamilies().length === 0}>
+              <div class="bg-white p-8 rounded-2xl border border-slate-200 text-center space-y-2 shadow-2xs">
+                <p class="text-sm font-bold text-slate-700">
+                  {lang() === 'pt' ? 'Nenhum produto encontrado nesta categoria.' : 'Ningún producto encontrado en esta categoría.'}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setSelectedCategory('all')}
+                  class="text-xs font-bold text-orange-600 hover:text-orange-700 underline cursor-pointer"
+                >
+                  {lang() === 'pt' ? 'Ver todos os produtos' : 'Ver todos los productos'}
+                </button>
+              </div>
+            </Show>
           </div>
 
           <form id="checkout-form" onSubmit={handleSubmitOrder} class="mt-6 space-y-6 bg-white p-5 rounded-2xl shadow-sm border border-gray-100 scroll-mt-20">
