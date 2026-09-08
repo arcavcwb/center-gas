@@ -67,6 +67,9 @@ export interface TranslationSchema {
   deliveryNeighborhoodTip: string;
   offlineBanner: string;
   orderTrackingHint: string;
+  changeAccount: string;
+  verifiedPhoneBadge: string;
+  changePhone: string;
 }
 
 export const translations: Record<SupportedLang, TranslationSchema> = {
@@ -101,19 +104,19 @@ export const translations: Record<SupportedLang, TranslationSchema> = {
     registerBtn: "Salvar e Ver Produtos",
     registerBtnLoading: "Cadastrando...",
     fillAllFields: "Preencha todos os campos obrigatórios.",
-    welcomeBack: "Olá, {name}! 👋",
+    welcomeBack: "Olá, {name}!",
     yourAddress: "Seu endereço: {address}",
     loadingCatalog: "Carregando produtos...",
-    badgeIncludesCylinder: "✨ INCLUI BOTIJÃO NOVO",
+    badgeIncludesCylinder: "INCLUI BOTIJÃO NOVO",
     descRefill: "Você entrega o botijão/galão vazio ao entregador.",
     descFull: "Líquido + Vasilhame novo (não precisa ter vazio).",
     crossSellTitle: "Vai uma Água Mineral 20L?",
     crossSellSubtitle: "Leve {product} por apenas {price}",
-    crossSellComboBadge: "🎉 Economize R$ 5,00 no Combo Gás + Água!",
+    crossSellComboBadge: "Economize R$ 5,00 no Combo Gás + Água!",
     crossSellAdd: "+ Adicionar",
     deliveryDataTitle: "Dados de Entrega",
     subtotalLabel: "Subtotal dos produtos:",
-    comboDiscountLabel: "🔥 Desconto Combo (Gás + Água):",
+    comboDiscountLabel: "Desconto Combo (Gás + Água):",
     deliveryFeeLabel: "Taxa de Entrega:",
     totalLabel: "Total a Pagar:",
     paymentTitle: "Forma de Pagamento",
@@ -126,17 +129,20 @@ export const translations: Record<SupportedLang, TranslationSchema> = {
     submittingOrder: "Processando pedido...",
     emptyCartError: "O carrinho está vazio.",
     verifyPhoneAddressError: "Por favor, verifique seu telefone e endereço.",
-    successTitle: "🎉 Pedido Confirmado!",
+    successTitle: "Pedido Confirmado!",
     successMessage: "Seu pedido foi recebido e nossa equipe no Pinheirinho já está preparando a entrega. Entraremos em contato pelo WhatsApp!",
     scheduledBannerTitle: "Atendimento Fora de Horário Comercial",
     scheduledBannerDesc: "Nosso horário de entregas é das 08:00 às 20:00. Você pode pedir agora e sua entrega sairá amanhã a partir das 08:30!",
     scheduledSlotBadge: "Agendado para amanhã às 08:30",
-    scheduledOrderNotice: "🌙 Pedido Fora de Horário: Entrega programada para amanhã às 08:30 no Pinheirinho.",
+    scheduledOrderNotice: "Pedido Fora de Horário: Entrega programada para amanhã às 08:30 no Pinheirinho.",
     scheduledSuccessMessage: "Recebemos seu pedido! Como estamos fora do horário de atendimento, ele já está agendado e sairá amanhã a partir das 08:30.",
     cylinderExchangeTip: "Requer botijão vazio na troca no ato da entrega.",
     deliveryNeighborhoodTip: "Taxa de entrega calculada conforme seu bairro em Curitiba.",
     offlineBanner: "Você está sem conexão com a internet. Verifique sua rede para concluir o pedido.",
-    orderTrackingHint: "Acompanharemos seu pedido pelo WhatsApp até a chegada ao seu portão."
+    orderTrackingHint: "Acompanharemos seu pedido pelo WhatsApp até a chegada ao seu portão.",
+    changeAccount: "Trocar de conta",
+    verifiedPhoneBadge: "WhatsApp identificado",
+    changePhone: "Corrigir número"
   },
   es: {
     banner: "🚚 Entrega Rápida en Pinheirinho y alrededores en 30-45 min!",
@@ -169,19 +175,19 @@ export const translations: Record<SupportedLang, TranslationSchema> = {
     registerBtn: "Guardar y Ver Catálogo",
     registerBtnLoading: "Registrando...",
     fillAllFields: "Completa todos los campos obligatorios.",
-    welcomeBack: "¡Hola, {name}! 👋",
+    welcomeBack: "¡Hola, {name}!",
     yourAddress: "Tu dirección: {address}",
     loadingCatalog: "Cargando catálogo...",
-    badgeIncludesCylinder: "✨ INCLUYE ENVASE NUEVO",
+    badgeIncludesCylinder: "INCLUYE ENVASE NUEVO",
     descRefill: "Debes entregar un envase vacío al motoboy.",
     descFull: "Líquido + Casco Plástico (no necesitas vacío).",
     crossSellTitle: "¿Deseas agregar agua mineral 20L?",
     crossSellSubtitle: "Lleva {product} por solo {price}",
-    crossSellComboBadge: "🎉 ¡Ahorra R$ 5,00 con el Combo Gás + Água!",
+    crossSellComboBadge: "¡Ahorra R$ 5,00 con el Combo Gás + Água!",
     crossSellAdd: "+ Agregar",
     deliveryDataTitle: "Datos de Entrega",
     subtotalLabel: "Subtotal productos:",
-    comboDiscountLabel: "🔥 Descuento Combo (Gás + Água):",
+    comboDiscountLabel: "Descuento Combo (Gás + Água):",
     deliveryFeeLabel: "Tasa de Entrega:",
     totalLabel: "Total a Pagar:",
     paymentTitle: "Forma de Pago",
@@ -194,16 +200,19 @@ export const translations: Record<SupportedLang, TranslationSchema> = {
     submittingOrder: "Procesando pedido...",
     emptyCartError: "El carrito está vacío.",
     verifyPhoneAddressError: "Por favor verifica tu teléfono y dirección.",
-    successTitle: "🎉 ¡Pedido Confirmado!",
+    successTitle: "¡Pedido Confirmado!",
     successMessage: "Tu pedido ha sido recibido y nuestro equipo en Pinheirinho ya lo está preparando. Te contactaremos por WhatsApp.",
     scheduledBannerTitle: "Atención Fuera de Horario Comercial",
     scheduledBannerDesc: "Nuestro horario de entrega es de 08:00 a 20:00. ¡Puedes pedir ahora y tu entrega saldrá mañana a partir de las 08:30!",
     scheduledSlotBadge: "Agendado para mañana a las 08:30",
-    scheduledOrderNotice: "🌙 Pedido Fuera de Horario: Entrega programada para mañana a las 08:30 en Pinheirinho.",
+    scheduledOrderNotice: "Pedido Fuera de Horario: Entrega programada para mañana a las 08:30 en Pinheirinho.",
     scheduledSuccessMessage: "¡Recibimos tu pedido! Como estamos fuera de horario comercial, ya está programado y saldrá mañana a partir de las 08:30.",
     cylinderExchangeTip: "Requiere cilindro vacío a cambio al momento de la entrega.",
     deliveryNeighborhoodTip: "Tarifa de entrega calculada según tu barrio en Curitiba.",
     offlineBanner: "Estás sin conexión a internet. Verifica tu red para completar el pedido.",
-    orderTrackingHint: "Acompañaremos tu pedido por WhatsApp hasta la llegada a tu portón."
+    orderTrackingHint: "Acompañaremos tu pedido por WhatsApp hasta la llegada a tu portón.",
+    changeAccount: "Cambiar de cuenta",
+    verifiedPhoneBadge: "WhatsApp identificado",
+    changePhone: "Corregir número"
   }
 };

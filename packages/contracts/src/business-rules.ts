@@ -88,6 +88,49 @@ export function normalizeWhatsAppPhone(rawPhone: string): string {
 }
 
 /**
+ * BR-003b: Variantes Canónicas de Teléfono para Brasil (Tolerancia al 9° dígito móvil)
+ * Genera las variantes canónicas con y sin el 9° dígito para evitar discrepancias
+ * entre WhatsApp JID (12 dígitos) y números móviles registrados (13 dígitos).
+ */
+export function getPhoneVariants(rawPhone: string): string[] {
+  if (!rawPhone || !rawPhone.trim()) return [];
+
+  let digits = rawPhone.replace(/\D/g, '');
+  if (!digits) return [];
+
+  // Si tiene 10 u 11 dígitos (DDD + 8 o 9 dígitos locales), anteponer '55'
+  if (digits.length === 10 || digits.length === 11) {
+    digits = `55${digits}`;
+  }
+
+  // Si es número de Brasil (55 + DDD de 2 dígitos)
+  if (digits.startsWith('55')) {
+    // 12 dígitos: 55 + DDD(2) + 8 dígitos locales -> variante con '9'
+    if (digits.length === 12) {
+      const withNine = `${digits.slice(0, 4)}9${digits.slice(4)}`;
+      return [digits, withNine];
+    }
+    // 13 dígitos y el 5° dígito es '9': 55 + DDD(2) + '9' + 8 dígitos -> variante sin '9'
+    if (digits.length === 13 && digits[4] === '9') {
+      const withoutNine = `${digits.slice(0, 4)}${digits.slice(5)}`;
+      return [digits, withoutNine];
+    }
+  }
+
+  return [digits];
+}
+
+/**
+ * Compara si dos números de teléfono son equivalentes considerando variantes del 9° dígito brasileño
+ */
+export function arePhonesEquivalent(phoneA: string, phoneB: string): boolean {
+  if (!phoneA || !phoneB) return false;
+  const variantsA = getPhoneVariants(phoneA);
+  const normalizedB = normalizeWhatsAppPhone(phoneB);
+  return variantsA.includes(normalizedB);
+}
+
+/**
  * BR-004: Formato de Moneda BRL
  */
 const brlFormatter = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
