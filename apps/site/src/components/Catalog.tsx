@@ -32,7 +32,7 @@ interface Neighborhood {
 export default function Catalog() {
   const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
   const pathToken = typeof window !== 'undefined' ? window.location.pathname.replace(/^\/+/, '').split('/')[0] : '';
-  const isPathToken = /^[a-zA-Z0-9]{6}$/.test(pathToken);
+  const isPathToken = /^[a-zA-Z0-9]{6,64}$/.test(pathToken) && pathToken !== 'driver';
   const activeToken = isPathToken ? pathToken : (urlParams?.get('token') || null);
   const hasTokenFromUrl = !!activeToken;
   

@@ -4,8 +4,16 @@
   "cleanUrls": true,
   "rewrites": [
     {
-      "source": "/:token([a-zA-Z0-9]{6})",
-      "destination": "/"
+      "source": "/driver",
+      "destination": "/driver"
+    },
+    {
+      "source": "/driver/:match*",
+      "destination": "/driver/:match*"
+    },
+    {
+      "source": "/:token([a-zA-Z0-9]{6,64})",
+      "destination": "/index.html"
     }
   ]
 }
