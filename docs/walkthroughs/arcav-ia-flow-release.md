@@ -72,3 +72,27 @@ curl -fsSL https://raw.githubusercontent.com/arcavcwb/arcav-ia-flow/main/install
 | **Invocación Remota NPX** | `npx --yes github:arcavcwb/arcav-ia-flow --help` | ✅ Ejecutado en tiempo real desde GitHub sin errores |
 | **Doctor Remoto en Proyecto Real** | `npx --yes github:arcavcwb/arcav-ia-flow --doctor` en `react-apod-app` | ✅ Certificación 8/8 skills maestras y entorno OK |
 | **Configuración GitHub Template** | `gh api -X PATCH ... is_template=true` | ✅ Marcado como plantilla pública en GitHub |
+
+---
+
+## 🤖 Actualización v1.1.0: Integración Integral del Antigravity Squad
+
+Se ha incorporado al núcleo de `@arcav-ia/flow` la gestión y andamiaje de los **10 Agentes Autónomos Especializados** del Squad:
+1. `architect-agent` (Líder Técnico & Contratos Zod)
+2. `pr-reviewer-agent` (Juez de Código & Auditor de PRs)
+3. `po-agent` (Product Owner & PRD)
+4. `scrum-master-agent` (Scrum Master & Trazabilidad Plane)
+5. `designer-agent` (UI/UX Designer & Craft Floor Impeccable)
+6. `frontend-dev-agent` (Desarrollador Frontend)
+7. `backend-dev-agent` (Desarrollador Backend & DB)
+8. `qa-agent` (QA & Automation Tester E2E)
+9. `devops-agent` (DevOps & CI/CD)
+10. `automation-agent` (Automatizaciones & Webhooks)
+
+### Archivos y Mejoras Entregadas en v1.1.0:
+- **`templates/core-agents/`**: Las 10 definiciones canónicas `agent.md`.
+- **`src/scaffolder.js`**: Inyección automática de `.agents/agents/` en cualquier proyecto (`init`).
+- **`src/doctor.js`**: Auditoría automática de salud del Squad (**10/10 agentes certificados**).
+- **`docs/SQUAD_GUIDE.md`**: Guía profunda de roles, protocolo de handoff, organigrama y matriz RACI.
+- **`README.md`**: Reestructurado con el Squad como el Pilar #1 de la arquitectura agéntica.
+- **Verificación remota en vivo:** `npx github:arcavcwb/arcav-ia-flow --doctor` reportando 8/8 skills y 10/10 agentes 100% operativos.
