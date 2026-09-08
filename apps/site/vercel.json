@@ -1,4 +1,11 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": "astro"
+  "framework": "astro",
+  "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/:token([a-zA-Z0-9]{6})",
+      "destination": "/"
+    }
+  ]
 }

@@ -12,6 +12,20 @@ export default defineConfig({
     port: 3001
   },
   vite: {
-    envDir: '../../'
+    envDir: '../../',
+    plugins: [
+      {
+        name: 'token-rewrite-dev',
+        configureServer(server) {
+          server.middlewares.use((req, res, next) => {
+            if (req.url && /^\/[a-zA-Z0-9]{6}(\?.*)?$/.test(req.url)) {
+              const query = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
+              req.url = '/' + query;
+            }
+            next();
+          });
+        }
+      }
+    ]
   }
 });

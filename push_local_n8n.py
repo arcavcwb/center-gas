@@ -11,6 +11,7 @@ BASE_URL = "https://n8n.arcav.us/api/v1/workflows"
 with open("workflows/n8n/WF-01_WhatsApp_Inbound.json", "r") as f:
     wf_str = f.read()
 
+wf_str = wf_str.replace("{{ $env.CATALOG_DOMAIN }}", "center-gas-site.vercel.app")
 wf_str = wf_str.replace("{{ $env.CATALOG_URL }}", "https://center-gas-site.vercel.app")
 wf_str = wf_str.replace("{{ $env.SUPABASE_URL }}", "https://fsfaqzayoziaeaihycos.supabase.co")
 wf_str = wf_str.replace("{{ $env.EVOLUTION_API_URL }}", "https://evolution.arcav.us")
