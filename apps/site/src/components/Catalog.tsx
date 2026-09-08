@@ -80,6 +80,7 @@ export default function Catalog() {
   
   const [isSubmitting, setIsSubmitting] = createSignal(false);
   const [orderSuccess, setOrderSuccess] = createSignal(false);
+  const [createdDisplayId, setCreatedDisplayId] = createSignal('');
   const [submitError, setSubmitError] = createSignal<string | null>(null);
   const [isOnline, setIsOnline] = createSignal(true);
   const [now, setNow] = createSignal(new Date());
@@ -339,7 +340,7 @@ export default function Catalog() {
       quantity: qty
     }));
 
-    const { error } = await supabase.rpc('create_b2c_order', {
+    const { data, error } = await supabase.rpc('create_b2c_order', {
       p_phone: normalized,
       p_address_line: address(),
       p_items,
@@ -355,6 +356,9 @@ export default function Catalog() {
       console.error("Error creating order:", error);
       setSubmitError(error.message || JSON.stringify(error));
     } else {
+      if (data && typeof data === 'object' && (data as any).display_id) {
+        setCreatedDisplayId((data as any).display_id);
+      }
       setOrderSuccess(true);
     }
   };
@@ -553,17 +557,26 @@ export default function Catalog() {
       <Show when={step() === 'catalog'}>
         <Show when={orderSuccess()}>
           <div class="bg-white border border-emerald-200 p-6 sm:p-8 rounded-2xl shadow-sm text-center space-y-4">
-            <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner text-3xl">
-              ✅
+            <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
+              <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+              </svg>
             </div>
-            <div>
+            <div class="space-y-2">
               <h3 class="text-xl font-black text-slate-900">{t('successTitle', lang())}</h3>
-              <p class="mt-2 text-sm text-slate-600 max-w-sm mx-auto leading-relaxed">
+              <Show when={createdDisplayId()}>
+                <div class="inline-flex items-center gap-1.5 px-3.5 py-1 bg-slate-100 border border-slate-200 text-slate-800 font-mono font-bold rounded-lg text-sm tracking-wide shadow-2xs">
+                  <span>Pedido #{createdDisplayId()}</span>
+                </div>
+              </Show>
+              <p class="text-sm text-slate-600 max-w-sm mx-auto leading-relaxed">
                 {isScheduled() ? t('scheduledSuccessMessage', lang()) : t('successMessage', lang())}
               </p>
             </div>
             <div class="bg-emerald-50 border border-emerald-200/80 p-3.5 rounded-xl text-emerald-800 text-xs font-medium max-w-sm mx-auto flex items-center gap-2.5 text-left">
-              <span class="text-base select-none">💬</span>
+              <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
               <p class="leading-snug">{t('orderTrackingHint', lang())}</p>
             </div>
           </div>

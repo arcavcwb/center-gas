@@ -162,14 +162,14 @@
                         },
                         {
                             "name": "text",
-                            "value": "=\u00a1Recibimos tu pedido #{{ $('Webhook Supabase').item.json.body.id }}, total R$ {{ $('Webhook Supabase').item.json.body.total_amount }}! \ud83d\udcdd Te avisaremos en cuanto salga hacia tu direcci\u00f3n."
+                            "value": "=Recebemos seu pedido #{{ $('Webhook Supabase').item.json.body.display_id || $('Webhook Supabase').item.json.body.id.slice(0, 8) }}, total R$ {{ Number($('Webhook Supabase').item.json.body.total_amount).toFixed(2) }}! 📝 Avisaremos assim que sair para entrega."
                         }
                     ]
                 },
                 "options": {}
             },
             "id": "http-send-nuevo",
-            "name": "Enviar Confirmaci\u00f3n (Nuevo)",
+            "name": "Enviar Confirmación (Nuevo)",
             "type": "n8n-nodes-base.httpRequest",
             "typeVersion": 4.1,
             "position": [
@@ -202,7 +202,7 @@
                         },
                         {
                             "name": "text",
-                            "value": "=\u00a1Excelente noticia! \ud83d\ude9a Tu pedido #{{ $('Webhook Supabase').item.json.body.id }} va en camino. El motoboy fue notificado. Puedes tener listo el envase vac\u00edo si aplica."
+                            "value": "=Ótima notícia! 🚚 Seu pedido #{{ $('Webhook Supabase').item.json.body.display_id || $('Webhook Supabase').item.json.body.id.slice(0, 8) }} está a caminho com o entregador{{ $('Webhook Supabase').item.json.body.driver_name ? ' ' + $('Webhook Supabase').item.json.body.driver_name : '' }}. Deixe o vasilhame vazio pronto, se aplicável."
                         }
                     ]
                 },
@@ -242,7 +242,7 @@
                         },
                         {
                             "name": "text",
-                            "value": "=\u00a1Tu pedido #{{ $('Webhook Supabase').item.json.body.id }} fue entregado con \u00e9xito! \u2705 Gracias por elegir Center Gas. Esperamos verte pronto."
+                            "value": "=Seu pedido #{{ $('Webhook Supabase').item.json.body.display_id || $('Webhook Supabase').item.json.body.id.slice(0, 8) }} foi entregue com sucesso! ✅ Obrigado por escolher a Center Gás."
                         }
                     ]
                 },
@@ -299,7 +299,7 @@
             "main": [
                 [
                     {
-                        "node": "Enviar Confirmaci\u00f3n (Nuevo)",
+                        "node": "Enviar Confirmación (Nuevo)",
                         "type": "main",
                         "index": 0
                     }
@@ -527,14 +527,14 @@
                             },
                             {
                                 "name": "text",
-                                "value": "=\u00a1Recibimos tu pedido #{{ $('Webhook Supabase').item.json.body.id }}, total R$ {{ $('Webhook Supabase').item.json.body.total_amount }}! \ud83d\udcdd Te avisaremos en cuanto salga hacia tu direcci\u00f3n."
+                                "value": "=Recebemos seu pedido #{{ $('Webhook Supabase').item.json.body.display_id || $('Webhook Supabase').item.json.body.id.slice(0, 8) }}, total R$ {{ Number($('Webhook Supabase').item.json.body.total_amount).toFixed(2) }}! 📝 Avisaremos assim que sair para entrega."
                             }
                         ]
                     },
                     "options": {}
                 },
                 "id": "http-send-nuevo",
-                "name": "Enviar Confirmaci\u00f3n (Nuevo)",
+                "name": "Enviar Confirmación (Nuevo)",
                 "type": "n8n-nodes-base.httpRequest",
                 "typeVersion": 4.1,
                 "position": [
@@ -567,7 +567,7 @@
                             },
                             {
                                 "name": "text",
-                                "value": "=\u00a1Excelente noticia! \ud83d\ude9a Tu pedido #{{ $('Webhook Supabase').item.json.body.id }} va en camino. El motoboy fue notificado. Puedes tener listo el envase vac\u00edo si aplica."
+                                "value": "=Ótima notícia! 🚚 Seu pedido #{{ $('Webhook Supabase').item.json.body.display_id || $('Webhook Supabase').item.json.body.id.slice(0, 8) }} está a caminho com o entregador{{ $('Webhook Supabase').item.json.body.driver_name ? ' ' + $('Webhook Supabase').item.json.body.driver_name : '' }}. Deixe o vasilhame vazio pronto, se aplicável."
                             }
                         ]
                     },
@@ -607,7 +607,7 @@
                             },
                             {
                                 "name": "text",
-                                "value": "=\u00a1Tu pedido #{{ $('Webhook Supabase').item.json.body.id }} fue entregado con \u00e9xito! \u2705 Gracias por elegir Center Gas. Esperamos verte pronto."
+                                "value": "=Seu pedido #{{ $('Webhook Supabase').item.json.body.display_id || $('Webhook Supabase').item.json.body.id.slice(0, 8) }} foi entregue com sucesso! ✅ Obrigado por escolher a Center Gás."
                             }
                         ]
                     },
@@ -664,7 +664,7 @@
                 "main": [
                     [
                         {
-                            "node": "Enviar Confirmaci\u00f3n (Nuevo)",
+                            "node": "Enviar Confirmación (Nuevo)",
                             "type": "main",
                             "index": 0
                         }

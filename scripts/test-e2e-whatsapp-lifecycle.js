@@ -204,13 +204,23 @@ async function main() {
       p_cash_change_for: 200
     };
 
-    const { data: orderId, error: orderErr } = await anonSupabase.rpc('create_b2c_order', comboOrderPayload);
-    if (orderErr || !orderId) {
+    const { data: orderRes, error: orderErr } = await anonSupabase.rpc('create_b2c_order', comboOrderPayload);
+    if (orderErr || !orderRes) {
       throw new Error(`Error al crear orden B2C: ${orderErr?.message}`);
     }
 
-    testOrderId = orderId;
-    console.log(`   ✓ Orden creada exitosamente con ID: ${testOrderId}`);
+    const actualOrderId = typeof orderRes === 'object' ? (orderRes.order_id || orderRes.id) : orderRes;
+    const actualDisplayId = typeof orderRes === 'object' ? orderRes.display_id : null;
+
+    if (!actualOrderId) {
+      throw new Error(`No se pudo obtener el ID de la orden creada: ${JSON.stringify(orderRes)}`);
+    }
+    if (actualDisplayId && !/^\d{4}$/.test(actualDisplayId)) {
+      throw new Error(`display_id inválido retornado por create_b2c_order: "${actualDisplayId}". Se esperaban 4 dígitos.`);
+    }
+
+    testOrderId = actualOrderId;
+    console.log(`   ✓ Orden creada exitosamente con ID: ${testOrderId} (display_id: #${actualDisplayId || 'N/A'})`);
 
     // 2.3 Validar regla de descuento contable en Supabase
     const { data: orderData, error: fetchOrderErr } = await adminSupabase
