@@ -2,18 +2,16 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "astro",
   "cleanUrls": true,
-  "rewrites": [
+  "redirects": [
     {
-      "source": "/driver",
-      "destination": "/driver"
+      "source": "/p/:token",
+      "destination": "/?token=:token",
+      "permanent": false
     },
     {
-      "source": "/driver/:match*",
-      "destination": "/driver/:match*"
-    },
-    {
-      "source": "/:token([a-zA-Z0-9]{6,64})",
-      "destination": "/index.html"
+      "source": "/:token((?!driver|_astro|favicon).+)",
+      "destination": "/?token=:token",
+      "permanent": false
     }
   ]
 }
