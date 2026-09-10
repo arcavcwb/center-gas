@@ -88,3 +88,29 @@ jobs:
       # - name: E2E tests (Playwright)
       #   run: pnpm test:e2e
       # ------------------------------------------------------------------
+
+  # ====================================================================
+  # Esquema: las migraciones contra un Postgres real.
+  # ====================================================================
+  # Corre en paralelo al job de Node porque no comparte nada con él.
+  #
+  # Es lo único que detecta colisiones de versión entre migraciones,
+  # migraciones no idempotentes, funciones que no compilan y regresiones de
+  # RLS. Un lint de SQL no ve nada de eso, y hasta ahora sólo se ejecutaba a
+  # mano — que es como decir que no se ejecutaba.
+  #
+  # BLOQUEANTE: si una aserción se pone en rojo, el PR no se puede mergear.
+  # Está prohibido añadir "continue-on-error" aquí.
+  schema:
+    name: Migraciones y aserciones (Postgres real)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # El runner de GitHub ya trae Docker, que es lo único que pide el script.
+      # Se invoca el MISMO script que se usa en local: si diverge, deja de servir
+      # como verificación previa al despliegue.
+      - name: Aplicar migraciones y ejecutar aserciones
+        run: ./supabase/tests/run.sh

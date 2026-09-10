@@ -226,7 +226,7 @@ Antes de tocar producción puedes ver las migraciones correr en limpio contra un
 ```
 
 Levanta un Postgres efímero en Docker, aplica las **29 migraciones** sobre una base vacía y
-ejecuta **32 aserciones funcionales**. No toca ninguna base remota; sólo necesita Docker.
+ejecuta **47 aserciones funcionales**. No toca ninguna base remota; sólo necesita Docker.
 
 Es además la única forma de detectar colisiones de versión, migraciones no idempotentes y
 funciones que no compilan — cosas que ningún linter de SQL ve. Conviene ejecutarlo antes de
