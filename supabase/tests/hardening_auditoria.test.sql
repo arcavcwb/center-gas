@@ -359,3 +359,64 @@ BEGIN
   PERFORM t('motoboy no puede tocar el pedido de otro', v_afectadas::text, '0');
 END $$;
 RESET ROLE;
+
+-- ============================================================================
+-- 16. Fase 1: el coste de RLS deja de crecer con la tabla
+-- ============================================================================
+-- Estas aserciones comprueban la FORMA del cambio, no su efecto: que las
+-- funciones sean STABLE y que ningún predicado llame a is_owner() o a
+-- auth.uid() sin envolver. El efecto —que el plan use InitPlan e Index Scan—
+-- sólo se ve con volumen real, y por eso se mide con EXPLAIN (ANALYZE) contra
+-- producción, no aquí: con cuatro filas de prueba el planificador elegiría un
+-- Seq Scan de todos modos y la aserción fallaría por el motivo equivocado.
+--
+-- La verificación de que NO se rompió nada es el bloque 15, que se acaba de
+-- ejecutar contra este mismo esquema ya migrado.
+
+\echo ''
+\echo '=== 16. RLS: predicados envueltos y funciones STABLE ==='
+
+SELECT t('is_owner() es STABLE',  provolatile::text, 's')
+FROM pg_proc WHERE proname='is_owner'  AND pronamespace='public'::regnamespace;
+SELECT t('is_driver() es STABLE', provolatile::text, 's')
+FROM pg_proc WHERE proname='is_driver' AND pronamespace='public'::regnamespace;
+
+-- Si alguien añade una política nueva con el patrón viejo, estas dos la cazan.
+SELECT t('ninguna politica llama a is_owner() sin envolver', count(*)::text, '0')
+FROM pg_policies
+WHERE schemaname='public'
+  AND COALESCE(qual,'')||COALESCE(with_check,'') LIKE '%is_owner()%'
+  AND COALESCE(qual,'')||COALESCE(with_check,'') NOT LIKE '%SELECT is_owner()%';
+
+SELECT t('ninguna politica llama a auth.uid() sin envolver', count(*)::text, '0')
+FROM pg_policies
+WHERE schemaname='public'
+  AND COALESCE(qual,'')||COALESCE(with_check,'') LIKE '%auth.uid()%'
+  AND COALESCE(qual,'')||COALESCE(with_check,'') NOT LIKE '%SELECT auth.uid()%';
+
+SELECT t('existe el indice parcial de pedidos activos',
+  (to_regclass('public.idx_orders_activos') IS NOT NULL)::text, 'true');
+
+\echo ''
+\echo '=== 17. La purga borra lo caducado y respeta lo vigente ==='
+
+INSERT INTO catalog_sessions (token, phone_context, expires_at, created_at) VALUES
+  ('PURGEOLD','5541900000001', now() - INTERVAL '30 days', now() - INTERVAL '31 days'),
+  ('PURGENEW','5541900000002', now() + INTERVAL '1 day',   now())
+ON CONFLICT (token) DO NOTHING;
+
+SELECT public.purge_ephemeral_data();
+
+SELECT t('borra la sesion caducada hace 30 dias', count(*)::text, '0')
+FROM catalog_sessions WHERE token='PURGEOLD';
+SELECT t('y NO toca la sesion vigente', count(*)::text, '1')
+FROM catalog_sessions WHERE token='PURGENEW';
+SELECT t('tampoco toca una caducada hace 1 hora', count(*)::text, '1')
+FROM catalog_sessions WHERE token='TOKEXP';
+
+SELECT t('anon NO puede ejecutar la purga',
+  has_function_privilege('anon','public.purge_ephemeral_data()','EXECUTE')::text, 'false');
+SELECT t('authenticated NO puede ejecutar la purga',
+  has_function_privilege('authenticated','public.purge_ephemeral_data()','EXECUTE')::text, 'false');
+SELECT t('service_role SI puede',
+  has_function_privilege('service_role','public.purge_ephemeral_data()','EXECUTE')::text, 'true');
