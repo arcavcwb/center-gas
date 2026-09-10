@@ -241,3 +241,121 @@ BEGIN
   END;
   PERFORM t('la puerta sigue cerrada para clientes existentes', ok::text, 'true');
 END $$;
+
+-- ============================================================================
+-- 15. RLS — que la fila que no te toca, NO la veas
+-- ============================================================================
+-- Estas aserciones no prueban una función: prueban las POLÍTICAS. Existen para
+-- que el día que se toque RLS por rendimiento (marcar is_owner() como STABLE,
+-- envolver los predicados en SELECT) se pueda comprobar que sigue bloqueando
+-- exactamente lo mismo. Un cambio de RLS que va más rápido y además abre un
+-- agujero no falla por sí solo: hay que preguntarle.
+--
+-- Nota sobre el montaje: el resto del fichero corre como `postgres`, que es
+-- superusuario y SALTA RLS por completo. Aquí hace falta SET ROLE para dejar de
+-- ser superusuario y que las políticas se apliquen de verdad.
+
+-- Segundo motoboy, para poder demostrar aislamiento entre iguales.
+INSERT INTO auth.users (id, email)
+VALUES ('33333333-3333-3333-3333-333333333333','driver2@t.com')
+ON CONFLICT DO NOTHING;
+INSERT INTO profiles (id, full_name, role)
+VALUES ('33333333-3333-3333-3333-333333333333','Motoboy Dos','driver')
+ON CONFLICT (id) DO NOTHING;
+
+-- Un pedido para cada uno. display_id fijo para no depender del generador.
+INSERT INTO orders (display_id, customer_id, driver_id, status, payment_method, total_amount)
+VALUES
+  ('RLS001', (SELECT id FROM customers WHERE phone='5541999990001'),
+   '22222222-2222-2222-2222-222222222222', 'asignado', 'cash', 100.00),
+  ('RLS002', (SELECT id FROM customers WHERE phone='5541999990001'),
+   '33333333-3333-3333-3333-333333333333', 'asignado', 'cash', 100.00)
+ON CONFLICT (display_id) DO NOTHING;
+
+INSERT INTO order_items (order_id, product_id, quantity, unit_price)
+SELECT o.id, (SELECT id FROM products WHERE sku='p13_refill'), 1, 100.00
+FROM orders o WHERE o.display_id IN ('RLS001','RLS002')
+  AND NOT EXISTS (SELECT 1 FROM order_items i WHERE i.order_id = o.id);
+
+-- Un cliente con el que NINGUN motoboy tiene pedidos. Es el que delimita
+-- de verdad la politica: el motoboy ve los clientes DE SUS pedidos
+-- (20260829205500_fix_customers_rls.sql, deliberado: necesita nombre y
+-- direccion para entregar), pero no debe ver a nadie mas.
+INSERT INTO customers (phone, name) VALUES ('5541900000099','Cliente Ajeno')
+ON CONFLICT (phone) DO NOTHING;
+
+-- El id del cliente, para el intento de escritura de anon (que no puede leerlo).
+SELECT set_config('test.cust',
+  (SELECT id::text FROM customers WHERE phone='5541999990001'), false);
+
+\echo ''
+\echo '=== 15. RLS: cada quien ve lo suyo y nada mas ==='
+
+-- ---------- motoboy 1 ----------
+SET ROLE authenticated;
+SELECT set_config('test.uid','22222222-2222-2222-2222-222222222222', false);
+
+SELECT t('motoboy ve UN solo pedido de los dos',
+  count(*)::text, '1') FROM orders WHERE display_id LIKE 'RLS%';
+SELECT t('y es exactamente el suyo',
+  COALESCE(max(display_id),'ninguno'), 'RLS001') FROM orders WHERE display_id LIKE 'RLS%';
+SELECT t('motoboy NO ve a un cliente con el que no tiene pedidos',
+  count(*)::text, '0') FROM customers WHERE phone='5541900000099';
+SELECT t('pero SI ve al cliente de su propio pedido',
+  count(*)::text, '1') FROM customers WHERE phone='5541999990001';
+SELECT t('motoboy NO ve items de pedidos ajenos',
+  count(*)::text, '1') FROM order_items i
+  JOIN orders o ON o.id = i.order_id WHERE o.display_id LIKE 'RLS%';
+RESET ROLE;
+
+-- ---------- motoboy 2: el aislamiento es simetrico ----------
+SET ROLE authenticated;
+SELECT set_config('test.uid','33333333-3333-3333-3333-333333333333', false);
+SELECT t('el otro motoboy ve el OTRO pedido',
+  COALESCE(max(display_id),'ninguno'), 'RLS002') FROM orders WHERE display_id LIKE 'RLS%';
+RESET ROLE;
+
+-- ---------- el dueno ----------
+SET ROLE authenticated;
+SELECT set_config('test.uid','11111111-1111-1111-1111-111111111111', false);
+SELECT t('el dueno ve los DOS pedidos',
+  count(*)::text, '2') FROM orders WHERE display_id LIKE 'RLS%';
+SELECT t('el dueno SI ve al cliente ajeno',
+  count(*)::text, '1') FROM customers WHERE phone='5541900000099';
+RESET ROLE;
+
+-- ---------- anonimo ----------
+SET ROLE anon;
+SELECT set_config('test.uid','', false);
+SELECT t('anon NO lee pedidos',   count(*)::text, '0') FROM orders;
+SELECT t('anon NO lee clientes',  count(*)::text, '0') FROM customers;
+SELECT t('anon NO lee perfiles',  count(*)::text, '0') FROM profiles;
+SELECT t('anon NO lee historial', count(*)::text, '0') FROM order_status_history;
+SELECT t('anon SI lee el catalogo de productos', (count(*) > 0)::text, 'true') FROM products;
+RESET ROLE;
+
+-- ---------- anonimo, escritura ----------
+SET ROLE anon;
+DO $$
+DECLARE ok boolean := false;
+BEGIN
+  BEGIN
+    INSERT INTO orders (display_id, customer_id, status, payment_method, total_amount)
+    VALUES ('RLSHACK', current_setting('test.cust')::uuid, 'nuevo', 'cash', 1.00);
+  EXCEPTION WHEN insufficient_privilege THEN ok := true;
+  END;
+  PERFORM t('anon NO puede insertar pedidos a mano', ok::text, 'true');
+END $$;
+RESET ROLE;
+
+-- ---------- un motoboy no puede reasignarse pedidos ajenos ----------
+SET ROLE authenticated;
+SELECT set_config('test.uid','22222222-2222-2222-2222-222222222222', false);
+DO $$
+DECLARE v_afectadas int;
+BEGIN
+  UPDATE orders SET status = 'en_camino' WHERE display_id = 'RLS002';
+  GET DIAGNOSTICS v_afectadas = ROW_COUNT;
+  PERFORM t('motoboy no puede tocar el pedido de otro', v_afectadas::text, '0');
+END $$;
+RESET ROLE;
