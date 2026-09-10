@@ -2,7 +2,7 @@
 # ==============================================================================
 # Verificación de las migraciones contra un Postgres real, en Docker.
 # ==============================================================================
-# Aplica las 30 migraciones sobre una base vacía y ejecuta las aserciones
+# Aplica las 31 migraciones sobre una base vacía y ejecuta las aserciones
 # funcionales de hardening_auditoria.test.sql.
 #
 # Es la única forma de saber si el esquema que describe el repositorio es
