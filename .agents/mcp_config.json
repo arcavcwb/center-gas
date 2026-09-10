@@ -4,7 +4,7 @@
       "command": "npx",
       "args": ["-y", "@makeplane/plane-mcp-server"],
       "env": {
-        "PLANE_API_KEY": "plane_api_512377479beb4978a69cce11b70cac71",
+        "PLANE_API_KEY": "${PLANE_API_KEY}",
         "PLANE_WORKSPACE_SLUG": "lead-flow",
         "PLANE_BASE_URL": "https://api.plane.so"
       }
@@ -14,7 +14,7 @@
       "args": ["-y", "n8n-mcp"],
       "env": {
         "N8N_API_URL": "https://n8n.arcav.us/api/v1",
-        "N8N_API_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjN2QzZTZjMS00OGM0LTRjNzAtYjhkOS1mY2FkY2VjMGNiMTMiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwianRpIjoiNWRlZDY1ODEtMDQ0YS00N2M1LTllN2YtYTU1N2I5ZTM3ZmQzIiwiaWF0IjoxNzg1NjI4Njg4fQ.Ciuly3RZhOFzZZe3lH7fwe9DgCKvRUH4yB3c5tlFucE"
+        "N8N_API_KEY": "${N8N_API_KEY}"
       }
     },
     "playwright": {

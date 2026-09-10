@@ -30,10 +30,16 @@ BEGIN
         );
 
         -- Enviar petición HTTP POST a n8n
+        -- SEGURIDAD (ISSUE-816): el token real fue RETIRADO de este archivo porque
+        -- quedó expuesto en texto plano en un repositorio público. Ese token se
+        -- considera quemado y ya fue rotado. El valor de abajo es un placeholder
+        -- no explotable y se conserva sólo para que el histórico de migraciones
+        -- siga siendo aplicable. La versión vigente de esta función lee el token
+        -- desde la tabla system_config (migración 20260909000000_security_containment.sql).
         PERFORM net.http_post(
             url := 'https://n8n.arcav.us/webhook/supabase-outbound-orders',
             body := payload,
-            headers := '{"Content-Type": "application/json", "Authorization": "Bearer CENTERGAS_SECURE_TOKEN_2026"}'::jsonb
+            headers := '{"Content-Type": "application/json", "Authorization": "Bearer TOKEN-RETIRADO-VER-SYSTEM-CONFIG"}'::jsonb
         );
     END IF;
 

@@ -9,7 +9,7 @@
 
 ## 🛠️ Solución Implementada (Arquitectura Zero-Trust & Impeccable)
 
-### 1. Base de Datos / Supabase ([`supabase/migrations/20260908010000_resilient_brazilian_phone_matching.sql`](file:///home/arcav/projects/center-gas/center-gas-platform/supabase/migrations/20260908010000_resilient_brazilian_phone_matching.sql))
+### 1. Base de Datos / Supabase ([`supabase/migrations/20260908011000_resilient_brazilian_phone_matching.sql`](file:///home/arcav/projects/center-gas/center-gas-platform/supabase/migrations/20260908011000_resilient_brazilian_phone_matching.sql))
 * **Función Helper Inmutable `get_phone_variants(p_phone VARCHAR) RETURNS TEXT[]`:**
   * Extrae solo dígitos y antepone `55` si viene en formato local (10 u 11 dígitos).
   * Si es un número brasileño de 12 dígitos (`55` + 2 DDD + 8 locales), genera la variante con 9° dígito insertándolo tras el DDD (`substr(v_digits, 1, 4) || '9' || substr(v_digits, 5)`).

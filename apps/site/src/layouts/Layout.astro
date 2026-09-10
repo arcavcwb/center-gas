@@ -1,4 +1,10 @@
 ---
+// AVISO (codigo muerto): ningun archivo del proyecto importa este layout.
+// Verificado con grep sobre apps/ y packages/: cero importaciones de
+// 'layouts/Layout' o 'Layout.astro'. Aun asi, es el unico sitio donde se
+// define la meta description del proyecto, asi que no se elimina por ahora.
+// TODO: decidir si se cablea en las paginas reales (index.astro, 404.astro,
+// driver/index.astro) o si se borra. Decision pendiente del equipo.
 interface Props {
   title?: string;
   description?: string;

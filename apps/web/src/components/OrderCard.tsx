@@ -6,6 +6,9 @@ import type { Order } from '@center-gas/contracts';
 
 interface OrderCardProps {
   order: Order & {
+    // Dirección de ESTE pedido (orders.delivery_address); la ficha del cliente
+    // ya no se sobrescribe al pedir, así que puede haber cambiado después.
+    delivery_address?: string | null;
     items?: Array<{
       quantity: number;
       unit_price: number;
@@ -52,6 +55,9 @@ function getSlaInfo(createdAt: string, isScheduled: boolean) {
 
 export function OrderCard({ order, onUpdateStatus, onCancelRequest, drivers = [] }: OrderCardProps) {
   const isNew = order.status === 'nuevo' || order.status === 'confirmado';
+  // El grafo de transiciones de update_order_status no admite 'asignado' -> 'entregado':
+  // hay que pasar por 'en_camino'. La acción de la tarjeta sigue ese camino.
+  const isAssigned = order.status === 'asignado';
   const sla = getSlaInfo(order.created_at, order.is_scheduled);
   const SlaIcon = sla.icon;
 
@@ -109,7 +115,7 @@ export function OrderCard({ order, onUpdateStatus, onCancelRequest, drivers = []
         <div className="flex items-start gap-1.5 text-xs text-slate-500">
           <MapPin size={13} className="shrink-0 mt-0.5 text-slate-400" />
           <p className="line-clamp-2 break-words leading-snug">
-            {order.customer?.address_line || 'Endereço não informado'}
+            {order.delivery_address || order.customer?.address_line || 'Endereço não informado'}
           </p>
         </div>
       </div>
@@ -168,6 +174,14 @@ export function OrderCard({ order, onUpdateStatus, onCancelRequest, drivers = []
               )}
             </select>
           </div>
+        ) : isAssigned ? (
+          <button 
+            onClick={() => onUpdateStatus(order.id, 'en_camino')}
+            className="flex-1 min-h-[40px] bg-blue-600 hover:bg-blue-700 text-white py-2 px-3 rounded-xl font-bold text-xs shadow-xs hover:shadow transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+          >
+            <Truck size={15} />
+            <span>Iniciar Rota</span>
+          </button>
         ) : (
           <button 
             onClick={() => onUpdateStatus(order.id, 'entregado')}

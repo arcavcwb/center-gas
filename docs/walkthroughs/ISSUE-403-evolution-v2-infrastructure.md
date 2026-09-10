@@ -9,7 +9,7 @@ Configurar la infraestructura de mensajería para Center Gas de manera segura, e
 - Se documentó el archivo `infrastructure/evolution-api/docker-compose.yml` final que despliega Evolution API v2 en el VPS.
 - **Breaking Changes Manejados:** Se incorporó de manera nativa un contenedor de PostgreSQL (ahora obligatorio en v2) y se migró Redis exclusivamente a funciones de Caché y Sesión.
 - **Seguridad Perimetral:**
-  - Instancia protegida con `AUTHENTICATION_TYPE: apikey` (Clave: `CENTERGAS_EVOLUTION_KEY_2026`).
+  - Instancia protegida con `AUTHENTICATION_TYPE: apikey` (la clave se inyecta desde la variable de entorno `AUTHENTICATION_API_KEY`, consumida por n8n como `EVOLUTION_API_KEY`; su valor real nunca se versiona — ver [`infrastructure/evolution-api/.env.example`](../../infrastructure/evolution-api/.env.example)).
   - Resolución DNS a través de Cloudflare (Registro A sin proxy en `evolution.arcav.us`) para permitir la generación de SSL.
   - Generación de certificado HTTPS mediante Nginx Proxy Manager en el puerto 81.
   - Conexión al Manager GUI habilitada exitosamente.
@@ -57,5 +57,8 @@ Durante las pruebas End-to-End, se detectaron dos fallas críticas en el procesa
 - Se actualizaron todas las referencias en los nodos de n8n para usar `json.body.id`, `json.body.status` y `json.body.customer_phone`.
 - Se incluyó lógica dinámica en las expresiones de n8n para asegurar que el número de teléfono comience siempre con `55`: `{{ $('Webhook Supabase').item.json.body.customer_phone.startsWith('55') ? $('Webhook Supabase').item.json.body.customer_phone : '55' + $('Webhook Supabase').item.json.body.customer_phone }}`.
 - Se corrigió el uso incorrecto de variables de entorno (bloqueado por `N8N_BLOCK_ENV_ACCESS_IN_NODE`), reemplazándolas por los valores concretos.
+
+> [!NOTE]
+> **Nota posterior (incidente de seguridad 2026-09):** esa solución de pegar "valores concretos" dentro de los nodos fue la que terminó publicando claves en texto plano. La forma correcta es usar **Credentials nativas de n8n** (cifradas en su base de datos y referenciadas por nombre), no literales en el JSON del workflow ni en scripts de despliegue. Ver [`docs/SECURITY-INCIDENT-2026-09.md`](../SECURITY-INCIDENT-2026-09.md).
 
 **Resultado:** Las ejecuciones en n8n finalizaron con status `SUCCESS` y la plataforma de WhatsApp recibió y entregó exitosamente los mensajes. El archivo JSON en el repositorio (`workflows/n8n/WF-02_WhatsApp_Outbound.json`) fue actualizado para reflejar este estado exitoso.

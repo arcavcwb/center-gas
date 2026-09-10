@@ -1,9 +1,39 @@
+import os
 import requests
 import json
 import sys
 
-API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjN2QzZTZjMS00OGM0LTRjNzAtYjhkOS1mY2FkY2VjMGNiMTMiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwianRpIjoiNWRlZDY1ODEtMDQ0YS00N2M1LTllN2YtYTU1N2I5ZTM3ZmQzIiwiaWF0IjoxNzg1NjI4Njg4fQ.Ciuly3RZhOFzZZe3lH7fwe9DgCKvRUH4yB3c5tlFucE"
-URL = "https://n8n.arcav.us/api/v1/workflows"
+
+def env_requerida(nombre, pista=""):
+    """Devuelve el valor de una variable de entorno obligatoria.
+
+    Si falta (o esta vacia) aborta ruidosamente: nunca se usa un valor por
+    defecto para un secreto, porque un default silencioso solo consigue que el
+    script parezca funcionar mientras habla con el sitio equivocado.
+    """
+    valor = os.environ.get(nombre, "").strip()
+    if not valor:
+        mensaje = (
+            f"ERROR: falta la variable de entorno obligatoria {nombre}.\n"
+            f"       Definela antes de ejecutar este script, por ejemplo:\n"
+            f'       export {nombre}="<valor-real>"'
+        )
+        if pista:
+            mensaje += f"\n       {pista}"
+        print(mensaje, file=sys.stderr)
+        sys.exit(1)
+    return valor
+
+
+# Secreto: nunca se hardcodea en el repositorio (es publico).
+API_KEY = env_requerida(
+    "N8N_API_KEY",
+    "Se obtiene en n8n > Settings > n8n API > Create an API key.",
+)
+
+# Configuracion no secreta: se puede sobreescribir por entorno.
+BASE_URL = os.environ.get("N8N_BASE_URL", "https://n8n.arcav.us").rstrip("/")
+URL = f"{BASE_URL}/api/v1/workflows"
 
 headers = {
     "X-N8N-API-KEY": API_KEY,

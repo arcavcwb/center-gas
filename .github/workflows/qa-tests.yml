@@ -5,27 +5,86 @@ on:
     branches:
       - main
 
+# Nota: este workflow es BLOQUEANTE. Si lint, tests unitarios o build fallan, el PR
+# no debe poder mergearse. Está prohibido añadir "continue-on-error" o "|| true":
+# el objetivo del job es fallar cuando algo está mal, no reportar verde por defecto.
 jobs:
   qa-tests:
+    name: Lint, tests unitarios y build
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Aquí instalaremos Node, dependencias y Supabase CLI en el futuro
-      # - name: Setup Node
-      #   uses: actions/setup-node@v4
-      #   with:
-      #     node-version: 20
-      
-      # - name: Install Dependencies
-      #   run: npm ci
+      # La versión de pnpm se toma del campo "packageManager" de package.json
+      # (actualmente pnpm@9.10.0). No la dupliques aquí: si difiere, la acción falla.
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
 
-      # - name: Run Unit Tests (Vitest)
-      #   run: npm run test
+      # Astro 7 exige Node >= 22.12.0 y aborta el build por debajo de esa
+      # version. Mantener este valor alineado con el campo "engines" de
+      # package.json y con la version que usa Vercel.
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: pnpm
 
-      # - name: Run E2E Tests (Playwright)
-      #   run: npx playwright test
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
-      - name: Notify QA Success
-        run: echo "Todos los tests pasaron exitosamente. Listo para merge."
+      - name: Lint
+        run: pnpm lint
+
+      # Corre vitest en packages/contracts (pnpm --filter @center-gas/contracts test).
+      - name: Unit tests (Vitest)
+        run: pnpm test:unit
+
+      # apps/site instancia el cliente de Supabase en scope de módulo
+      # (src/lib/supabase.ts) y supabase-js rechaza una URL vacía, así que el
+      # prerender de las rutas estáticas revienta sin estas variables.
+      #
+      # Este job comprueba que el proyecto COMPILA, no que hable con Supabase:
+      # si los secretos no están dados de alta se usan valores ficticios y el
+      # build sigue siendo válido. Nunca se abre una conexión, y el artefacto
+      # se descarta al terminar el job. Si se dan de alta los secretos (la URL
+      # y la clave anónima, que son públicas por diseño — nunca la
+      # service_role), se usan esos en su lugar.
+      - name: Build
+        env:
+          PUBLIC_SUPABASE_URL: ${{ secrets.PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co' }}
+          PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key-solo-para-el-build' }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co' }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key-solo-para-el-build' }}
+        run: pnpm build
+
+      # ------------------------------------------------------------------
+      # E2E (Playwright) — DESACTIVADO A PROPÓSITO, NO ES UN OLVIDO.
+      #
+      # Por qué no puede correr hoy en CI:
+      #   1. apps/e2e/playwright.config.ts no define "webServer", así que Playwright
+      #      no levanta ninguna aplicación: en el runner no hay nada escuchando y
+      #      todos los tests fallarían por conexión rechazada.
+      #   2. Las page objects y los specs navegan a URLs absolutas hardcodeadas
+      #      (http://localhost:3000 para apps/web y http://localhost:3001 para
+      #      apps/site), ignorando el baseURL del config. Ver:
+      #      apps/e2e/pages/KanbanPage.ts, apps/e2e/pages/DriverApp.ts,
+      #      apps/e2e/pages/CatalogPage.ts, apps/e2e/tests/owner.spec.ts,
+      #      apps/e2e/tests/driver.spec.ts.
+      #   3. Los flujos dependen de datos y de una instancia de Supabase real; no hay
+      #      seed ni entorno efímero definido.
+      #
+      # Qué hace falta para activarlo (y recién ahí descomentar estos pasos):
+      #   a. Añadir "webServer" en playwright.config.ts que arranque apps/web (3000)
+      #      y apps/site (3001), o levantarlos en un paso previo del job.
+      #   b. Reemplazar las URLs absolutas por rutas relativas apoyadas en baseURL.
+      #   c. Definir un entorno de datos de prueba (proyecto Supabase de staging o
+      #      supabase start local) y sus secretos en el repositorio.
+      #
+      # - name: Install Playwright browsers
+      #   run: pnpm --filter e2e exec playwright install --with-deps chromium
+      #
+      # - name: E2E tests (Playwright)
+      #   run: pnpm test:e2e
+      # ------------------------------------------------------------------

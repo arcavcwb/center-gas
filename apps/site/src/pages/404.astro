@@ -1,6 +1,15 @@
 ---
 import Catalog from '../components/Catalog';
 import '../styles/global.css';
+
+// TODO(produccion): definir PUBLIC_WHATSAPP_NUMBER en las variables de entorno de
+// Vercel con el numero real de la tienda ANTES de anunciar el sitio. Mientras esa
+// variable no exista, el enlace de WhatsApp apunta a 5541999999999, que es un
+// placeholder y NO es un numero que exista: nadie recibe esos mensajes.
+const whatsappNumber = import.meta.env.PUBLIC_WHATSAPP_NUMBER || '5541999999999';
+// Mensaje prellenado unico para el enlace de contacto de esta pagina
+const whatsappMessage = 'Olá, gostaria de fazer um pedido na Center Gás';
+const whatsappHref = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
 ---
 
 <html lang="pt-BR">
@@ -25,7 +34,7 @@ import '../styles/global.css';
         </div>
       </div>
       <a 
-        href="https://wa.me/5541999999999?text=Ol%C3%A1%2C%20gostaria%20de%20fazer%20um%20pedido%20na%20Center%20G%C3%A1s" 
+        href={whatsappHref} 
         target="_blank"
         rel="noopener noreferrer"
         class="text-xs font-bold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 px-3.5 py-1.5 rounded-full transition-colors flex items-center gap-1.5 shadow-xs"

@@ -1,9 +1,40 @@
+import os
+import sys
+
 import requests
 
-API_KEY = "plane_api_512377479beb4978a69cce11b70cac71"
-WORKSPACE = "lead-flow"
-PROJECT_ID = "439788cb-26c2-408d-a5e3-fde74e493f07"
-BASE_URL = "https://api.plane.so"
+
+def env_requerida(nombre, pista=""):
+    """Devuelve el valor de una variable de entorno obligatoria.
+
+    Si falta (o esta vacia) aborta ruidosamente: nunca se usa un valor por
+    defecto para un secreto, porque un default silencioso solo consigue que el
+    script parezca funcionar mientras habla con el sitio equivocado.
+    """
+    valor = os.environ.get(nombre, "").strip()
+    if not valor:
+        mensaje = (
+            f"ERROR: falta la variable de entorno obligatoria {nombre}.\n"
+            f"       Definela antes de ejecutar este script, por ejemplo:\n"
+            f'       export {nombre}="<valor-real>"'
+        )
+        if pista:
+            mensaje += f"\n       {pista}"
+        print(mensaje, file=sys.stderr)
+        sys.exit(1)
+    return valor
+
+
+# Secreto: nunca se hardcodea en el repositorio (es publico).
+API_KEY = env_requerida(
+    "PLANE_API_KEY",
+    "Se obtiene en Plane > Workspace Settings > API Tokens.",
+)
+
+# Configuracion no secreta: se puede sobreescribir por entorno.
+WORKSPACE = os.environ.get("PLANE_WORKSPACE", "lead-flow")
+PROJECT_ID = os.environ.get("PLANE_PROJECT_ID", "439788cb-26c2-408d-a5e3-fde74e493f07")
+BASE_URL = os.environ.get("PLANE_BASE_URL", "https://api.plane.so").rstrip("/")
 
 headers = {
     "x-api-key": API_KEY,
