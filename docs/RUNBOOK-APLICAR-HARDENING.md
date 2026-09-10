@@ -16,7 +16,7 @@ El cambio de código ya está aplicado y verificado (ver
 
 Hay una trampa. La migración revoca `generate_catalog_session` para el rol `anon`: a partir
 de ese momento **sólo n8n puede acuñar sesiones de catálogo**, usando la `service_role`. Si
-rotas la `service_role` y aplicas la migración *antes* de actualizar las credenciales en n8n,
+rotas la `service_role` y aplicas las migraciones *antes* de actualizar las credenciales en n8n,
 WF-01 deja de poder crear sesiones y **los clientes dejan de recibir el enlace del catálogo**.
 
 Sigue el orden de abajo y eso no ocurre.
@@ -50,20 +50,63 @@ entre documentos.
 
 ---
 
-## Paso 2 — Aplicar la migración
+## Paso 2 — Aplicar las migraciones
 
-Fichero: `supabase/migrations/20260909120000_hardening_auditoria_integral.sql`
+Son **dos ficheros, y el orden importa**:
+
+| # | Fichero | Qué aporta |
+|---|---------|------------|
+| 1 | `supabase/migrations/20260909000000_security_containment.sql` | Contención: saca el token del webhook del código y lo mueve a `system_config` |
+| 2 | `supabase/migrations/20260909120000_hardening_auditoria_integral.sql` | Hardening: cierra los críticos y altos de la auditoría |
+
+> [!WARNING]
+> **No apliques sólo la segunda.** Las dos redefinen `check_customer_exists` y
+> `register_b2c_customer`, así que la que se ejecute en segundo lugar es la que queda: si
+> inviertes el orden, la contención pisa las versiones endurecidas y reabres los críticos.
+>
+> Y `notify_order_status_to_n8n` —la función que dispara el webhook de WhatsApp— **sólo** se
+> redefine en la primera. Saltártela deja el token escrito a fuego dentro de la función, que
+> es justamente el agujero que este paso viene a cerrar.
 
 **No uses `supabase db push`.** El historial de migraciones del proyecto arrastra una
 colisión de versión ya corregida en el repositorio (dos ficheros compartían el prefijo
 `20260908010000`), y la CLI intentará reconciliar contra `supabase_migrations.schema_migrations`
 con un estado que puede no coincidir con lo que hay aplicado en producción.
 
-En su lugar: **Dashboard de Supabase → SQL Editor →** pega el contenido completo del fichero
-y ejecútalo.
+En su lugar: **Dashboard de Supabase → SQL Editor →** pega el contenido completo del primer
+fichero y ejecútalo; después el segundo.
 
-La migración es **idempotente**: si algo falla a media ejecución, puedes volver a lanzarla
-entera sin romper nada. Está verificado aplicándola dos veces seguidas.
+Las dos son **idempotentes**: si algo falla a media ejecución, puedes volver a lanzarlas
+enteras sin romper nada. Los únicos `INSERT` a nivel de migración son los dos de
+`system_config`, ambos con `ON CONFLICT DO NOTHING`; el resto viven dentro de cuerpos de
+función y sólo corren al llamarlas.
+
+### Comprobar que quedó aplicado
+
+En el SQL Editor. No devuelve ningún secreto — del token sólo la longitud:
+
+```sql
+SELECT p.proname AS funcion,
+       COALESCE(array_to_string(p.proconfig, ', '), '⚠ sin search_path') AS config,
+       has_function_privilege('anon', p.oid, 'EXECUTE') AS anon_ejecuta
+FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+WHERE n.nspname = 'public' AND p.proname IN (
+  'generate_catalog_session','resolve_catalog_session','check_customer_exists',
+  'has_phone_possession_proof','register_b2c_customer','create_b2c_order',
+  'update_order_status','increment_loyalty_points','get_vasilhame_fees',
+  'calculate_vasilhame_penalty','notify_order_status_to_n8n','is_owner','is_driver')
+ORDER BY 1;
+
+SELECT key, CASE WHEN key = 'n8n_webhook_token'
+         THEN CASE WHEN value #>> '{}' = 'CONFIGURAR-TOKEN-ROTADO'
+              THEN '⚠ SIN CONFIGURAR' ELSE '✓ ' || length(value #>> '{}') || ' chars' END
+         ELSE value #>> '{}' END AS estado
+FROM system_config
+WHERE key IN ('n8n_webhook_token','vasilhame_fee_gas','vasilhame_fee_water') ORDER BY 1;
+```
+
+Lo que tiene que salir: `generate_catalog_session` con `anon_ejecuta = false` —ahí está el
+crítico cerrado—, todas las funciones con `search_path` fijado, y las tarifas en 170 y 20.
 
 ### Qué hace, en una línea cada cosa
 
@@ -82,7 +125,7 @@ entera sin romper nada. Está verificado aplicándola dos veces seguidas.
 
 ---
 
-## Paso 3 — Configurar los valores que la migración deja pendientes
+## Paso 3 — Configurar los valores que las migraciones dejan pendientes
 
 ### 3.a) Token del webhook Supabase → n8n
 
@@ -168,7 +211,7 @@ curl -s -X POST "https://<TU-REF>.supabase.co/rest/v1/rpc/generate_catalog_sessi
   -d '{"p_phone":"5541999999999"}'
 ```
 
-Si eso devuelve un token, la migración no se aplicó.
+Si eso devuelve un token, las migraciones no se aplicaron.
 
 Si algo se corta por el camino, **n8n → Executions** te dice en qué nodo.
 
@@ -176,7 +219,7 @@ Si algo se corta por el camino, **n8n → Executions** te dice en qué nodo.
 
 ## Verificación previa (opcional pero recomendada)
 
-Antes de tocar producción puedes ver la migración correr en limpio contra un Postgres real:
+Antes de tocar producción puedes ver las migraciones correr en limpio contra un Postgres real:
 
 ```bash
 ./supabase/tests/run.sh
