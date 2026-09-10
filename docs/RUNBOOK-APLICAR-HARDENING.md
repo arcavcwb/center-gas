@@ -14,12 +14,24 @@ El cambio de código ya está aplicado y verificado (ver
 
 ## Por qué el orden importa
 
-Hay una trampa. La migración revoca `generate_catalog_session` para el rol `anon`: a partir
-de ese momento **sólo n8n puede acuñar sesiones de catálogo**, usando la `service_role`. Si
-rotas la `service_role` y aplicas las migraciones *antes* de actualizar las credenciales en n8n,
-WF-01 deja de poder crear sesiones y **los clientes dejan de recibir el enlace del catálogo**.
+Hay una trampa. Las migraciones revocan `generate_catalog_session` para el rol `anon`: a
+partir de ese momento **sólo n8n puede acuñar sesiones de catálogo**, usando la
+`service_role`. Si rotas la `service_role` y aplicas las migraciones *antes* de actualizar las
+credenciales en n8n, WF-01 deja de poder crear sesiones y **los clientes dejan de recibir el
+enlace del catálogo**.
 
 Sigue el orden de abajo y eso no ocurre.
+
+> [!NOTE]
+> **De qué depende qué, con precisión.** Esa trampa existe *sólo si rotas*. Las migraciones no
+> dependen de la rotación: si aún no has rotado, el paso 2 se puede aplicar por su cuenta y n8n
+> sigue funcionando con la credencial que ya tiene.
+>
+> Eso no convierte la rotación en opcional — mientras la `service_role` expuesta siga siendo
+> válida, quien la tenga lee y escribe la base entera saltándose el RLS, y el hardening del
+> esquema no lo impide. Si por lo que sea se aplica el esquema antes de rotar, **la rotación
+> queda como bloqueante de go-live**: salir a producción con credenciales publicadas no es una
+> opción, y conviene anotarlo como tal en lugar de dejarlo como tarea suelta.
 
 Tiempo total estimado: **45–60 minutos**, casi todo en el paso 1.
 
@@ -52,34 +64,45 @@ entre documentos.
 
 ## Paso 2 — Aplicar las migraciones
 
-Son **dos ficheros, y el orden importa**:
+Son **cuatro ficheros, y el orden importa**. El nombre de cada uno ya lo lleva delante:
 
 | # | Fichero | Qué aporta |
 |---|---------|------------|
-| 1 | `supabase/migrations/20260909000000_security_containment.sql` | Contención: saca el token del webhook del código y lo mueve a `system_config` |
-| 2 | `supabase/migrations/20260909120000_hardening_auditoria_integral.sql` | Hardening: cierra los críticos y altos de la auditoría |
+| 1 | `20260909000000_security_containment.sql` | Contención: saca el token del webhook del código y lo mueve a `system_config` |
+| 2 | `20260909120000_hardening_auditoria_integral.sql` | Hardening: cierra los críticos y altos de la auditoría |
+| 3 | `20260910120000_escala_rls_indices_y_purga.sql` | Escala: RLS de coste constante, índice parcial y purga de lo desechable |
+| 4 | `20260910140000_paginar_carteira_clientes.sql` | Carteira de clientes servida por páginas |
 
 > [!WARNING]
-> **No apliques sólo la segunda.** Las dos redefinen `check_customer_exists` y
-> `register_b2c_customer`, así que la que se ejecute en segundo lugar es la que queda: si
-> inviertes el orden, la contención pisa las versiones endurecidas y reabres los críticos.
+> **El orden no es cosmético.** Hay tres dependencias reales entre estos ficheros:
 >
-> Y `notify_order_status_to_n8n` —la función que dispara el webhook de WhatsApp— **sólo** se
-> redefine en la primera. Saltártela deja el token escrito a fuego dentro de la función, que
-> es justamente el agujero que este paso viene a cerrar.
+> 1. La 1 y la 2 redefinen ambas `check_customer_exists` y `register_b2c_customer`. La que se
+>    ejecute en segundo lugar es la que queda: **invertirlas hace que la contención pise las
+>    versiones endurecidas y reabra los críticos.**
+> 2. `notify_order_status_to_n8n` —la función que dispara el webhook de WhatsApp— **sólo** se
+>    redefine en la 1. Saltártela deja el token escrito a fuego dentro de la función, que es
+>    justamente el agujero que este paso viene a cerrar.
+> 3. La 3 altera la política `"Solo el dueño lee el log de notificaciones"`, que **la crea la
+>    1**. Ejecutarla antes falla con «policy does not exist».
 
 **No uses `supabase db push`.** El historial de migraciones del proyecto arrastra una
 colisión de versión ya corregida en el repositorio (dos ficheros compartían el prefijo
 `20260908010000`), y la CLI intentará reconciliar contra `supabase_migrations.schema_migrations`
 con un estado que puede no coincidir con lo que hay aplicado en producción.
 
-En su lugar: **Dashboard de Supabase → SQL Editor →** pega el contenido completo del primer
-fichero y ejecútalo; después el segundo.
+En su lugar: **Dashboard de Supabase → SQL Editor →** pega el contenido completo de cada
+fichero y ejecútalo, en el orden de la tabla.
 
-Las dos son **idempotentes**: si algo falla a media ejecución, puedes volver a lanzarlas
-enteras sin romper nada. Los únicos `INSERT` a nivel de migración son los dos de
-`system_config`, ambos con `ON CONFLICT DO NOTHING`; el resto viven dentro de cuerpos de
-función y sólo corren al llamarlas.
+Las cuatro son **idempotentes**: si algo falla a media ejecución, puedes volver a lanzarlas
+enteras sin romper nada. Los únicos `INSERT` a nivel de migración son los de `system_config`,
+todos con `ON CONFLICT DO NOTHING`; el resto viven dentro de cuerpos de función y sólo corren
+al llamarlas. Verificado aplicando la 3 tres veces seguidas: el estado final es idéntico.
+
+> [!NOTE]
+> **`pg_cron` no es un requisito.** Si no está habilitado, la migración 3 **no falla**: avisa
+> con un `WARNING` y deja `public.purge_ephemeral_data()` creada para invocarla a mano. Para
+> automatizar la purga: Dashboard → `Database` → `Extensions` → `pg_cron`, y relanza esa
+> migración, que es idempotente.
 
 ### Comprobar que quedó aplicado
 
@@ -87,6 +110,7 @@ En el SQL Editor. No devuelve ningún secreto — del token sólo la longitud:
 
 ```sql
 SELECT p.proname AS funcion,
+       p.provolatile AS volatilidad,
        COALESCE(array_to_string(p.proconfig, ', '), '⚠ sin search_path') AS config,
        has_function_privilege('anon', p.oid, 'EXECUTE') AS anon_ejecuta
 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
@@ -94,8 +118,16 @@ WHERE n.nspname = 'public' AND p.proname IN (
   'generate_catalog_session','resolve_catalog_session','check_customer_exists',
   'has_phone_possession_proof','register_b2c_customer','create_b2c_order',
   'update_order_status','increment_loyalty_points','get_vasilhame_fees',
-  'calculate_vasilhame_penalty','notify_order_status_to_n8n','is_owner','is_driver')
+  'calculate_vasilhame_penalty','notify_order_status_to_n8n','is_owner','is_driver',
+  'get_customers_page','purge_ephemeral_data')
 ORDER BY 1;
+
+-- Ninguna política puede llamar a is_owner() sin envolver: si esto no da 0,
+-- la migración 3 no se aplicó y el coste de RLS sigue creciendo por fila.
+SELECT count(*) AS politicas_sin_envolver
+FROM pg_policies WHERE schemaname='public'
+  AND COALESCE(qual,'')||COALESCE(with_check,'') LIKE '%is_owner()%'
+  AND COALESCE(qual,'')||COALESCE(with_check,'') NOT LIKE '%SELECT is_owner()%';
 
 SELECT key, CASE WHEN key = 'n8n_webhook_token'
          THEN CASE WHEN value #>> '{}' = 'CONFIGURAR-TOKEN-ROTADO'
@@ -105,10 +137,17 @@ FROM system_config
 WHERE key IN ('n8n_webhook_token','vasilhame_fee_gas','vasilhame_fee_water') ORDER BY 1;
 ```
 
-Lo que tiene que salir: `generate_catalog_session` con `anon_ejecuta = false` —ahí está el
-crítico cerrado—, todas las funciones con `search_path` fijado, y las tarifas en 170 y 20.
+Lo que tiene que salir:
 
-### Qué hace, en una línea cada cosa
+- `generate_catalog_session` con `anon_ejecuta = false` — ahí está el crítico cerrado.
+- Todas las funciones con `search_path` fijado.
+- `is_owner` e `is_driver` con `volatilidad = s` (STABLE). Si sale `v`, la migración 3 no entró.
+- `politicas_sin_envolver = 0`.
+- Las tarifas de vasilhame en 170 y 20.
+
+### Qué hace cada una, en una línea por cambio
+
+**1 y 2 — contención y hardening**
 
 | # | Cambio | Cierra |
 |---|--------|--------|
@@ -122,6 +161,21 @@ crítico cerrado—, todas las funciones con `search_path` fijado, y las tarifas
 | 8 | `update_order_status`: valida transiciones y **persiste la taxa de vasilhame** | Crítico + alto |
 | 9 | `increment_loyalty_points`: no se puede volver a disparar sobre el mismo pedido | Alto |
 | 10 | `is_owner()` / `is_driver()`: `search_path` fijo | Bajo |
+| 11 | `notify_order_status_to_n8n`: el token del webhook sale del código a `system_config` | Crítico |
+
+**3 y 4 — escala**
+
+| # | Cambio | Por qué |
+|---|--------|---------|
+| 12 | `is_owner()` / `is_driver()` pasan a `STABLE`, y los 13 predicados de RLS a `(SELECT …)` | Eran `VOLATILE`: se reevaluaban **una vez por fila examinada**, y cada evaluación es una consulta a `profiles` |
+| 13 | Índice parcial `idx_orders_activos` | El Kanban filtra con dos desigualdades; el índice anterior no le servía y recorría el histórico entero |
+| 14 | `purge_ephemeral_data()` + `pg_cron` diario | `catalog_sessions`, `notifications_log` y la cola de `pg_net` crecían sin techo y nadie las borraba |
+| 15 | `get_customers_page()` e índice `idx_orders_entregados_por_cliente` | La carteira devolvía la base entera y el buscador filtraba en el navegador |
+
+> [!IMPORTANT]
+> **Después de aplicar la 4, redespliega `center-gas-web`.** El panel pasó a hablar con
+> `get_customers_page()`. La función vieja `get_customers_with_stats()` sigue existiendo a
+> propósito para que nada se rompa durante la ventana de despliegue; se retirará más adelante.
 
 ---
 
@@ -181,10 +235,15 @@ para no responder dos veces seguidas al mismo número.
 
 ## Paso 5 — Redesplegar las apps
 
-Necesario porque la `anon` key rotada va compilada en el bundle, y porque el catálogo y la
-app del motoboy cambiaron para hablar el contrato nuevo de las RPC.
+Necesario porque la `anon` key rotada va compilada en el bundle, y porque las tres pantallas
+cambiaron para hablar el contrato nuevo de las RPC:
 
-Ambos proyectos de Vercel: `center-gas-site` y `center-gas-web`.
+- **`center-gas-site`** — el catálogo del cliente y la app del motoboy (que ahora lee las
+  tarifas de vasilhame por RPC en vez de tenerlas escritas a fuego).
+- **`center-gas-web`** — el panel del dueño, cuya carteira de clientes pasó a
+  `get_customers_page()`.
+
+Si sólo redespliegas uno, la pantalla del otro se queda pidiendo el contrato viejo.
 
 ---
 
