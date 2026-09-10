@@ -420,3 +420,96 @@ SELECT t('authenticated NO puede ejecutar la purga',
   has_function_privilege('authenticated','public.purge_ephemeral_data()','EXECUTE')::text, 'false');
 SELECT t('service_role SI puede',
   has_function_privilege('service_role','public.purge_ephemeral_data()','EXECUTE')::text, 'true');
+
+-- ============================================================================
+-- 18. Fase 2: la carteira de clientes se sirve por paginas
+-- ============================================================================
+-- Lo que hay que probar de una paginacion por cursor no es que devuelva pocas
+-- filas: es que recorriendola entera se visite cada fila UNA vez. Un cursor mal
+-- construido repite filas en el limite entre paginas o se salta las que empatan,
+-- y eso no se ve mirando una pagina suelta.
+
+-- Clientes con historiales distintos. Los tres ultimos no han pedido nunca:
+-- su last_order_date es NULL, que es justo la zona donde un cursor mal hecho
+-- se rompe, porque NULL no se compara con <.
+INSERT INTO customers (phone, name) VALUES
+  ('5541977770001','Pagina Uno'),   ('5541977770002','Pagina Dos'),
+  ('5541977770003','Pagina Tres'),  ('5541977770004','Sin Pedidos A'),
+  ('5541977770005','Sin Pedidos B'), ('5541977770006','Sin Pedidos C')
+ON CONFLICT (phone) DO NOTHING;
+
+INSERT INTO orders (display_id, customer_id, status, payment_method, total_amount, created_at)
+SELECT 'PAG'||n, c.id, 'entregado', 'cash', 50.00, now() - (n || ' days')::INTERVAL
+FROM (VALUES (1,'5541977770001'),(2,'5541977770002'),(3,'5541977770003')) AS v(n,tel)
+JOIN customers c ON c.phone = v.tel
+ON CONFLICT (display_id) DO NOTHING;
+
+\echo ''
+\echo '=== 18. Paginacion por cursor de la carteira ==='
+
+SELECT set_config('test.uid','11111111-1111-1111-1111-111111111111', false);
+
+SELECT t('respeta el limite pedido', count(*)::text, '3')
+FROM get_customers_page(3, NULL, NULL, NULL);
+
+SELECT t('avisa de que hay mas paginas', bool_and(has_more)::text, 'true')
+FROM get_customers_page(3, NULL, NULL, NULL);
+
+-- El recorrido completo: se pagina de 3 en 3 hasta agotar.
+DO $$
+DECLARE
+  r          RECORD;
+  v_cur_ts   TIMESTAMPTZ := NULL;
+  v_cur_id   UUID        := NULL;
+  v_ids      UUID[]      := '{}';
+  v_more     BOOLEAN     := TRUE;
+  v_paginas  INT         := 0;
+  v_total    INT;
+  v_vistos   INT;
+  v_unicos   INT;
+BEGIN
+  SELECT count(*) INTO v_total FROM customers;
+
+  WHILE v_more AND v_paginas < 100 LOOP
+    v_more := FALSE;
+    FOR r IN SELECT * FROM get_customers_page(3, v_cur_ts, v_cur_id, NULL) LOOP
+      v_ids    := v_ids || r.id;
+      v_cur_ts := r.last_order_date;
+      v_cur_id := r.id;
+      v_more   := r.has_more;
+    END LOOP;
+    v_paginas := v_paginas + 1;
+  END LOOP;
+
+  v_vistos := COALESCE(array_length(v_ids, 1), 0);
+  SELECT count(DISTINCT x) INTO v_unicos FROM unnest(v_ids) x;
+
+  PERFORM t('el recorrido completo visita a TODOS los clientes', v_vistos::text, v_total::text);
+  PERFORM t('y no repite ninguno',                                v_unicos::text, v_vistos::text);
+  PERFORM t('la ultima pagina dice que no hay mas',               v_more::text,   'false');
+END $$;
+
+-- La busqueda se resuelve en el servidor, no filtrando en el navegador.
+SELECT t('la busqueda por nombre filtra en el servidor', count(*)::text, '3')
+FROM get_customers_page(50, NULL, NULL, 'Sin Pedidos');
+SELECT t('la busqueda por telefono tambien', count(*)::text, '1')
+FROM get_customers_page(50, NULL, NULL, '5541977770002');
+SELECT t('una busqueda sin resultados devuelve vacio', count(*)::text, '0')
+FROM get_customers_page(50, NULL, NULL, 'no-existe-este-cliente');
+
+-- El limite es del servidor, no del que llama.
+SELECT t('un limite absurdo se recorta a 200', (count(*) <= 200)::text, 'true')
+FROM get_customers_page(99999, NULL, NULL, NULL);
+
+-- Y sigue siendo cosa del dueno.
+SELECT set_config('test.uid','22222222-2222-2222-2222-222222222222', false);
+DO $$
+DECLARE ok boolean := false;
+BEGIN
+  BEGIN PERFORM * FROM get_customers_page(10, NULL, NULL, NULL);
+  EXCEPTION WHEN OTHERS THEN ok := true; END;
+  PERFORM t('un motoboy NO puede listar la carteira', ok::text, 'true');
+END $$;
+SELECT t('anon no puede ejecutar la RPC paginada',
+  has_function_privilege('anon','public.get_customers_page(int,timestamptz,uuid,text)','EXECUTE')::text, 'false');
+SELECT set_config('test.uid','11111111-1111-1111-1111-111111111111', false);

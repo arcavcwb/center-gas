@@ -225,8 +225,8 @@ Antes de tocar producción puedes ver las migraciones correr en limpio contra un
 ./supabase/tests/run.sh
 ```
 
-Levanta un Postgres efímero en Docker, aplica las **30 migraciones** sobre una base vacía y
-ejecuta **58 aserciones funcionales**. No toca ninguna base remota; sólo necesita Docker.
+Levanta un Postgres efímero en Docker, aplica las **31 migraciones** sobre una base vacía y
+ejecuta **69 aserciones funcionales**. No toca ninguna base remota; sólo necesita Docker.
 
 Es además la única forma de detectar colisiones de versión, migraciones no idempotentes y
 funciones que no compilan — cosas que ningún linter de SQL ve. Conviene ejecutarlo antes de
