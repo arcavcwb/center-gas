@@ -27,7 +27,10 @@ El `@pr-reviewer-agent` reportó vulnerabilidad a ataques de Spoofing, dado que 
 
 **Cambios realizados:**
 - **[MODIFIED]** [supabase/migrations/20260829000000_mvp_water_seed_and_webhook.sql](file:///home/arcav/projects/center-gas/center-gas-platform/supabase/migrations/20260829000000_mvp_water_seed_and_webhook.sql)
-  - Se agregó la cabecera `Authorization: Bearer CENTERGAS_SECURE_TOKEN_2026` a la función asíncrona `net.http_post()`. (En el futuro esto será movido a `Vault` nativo de Supabase, pero provee defensa perimetral inmediata para n8n).
+  - Se agregó la cabecera `Authorization: Bearer <SECURE_OUTBOUND_TOKEN>` a la función asíncrona `net.http_post()`. (En el futuro esto será movido a `Vault` nativo de Supabase, pero provee defensa perimetral inmediata para n8n).
+
+> [!NOTE]
+> **Nota posterior (incidente de seguridad 2026-09):** en su momento este token se escribió literal dentro de la migración SQL, y así quedó publicado en un repositorio público. El valor fue rotado y ya no debe aparecer en texto plano en ningún archivo: se lee de la variable de entorno / Supabase Vault. Ver [`docs/SECURITY-INCIDENT-2026-09.md`](../SECURITY-INCIDENT-2026-09.md).
 
 > [!TIP]
 > **Siguiente paso lógico para el negocio:** Actualizar el flujo en `n8n` para requerir y validar este Token Bearer en el nodo de "Webhook In".

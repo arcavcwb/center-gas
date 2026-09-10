@@ -6,20 +6,26 @@ import { OrderCard } from './OrderCard';
 import { CancellationModal } from './CancellationModal';
 import { NewOrderModal } from './NewOrderModal';
 import type { Order } from '@center-gas/contracts';
-import { PhoneCall, Search, Package, Truck, DollarSign, Users, CheckCircle2, RefreshCw } from 'lucide-react';
+import { PhoneCall, Search, Package, Truck, DollarSign, Users, CheckCircle2, RefreshCw, AlertCircle } from 'lucide-react';
 
 interface Driver {
   id: string;
   full_name: string;
 }
 
+// La dirección de entrega ahora vive en el propio pedido (orders.delivery_address).
+// create_b2c_order ya no sobrescribe customers.address_line, así que la ficha del
+// cliente y el destino de ESTE pedido pueden diferir: manda la del pedido.
+type BoardOrder = Order & { delivery_address?: string | null };
+
 export function KanbanBoard() {
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<BoardOrder[]>([]);
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [cancelingOrderId, setCancelingOrderId] = useState<string | null>(null);
   const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [statusError, setStatusError] = useState<string | null>(null);
 
   const fetchOrders = async () => {
     setIsRefreshing(true);
@@ -35,7 +41,7 @@ export function KanbanBoard() {
       .order('created_at', { ascending: true });
     
     if (data && !error) {
-      setOrders(data as Order[]);
+      setOrders(data as BoardOrder[]);
     }
     setIsRefreshing(false);
   };
@@ -68,9 +74,9 @@ export function KanbanBoard() {
             
           if (data) {
             if (payload.eventType === 'INSERT') {
-              setOrders(prev => [...prev, data as Order]);
+              setOrders(prev => [...prev, data as BoardOrder]);
             } else {
-              setOrders(prev => prev.map(o => o.id === data.id ? data as Order : o));
+              setOrders(prev => prev.map(o => o.id === data.id ? data as BoardOrder : o));
             }
           }
         } else if (payload.eventType === 'DELETE') {
@@ -84,27 +90,50 @@ export function KanbanBoard() {
     };
   }, []);
 
+  // update_order_status valida ahora el grafo de transiciones y lanza si el salto
+  // no es válido (ERRCODE 22023). Si el servidor rechaza el cambio, la tarjeta no
+  // puede quedarse en el estado optimista: se revierte y se avisa al operador.
   const handleUpdateStatus = async (orderId: string, newStatus: string, driverId?: string) => {
+    const previousStatus = orders.find(o => o.id === orderId)?.status;
+    setStatusError(null);
+
     // Optimistic UI update
     setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus as Order['status'] } : o));
     
     // DB update using RPC to track history
-    await supabase.rpc('update_order_status', { 
+    const { error } = await supabase.rpc('update_order_status', { 
       p_order_id: orderId, 
       p_new_status: newStatus,
       p_driver_id: driverId || null
     });
+
+    if (error) {
+      if (previousStatus) {
+        setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: previousStatus } : o));
+      }
+      setStatusError(error.message || 'Não foi possível atualizar o pedido.');
+    }
   };
 
   const handleCancelOrder = async (reason: string) => {
     if (!cancelingOrderId) return;
-    setOrders(prev => prev.map(o => o.id === cancelingOrderId ? { ...o, status: 'cancelado' } : o));
+    const orderId = cancelingOrderId;
+    const previousStatus = orders.find(o => o.id === orderId)?.status;
+    setStatusError(null);
+    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'cancelado' } : o));
     
-    await supabase.rpc('update_order_status', { 
-      p_order_id: cancelingOrderId, 
+    const { error } = await supabase.rpc('update_order_status', { 
+      p_order_id: orderId, 
       p_new_status: 'cancelado',
       p_reason: reason
     });
+
+    if (error) {
+      if (previousStatus) {
+        setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: previousStatus } : o));
+      }
+      setStatusError(error.message || 'Não foi possível cancelar o pedido.');
+    }
     setCancelingOrderId(null);
   };
 
@@ -121,6 +150,7 @@ export function KanbanBoard() {
       o.display_id.toLowerCase().includes(q) ||
       (o.customer?.name && o.customer.name.toLowerCase().includes(q)) ||
       (o.customer?.phone && o.customer.phone.includes(q)) ||
+      (o.delivery_address && o.delivery_address.toLowerCase().includes(q)) ||
       (o.customer?.address_line && o.customer.address_line.toLowerCase().includes(q))
     );
   }, [orders, searchQuery]);
@@ -237,6 +267,19 @@ export function KanbanBoard() {
           </button>
         )}
       </div>
+
+      {statusError && (
+        <div className="flex items-start gap-2 bg-red-50 border border-red-200 text-red-800 text-xs font-semibold px-3.5 py-2.5 rounded-xl">
+          <AlertCircle size={15} className="shrink-0 mt-px text-red-600" />
+          <span className="flex-1 leading-snug">{statusError}</span>
+          <button
+            onClick={() => setStatusError(null)}
+            className="font-bold text-red-700 hover:text-red-900 cursor-pointer shrink-0"
+          >
+            Fechar
+          </button>
+        </div>
+      )}
 
       {/* Columnas del Kanban */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">

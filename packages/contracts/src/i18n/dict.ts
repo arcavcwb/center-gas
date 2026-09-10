@@ -56,6 +56,8 @@ export interface TranslationSchema {
   submittingOrder: string;
   emptyCartError: string;
   verifyPhoneAddressError: string;
+  registerLinkRequiredError: string;
+  orderLinkRequiredError: string;
   successTitle: string;
   successMessage: string;
   scheduledBannerTitle: string;
@@ -137,6 +139,8 @@ export const translations: Record<SupportedLang, TranslationSchema> = {
     submittingOrder: "Processando pedido...",
     emptyCartError: "O carrinho está vazio.",
     verifyPhoneAddressError: "Por favor, verifique seu telefone e endereço.",
+    registerLinkRequiredError: "Este número já possui cadastro. Para atualizar seus dados, abra o link que enviamos no seu WhatsApp.",
+    orderLinkRequiredError: "Para pedir com este número, abra o link que enviamos no seu WhatsApp.",
     successTitle: "Pedido Confirmado!",
     successMessage: "Seu pedido foi recebido e nossa equipe no Pinheirinho já está preparando a entrega. Entraremos em contato pelo WhatsApp!",
     scheduledBannerTitle: "Atendimento Fora de Horário Comercial",
@@ -216,6 +220,8 @@ export const translations: Record<SupportedLang, TranslationSchema> = {
     submittingOrder: "Procesando pedido...",
     emptyCartError: "El carrito está vacío.",
     verifyPhoneAddressError: "Por favor verifica tu teléfono y dirección.",
+    registerLinkRequiredError: "Este número ya tiene registro. Para actualizar tus datos, abre el enlace que te enviamos por WhatsApp.",
+    orderLinkRequiredError: "Para pedir con este número, abre el enlace que te enviamos por WhatsApp.",
     successTitle: "¡Pedido Confirmado!",
     successMessage: "Tu pedido ha sido recibido y nuestro equipo en Pinheirinho ya lo está preparando. Te contactaremos por WhatsApp.",
     scheduledBannerTitle: "Atención Fuera de Horario Comercial",

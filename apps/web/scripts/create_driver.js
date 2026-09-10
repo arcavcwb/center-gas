@@ -1,4 +1,20 @@
+// =============================================================================
+// ⚠️  ROTACIÓN OBLIGATORIA DE CREDENCIALES
+// =============================================================================
+// Este script tenía el email y la contraseña del motoboy escritos en claro
+// (motoboy1@centergas.com / la contraseña por defecto del proyecto) en un
+// repositorio PÚBLICO. Cualquier cuenta creada con aquella contraseña se
+// considera comprometida: hay que cambiarla YA desde Supabase > Authentication,
+// aunque el código ya no la contenga.
+//
+// Desde ahora las credenciales se leen de DRIVER_EMAIL y DRIVER_PASSWORD y no
+// hay ningún valor por defecto: si faltan, el script aborta.
+// =============================================================================
+
 import { createClient } from '@supabase/supabase-js';
+
+// Longitud mínima razonable para la contraseña del motoboy.
+const LONGITUD_MINIMA_PASSWORD = 12;
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -8,11 +24,34 @@ if (!supabaseUrl || !supabaseServiceKey) {
   process.exit(1);
 }
 
+// Credenciales del motoboy: obligatorias por entorno, sin valores por defecto.
+const driverEmail = (process.env.DRIVER_EMAIL || '').trim();
+const driverPassword = process.env.DRIVER_PASSWORD || '';
+
+if (!driverEmail || !driverPassword) {
+  console.error('\n❌ ERROR: faltan las variables de entorno DRIVER_EMAIL y/o DRIVER_PASSWORD.');
+  console.error('   Este script no trae credenciales por defecto a propósito. Ejecútalo así:');
+  console.error('     DRIVER_EMAIL="motoboy1@tu-dominio.com" DRIVER_PASSWORD="<contraseña-fuerte>" \\');
+  console.error('       node apps/web/scripts/create_driver.js\n');
+  process.exit(1);
+}
+
+if (driverPassword.length < LONGITUD_MINIMA_PASSWORD) {
+  console.error(`\n❌ ERROR: DRIVER_PASSWORD debe tener al menos ${LONGITUD_MINIMA_PASSWORD} caracteres.`);
+  console.error('   Usa una contraseña larga y generada al azar, no una reutilizada.\n');
+  process.exit(1);
+}
+
+// Teléfono del cliente de siembra que se crea si la tabla `customers` está vacía.
+// NO es un secreto: es un placeholder ficticio para poder generar la orden de
+// prueba del motoboy. Se puede sobreescribir con SEED_CUSTOMER_PHONE.
+const seedCustomerPhone = process.env.SEED_CUSTOMER_PHONE || '5541999999999';
+
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 async function main() {
-  const email = 'motoboy1@centergas.com';
-  const password = 'motoboypassword123';
+  const email = driverEmail;
+  const password = driverPassword;
 
   console.log('Creando usuario driver:', email);
   
@@ -66,7 +105,7 @@ async function main() {
   
   if (!customerId) {
     const { data: newCust, error: newCustError } = await supabase.from('customers').insert({
-      phone: '5541999999999',
+      phone: seedCustomerPhone,
       address_line: 'Rua de Prueba 123',
       name: 'Cliente Test'
     }).select().single();

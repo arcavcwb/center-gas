@@ -12,6 +12,7 @@ permissions:
 jobs:
   pr-review:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -20,10 +21,16 @@ jobs:
 
       - name: Extract Issue ID
         id: extract_issue
+        env:
+          # El título del PR lo controla quien abre el PR: se pasa por entorno y NUNCA
+          # se interpola con ${{ }} dentro del script, para evitar inyección de comandos.
+          PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
-          TITLE="${{ github.event.pull_request.title }}"
-          ISSUE_ID=$(echo "$TITLE" | grep -o 'ISSUE-[0-9]*' | head -n 1 || echo "UNKNOWN")
-          echo "issue_id=$ISSUE_ID" >> $GITHUB_ENV
+          ISSUE_ID=$(printf '%s' "$PR_TITLE" | grep -o 'ISSUE-[0-9]*' | head -n 1 || true)
+          if [ -z "$ISSUE_ID" ]; then
+            ISSUE_ID="UNKNOWN"
+          fi
+          echo "ISSUE_ID=$ISSUE_ID" >> "$GITHUB_ENV"
 
       - name: Generate Git Diff
         run: git diff origin/main...HEAD > pr.diff
@@ -32,19 +39,56 @@ jobs:
         id: agent
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          # Opcional: define la variable de repositorio GEMINI_MODEL para
+          # cambiar de modelo sin tocar el script.
+          GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
           PLANE_API_KEY: ${{ secrets.PLANE_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          node .github/scripts/run-agent.js $issue_id < pr.diff > agent_result.json || EXIT_CODE=$?
-          
-          # Evaluar la decisión
-          DECISION=$(jq -r '.decision' agent_result.json)
-          REASON=$(jq -r '.reason' agent_result.json)
-          
-          if [ "$DECISION" = "REJECT" ]; then
-            gh pr review ${{ github.event.pull_request.number }} --comment -b "❌ PR RECHAZADO: $REASON"
+          set -uo pipefail
+
+          # FALLO EN CERRADO: cualquier problema (API de Gemini caída, cuota agotada,
+          # error de red, salida no parseable, falta de API key) tiene que BLOQUEAR el
+          # PR. Antes, un fallo caía en el "else" y aprobaba automáticamente.
+          fallar_revision() {
+            motivo="$1"
+            gh pr review "$PR_NUMBER" --comment -b "⚠️ La revisión automática NO pudo completarse: ${motivo}. El PR queda bloqueado hasta que la revisión termine correctamente (política de fallo en cerrado)."
             exit 1
-          else
-            gh pr review ${{ github.event.pull_request.number }} --comment -b "✅ Aprobado por el pr-reviewer-agent. Listo para QA."
-            exit 0
+          }
+
+          AGENT_EXIT=0
+          node .github/scripts/run-agent.js "$ISSUE_ID" < pr.diff > agent_result.json || AGENT_EXIT=$?
+
+          # 1. El resultado tiene que existir y no estar vacío.
+          if [ ! -s agent_result.json ]; then
+            fallar_revision "el agente no generó ningún resultado (código de salida ${AGENT_EXIT})"
           fi
+
+          # 2. Tiene que ser JSON válido y traer un campo 'decision'. jq -e devuelve
+          #    código distinto de 0 si el JSON es inválido o si .decision es null.
+          if ! DECISION=$(jq -er '.decision' agent_result.json 2>/dev/null); then
+            fallar_revision "agent_result.json no es JSON válido o no contiene 'decision' (código de salida ${AGENT_EXIT})"
+          fi
+
+          REASON=$(jq -r '.reason // "sin motivo indicado"' agent_result.json 2>/dev/null || printf '%s' "sin motivo indicado")
+
+          # 3. Solo se aceptan dos decisiones explícitas. Cualquier otro valor
+          #    ("ERROR", "null", texto inesperado) se trata como fallo.
+          case "$DECISION" in
+            REJECT)
+              gh pr review "$PR_NUMBER" --comment -b "❌ PR RECHAZADO: ${REASON}"
+              exit 1
+              ;;
+            APPROVE)
+              # Una aprobación solo vale si además el script terminó correctamente.
+              if [ "$AGENT_EXIT" -ne 0 ]; then
+                fallar_revision "el agente devolvió APPROVE pero terminó con código ${AGENT_EXIT}"
+              fi
+              gh pr review "$PR_NUMBER" --comment -b "✅ Aprobado por el pr-reviewer-agent. Listo para QA."
+              exit 0
+              ;;
+            *)
+              fallar_revision "decisión no reconocida ('${DECISION}')"
+              ;;
+          esac

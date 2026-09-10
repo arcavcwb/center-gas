@@ -1,20 +1,104 @@
+// =============================================================================
+// ⚠️  AVISO DE RIESGO — SCRIPT DESTRUCTIVO
+// =============================================================================
+// Este test NO es de sólo lectura: con la service_role key borra filas reales
+// de la base de datos a la que apunte (catalog_sessions, customers, orders,
+// order_items, order_status_history y notifications_log del pedido de prueba),
+// tanto al preparar el estado inicial como en el bloque `finally`.
+//
+// Históricamente se ejecutaba contra el proyecto Supabase de PRODUCCIÓN. Eso es
+// peligroso: un fallo a mitad de camino o un teléfono de prueba que coincida con
+// el de un cliente real destruye datos de negocio.
+//
+// LO CORRECTO es apuntarlo a un proyecto Supabase de STAGING (variables
+// PUBLIC_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY del entorno de staging) y
+// nunca al de producción. Por eso el script exige la confirmación explícita
+// ALLOW_DESTRUCTIVE_TEST=1 antes de arrancar.
+//
+// Además envía mensajes de WhatsApp reales por Evolution API al número indicado
+// en E2E_TEST_PHONE.
+// =============================================================================
+
 const path = require('path');
 module.paths.push(path.resolve(__dirname, '../apps/web/node_modules'));
 const { createClient } = require('@supabase/supabase-js');
 
+// Guarda anti-desastre: sin confirmación explícita el script no arranca.
+if (process.env.ALLOW_DESTRUCTIVE_TEST !== '1') {
+  console.error('\n❌ ABORTADO: este script es DESTRUCTIVO.');
+  console.error('   Borra filas reales (catalog_sessions, customers, orders, order_items,');
+  console.error('   order_status_history y notifications_log) de la base de datos a la que');
+  console.error('   apunten PUBLIC_SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY, y envía mensajes');
+  console.error('   de WhatsApp reales.');
+  console.error('   Verifica que NO estás apuntando a producción: usa un proyecto Supabase de');
+  console.error('   staging. Cuando estés seguro, ejecútalo así:');
+  console.error('     ALLOW_DESTRUCTIVE_TEST=1 node scripts/test-e2e-whatsapp-lifecycle.js\n');
+  process.exit(1);
+}
+
+/**
+ * Devuelve el valor de una variable de entorno obligatoria.
+ * Si falta, aborta ruidosamente: nunca se usa un valor por defecto para un
+ * secreto, porque un default silencioso solo consigue que el script parezca
+ * funcionar mientras habla con el sitio equivocado.
+ */
+function envObligatoria(nombre, pista = '') {
+  const alternativas = Array.isArray(nombre) ? nombre : [nombre];
+  for (const clave of alternativas) {
+    const valor = (process.env[clave] || '').trim();
+    if (valor) return valor;
+  }
+  console.error(`\n❌ ERROR: falta la variable de entorno obligatoria ${alternativas.join(' o ')}.`);
+  console.error(`   Defínela antes de ejecutar este script, por ejemplo:`);
+  console.error(`     export ${alternativas[0]}="<valor-real>"`);
+  if (pista) console.error(`   ${pista}`);
+  process.exit(1);
+}
+
 // Configuración de Entornos y Constantes
-const SUPABASE_URL = process.env.PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SUPABASE_ANON_KEY = process.env.PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+// Secretos: obligatorios por entorno, nunca en el repositorio (es público).
+const SUPABASE_URL = envObligatoria(
+  ['PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_URL'],
+  'URL del proyecto Supabase de STAGING contra el que quieres correr el test.'
+);
+const SUPABASE_ANON_KEY = envObligatoria(
+  ['PUBLIC_SUPABASE_ANON_KEY', 'NEXT_PUBLIC_SUPABASE_ANON_KEY'],
+  'Supabase > Project Settings > API > anon/public.'
+);
+const SUPABASE_SERVICE_ROLE_KEY = envObligatoria(
+  'SUPABASE_SERVICE_ROLE_KEY',
+  'Supabase > Project Settings > API > service_role. NO es la anon key.'
+);
+const N8N_API_KEY = envObligatoria(
+  'N8N_API_KEY',
+  'Se obtiene en n8n > Settings > n8n API > Create an API key.'
+);
+const EVOLUTION_API_KEY = envObligatoria(
+  'EVOLUTION_API_KEY',
+  'Es la apikey global de la instancia de Evolution API.'
+);
+const EVOLUTION_WEBHOOK_TOKEN = envObligatoria(
+  'EVOLUTION_WEBHOOK_TOKEN',
+  'Token compartido entre Evolution API y el nodo "Validate Token" del WF-01.'
+);
+const SECURE_OUTBOUND_TOKEN = envObligatoria(
+  'N8N_WEBHOOK_TOKEN',
+  'Token compartido entre el trigger de Supabase (pg_net) y el nodo "Validate Token" del WF-02.'
+);
+
+// Configuración no secreta: se puede sobreescribir por entorno.
 const rawN8nUrl = process.env.N8N_API_URL || 'https://n8n.arcav.us';
 const N8N_API_URL = rawN8nUrl.replace(/\/settings\/api\/?$/, '').replace(/\/$/, '');
-const N8N_API_KEY = (process.env.N8N_API_KEY || '').trim();
-const EVOLUTION_API_URL = 'https://evolution.arcav.us';
-const EVOLUTION_API_KEY = 'CENTERGAS_EVOLUTION_KEY_2026';
-const EVOLUTION_INSTANCE = 'centerGas';
-const SECURE_OUTBOUND_TOKEN = 'CENTERGAS_SECURE_TOKEN_2026';
+const EVOLUTION_API_URL = (process.env.EVOLUTION_API_URL || 'https://evolution.arcav.us').replace(/\/$/, '');
+const EVOLUTION_INSTANCE = process.env.EVOLUTION_INSTANCE_NAME || 'centerGas';
 
-const TEST_PHONE = '554198450477'; // Teléfono real de Armando conectado a centerGas
+// Teléfono destino del test: obligatorio y sin valor por defecto. Recibe mensajes
+// de WhatsApp reales y sus filas se borran al final, así que debe ser un número
+// de pruebas bajo tu control, jamás el de un cliente.
+const TEST_PHONE = envObligatoria(
+  'E2E_TEST_PHONE',
+  'Número en formato internacional sin "+", por ejemplo 5541900000000.'
+);
 
 const anonSupabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const adminSupabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
@@ -99,7 +183,12 @@ async function main() {
 
     const inboundRes = await fetch(`${N8N_API_URL}/webhook/evolution-inbound`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        // El WF-01 valida esta cabecera en su nodo "Validate Token" y descarta
+        // en silencio lo que no la traiga: sin ella el test moriría en el 1.3.
+        'Authorization': `Bearer ${EVOLUTION_WEBHOOK_TOKEN}`
+      },
       body: JSON.stringify(inboundPayload)
     });
 
@@ -201,7 +290,12 @@ async function main() {
         { product_id: waterProduct.id, quantity: 1 }
       ],
       p_payment_method: 'cash',
-      p_cash_change_for: 200
+      p_cash_change_for: 200,
+      // Prueba de posesión del teléfono: create_b2c_order ya no acepta el número
+      // de un cliente existente sin el token de la sesión de catálogo. Es el mismo
+      // token que el cliente recibió por WhatsApp en la Fase 1 y que acaba de
+      // canjear en 1.4, así que este pedido reproduce el camino real del producto.
+      p_session_token: catalogSession.token
     };
 
     const { data: orderRes, error: orderErr } = await anonSupabase.rpc('create_b2c_order', comboOrderPayload);

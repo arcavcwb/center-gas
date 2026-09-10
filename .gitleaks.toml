@@ -1,0 +1,33 @@
+# Configuración de gitleaks para Center Gas Curitiba.
+#
+# REGLA DE ORO: aquí NO se añaden exclusiones que oculten credenciales reales.
+# La única lista de permitidos que existe es la de valores que son, de forma
+# evidente, marcadores de posición en documentación y ficheros de ejemplo.
+# Si un escaneo falla, la respuesta correcta es rotar la credencial y sacarla del
+# repositorio, nunca añadirla a este fichero.
+#
+# Las expresiones regulares las evalúa Go (RE2): no admite retrorreferencias
+# (\1) ni lookahead. Mantener los patrones simples.
+
+title = "Center Gas - reglas de deteccion de secretos"
+
+[extend]
+# Parte del conjunto de reglas por defecto de gitleaks (claves de Supabase, JWT,
+# tokens de GitHub, cadenas de conexión de Postgres, claves genéricas, etc.).
+useDefault = true
+
+[allowlist]
+description = "Marcadores de posición usados en documentación y ficheros de ejemplo"
+# Sin regexTarget: gitleaks compara contra el "secret" capturado por la regla, no
+# contra la línea entera. Es lo más estrecho posible: una línea que solo mencione
+# la palabra "example" al lado de una credencial real seguirá siendo detectada.
+regexes = [
+  # <TU_CLAVE>, <your-key>, <REEMPLAZAR>
+  '''<[A-Za-z0-9_\-\. ]{1,60}>''',
+  # TU_CLAVE_AQUI, SU_TOKEN, YOUR_ANON_KEY
+  '''(?i)\b(tu|tus|su|your)[_-][A-Za-z0-9_\-]{2,40}\b''',
+  # placeholders literales habituales
+  '''(?i)\b(changeme|reemplazar|replace[_-]?me|placeholder|redacted|dummy|example|ejemplo)\b''',
+  # relleno evidente: xxxxxxxx, 00000000, aaaaaaaa
+  '''(?i)\b(x{8,}|0{8,}|a{8,})\b''',
+]

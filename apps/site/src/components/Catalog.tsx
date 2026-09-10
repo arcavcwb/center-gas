@@ -34,8 +34,27 @@ export default function Catalog() {
   const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
   const pathToken = typeof window !== 'undefined' ? window.location.pathname.replace(/^\/+/, '').split('/')[0] : '';
   const isPathToken = /^[a-zA-Z0-9]{6,64}$/.test(pathToken) && pathToken !== 'driver';
-  const activeToken = isPathToken ? pathToken : (urlParams?.get('token') || null);
-  const hasTokenFromUrl = !!activeToken;
+  const urlToken = isPathToken ? pathToken : (urlParams?.get('token') || null);
+  // El token se borra de la barra de direcciones en cuanto se resuelve (URL Stripping),
+  // así que un simple F5 lo perdía. Sin él check_customer_exists ya no devuelve los datos
+  // del cliente y create_b2c_order rechaza el pedido con 42501. Se conserva en
+  // sessionStorage: sobrevive a la recarga y muere al cerrar la pestaña.
+  const storedToken = typeof window !== 'undefined' ? sessionStorage.getItem('center_gas_session_token') : null;
+  const hasTokenFromUrl = !!urlToken;
+
+  // Reactivo, no constante: el alta de un cliente nuevo (register_b2c_customer) emite
+  // su propia sesión y devuelve el token a mitad de flujo. Si esto fuera un valor fijo
+  // leído al montar, el checkout inmediatamente posterior seguiría enviando null y la
+  // primera compra del cliente orgánico se rechazaría con 42501.
+  const [sessionToken, setSessionToken] = createSignal<string | null>(urlToken || storedToken);
+
+  const rememberSessionToken = (newToken: string | null | undefined) => {
+    if (!newToken) return;
+    setSessionToken(newToken);
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('center_gas_session_token', newToken);
+    }
+  };
   
   // Idioma inicial (Português PT-BR por defecto, o persistido)
   const getInitialLang = (): SupportedLang => {
@@ -201,9 +220,9 @@ export default function Catalog() {
     });
     
     // Check URL for token (WhatsApp flow: /xxxxxx or ?token=...)
-    if (activeToken && (step() === 'phone' || step() === 'loading')) {
-      setToken(activeToken);
-      handleTokenCheck(activeToken);
+    if (urlToken && (step() === 'phone' || step() === 'loading')) {
+      setToken(urlToken);
+      handleTokenCheck(urlToken);
     } else if (!hasTokenFromUrl && savedPhone && step() === 'loading') {
       handleSavedCustomerCheck(savedPhone);
     }
@@ -266,12 +285,24 @@ export default function Catalog() {
   const handleSavedCustomerCheck = async (saved: string) => {
     setIsSubmitting(true);
     setSubmitError(null);
-    const { data, error } = await supabase.rpc('check_customer_exists', { p_phone: saved });
+    const { data, error } = await supabase.rpc('check_customer_exists', {
+      p_phone: saved,
+      p_session_token: sessionToken()
+    });
     setIsSubmitting(false);
 
     if (!error && data && data.exists) {
       setPhone(data.phone || saved);
-      setCustomerName(data.name || '');
+      // check_customer_exists sólo devuelve los datos personales cuando hay una
+      // sesión de catálogo vigente que prueba la posesión del teléfono (el enlace
+      // llegó por WhatsApp al número real). Sin esa prueba responde { exists, phone }
+      // y hay que pedir los datos de entrega en lugar de saltar al catálogo con la
+      // dirección en blanco. Ver supabase/migrations/20260909000000_security_containment.sql
+      if (!data.name) {
+        setStep('register');
+        return;
+      }
+      setCustomerName(data.name);
       setAddress(data.address_line || '');
       setNeighborhoodId(data.neighborhood_id || '');
       setStep('catalog');
@@ -286,7 +317,11 @@ export default function Catalog() {
   const handleResetCustomer = () => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('center_gas_customer_phone');
+      // El token pertenece al teléfono anterior: no debe viajar con el nuevo.
+      sessionStorage.removeItem('center_gas_session_token');
     }
+    // También en memoria: el signal es ahora la fuente que leen las RPC.
+    setSessionToken(null);
     setPhone('');
     setName('');
     setCustomerName('');
@@ -316,6 +351,9 @@ export default function Catalog() {
     }
 
     if (data && data.valid) {
+      // El token sigue siendo válido: se guarda para que las RPC posteriores
+      // puedan probar la posesión del teléfono aunque la URL ya esté limpia.
+      rememberSessionToken(checkToken);
       setPhone(data.phone || '');
       if (data.exists) {
         setCustomerName(data.name || '');
@@ -343,7 +381,10 @@ export default function Catalog() {
     setPhone(normalized);
     setIsSubmitting(true);
     setSubmitError(null);
-    const { data, error } = await supabase.rpc('check_customer_exists', { p_phone: normalized });
+    const { data, error } = await supabase.rpc('check_customer_exists', {
+      p_phone: normalized,
+      p_session_token: sessionToken()
+    });
     setIsSubmitting(false);
     
     if (error) {
@@ -353,12 +394,18 @@ export default function Catalog() {
     
     if (data && data.exists) {
       setPhone(data.phone || normalized);
-      setCustomerName(data.name || '');
-      setAddress(data.address_line || '');
-      setNeighborhoodId(data.neighborhood_id || '');
       if (typeof window !== 'undefined') {
         localStorage.setItem('center_gas_customer_phone', data.phone || normalized);
       }
+      // Sin prueba de posesión del teléfono la RPC no devuelve name/address_line:
+      // se pide el alta en vez de entrar al catálogo sin dirección de entrega.
+      if (!data.name) {
+        setStep('register');
+        return;
+      }
+      setCustomerName(data.name);
+      setAddress(data.address_line || '');
+      setNeighborhoodId(data.neighborhood_id || '');
       setStep('catalog');
     } else {
       setStep('register');
@@ -398,23 +445,41 @@ export default function Catalog() {
     const normalized = normalizeWhatsAppPhone(phone());
     setIsSubmitting(true);
     setSubmitError(null);
-    const { error } = await supabase.rpc('register_b2c_customer', {
+    const { data, error } = await supabase.rpc('register_b2c_customer', {
       p_phone: normalized,
       p_name: name(),
       p_neighborhood_id: neighborhoodId(),
-      p_address_line: address()
+      p_address_line: address(),
+      p_session_token: sessionToken()
     });
     setIsSubmitting(false);
 
     if (error) {
       setSubmitError(error.message);
-    } else {
-      setCustomerName(name());
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('center_gas_customer_phone', normalized);
-      }
-      setStep('catalog');
+      return;
     }
+
+    // La RPC ya no devuelve un UUID sino JSONB { customer_id, applied, created }.
+    // `applied: false` significa que la ficha NO se tocó: el teléfono ya está
+    // registrado y no se presentó el token de la sesión de WhatsApp. Seguir al
+    // catálogo aquí dejaría el barrio sin guardar, y el pedido saldría con taxa
+    // de entrega 0,00 y sin barrio en el Kanban. Ver la migración
+    // supabase/migrations/20260909120000_hardening_auditoria_integral.sql
+    if (!data || (data as any).applied !== true) {
+      setSubmitError(t('registerLinkRequiredError', lang()));
+      return;
+    }
+
+    // Cuando el alta CREA al cliente, la RPC emite la sesión de ese cliente nuevo y
+    // devuelve su token. Hay que guardarlo: es lo que le permite completar su primera
+    // compra al cliente orgánico, que nunca recibió un enlace por WhatsApp.
+    rememberSessionToken((data as any).session_token);
+
+    setCustomerName(name());
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('center_gas_customer_phone', normalized);
+    }
+    setStep('catalog');
   };
 
   const handleSubmitOrder = async (e: Event) => {
@@ -452,14 +517,28 @@ export default function Catalog() {
       p_payment_method: paymentMethod(),
       p_cash_change_for: changeFor(),
       p_is_scheduled: isScheduled(),
-      p_scheduled_for: isScheduled() ? deliverySlot().scheduledDate.toISOString() : null
+      p_scheduled_for: isScheduled() ? deliverySlot().scheduledDate.toISOString() : null,
+      // El barrio elegido decide la taxa de entrega: el servidor la lee de la base
+      // para ESE barrio, así que sin este parámetro el total mostrado y el cobrado
+      // pueden diferir.
+      p_neighborhood_id: neighborhoodId() || null,
+      p_session_token: sessionToken()
     });
 
     setIsSubmitting(false);
 
     if (error) {
       console.error("Error creating order:", error);
-      setSubmitError(error.message || JSON.stringify(error));
+      // ERRCODE 42501: el teléfono ya está registrado y la RPC exige la prueba de
+      // posesión (el token del enlace de WhatsApp). Volcar el error crudo dejaba al
+      // cliente sin saber qué hacer.
+      const needsWhatsAppLink =
+        (error as any).code === '42501' || /whatsapp/i.test(error.message || '');
+      setSubmitError(
+        needsWhatsAppLink
+          ? t('orderLinkRequiredError', lang())
+          : (error.message || JSON.stringify(error))
+      );
     } else {
       if (typeof window !== 'undefined' && phone()) {
         localStorage.setItem('center_gas_customer_phone', phone());

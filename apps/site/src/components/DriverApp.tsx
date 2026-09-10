@@ -124,6 +124,26 @@ export default function DriverApp() {
   const [lastCompletedAmount, setLastCompletedAmount] = createSignal<number>(0);
   const [lastCylinderReceived, setLastCylinderReceived] = createSignal<boolean | null>(null);
 
+  // Tarifas de vasilhame servidas por la base (get_vasilhame_fees). Se usan los
+  // valores históricos como respaldo mientras llega la respuesta, pero el importe
+  // que se cobra de verdad lo recalcula el servidor en update_order_status.
+  const [vasilhameFees, setVasilhameFees] = createSignal({ gas: 170, water: 20 });
+  let vasilhameFeesLoaded = false;
+
+  const loadVasilhameFees = async () => {
+    if (vasilhameFeesLoaded) return;
+    const { data, error } = await supabase.rpc('get_vasilhame_fees');
+    if (!error && data) {
+      const gas = Number((data as any).gas);
+      const water = Number((data as any).water);
+      vasilhameFeesLoaded = true;
+      setVasilhameFees({
+        gas: Number.isFinite(gas) ? gas : 170,
+        water: Number.isFinite(water) ? water : 20,
+      });
+    }
+  };
+
   // Check initial session & auth changes
   createEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -177,6 +197,7 @@ export default function DriverApp() {
   const fetchActiveOrder = async (driverId: string) => {
     setLoadingOrder(true);
     setActionError(null);
+    loadVasilhameFees();
     const { data, error } = await supabase
       .from('orders')
       .select(`
@@ -186,6 +207,7 @@ export default function DriverApp() {
         payment_method,
         cash_change_for,
         total_amount,
+        delivery_address,
         customer:customer_id ( name, address_line, phone ),
         items:order_items ( quantity, product:product_id ( name, sku, price, includes_cylinder ) )
       `)
@@ -229,6 +251,7 @@ export default function DriverApp() {
   // Cálculo dinámico de penalidad de casco según el producto (ISSUE-817)
   const penaltyFee = () => {
     if (!order() || !order().items) return 0;
+    const fees = vasilhameFees();
     return (order().items as any[]).reduce((acc: number, item: any) => {
       const prod = item.product;
       if (!prod) return acc;
@@ -239,9 +262,9 @@ export default function DriverApp() {
       const qty = Number(item.quantity) || 1;
 
       if (sku.includes('water') || sku.includes('agua') || sku.includes('água')) {
-        return acc + (qty * 20.00); // Diferencia vasilhame galão 20L (R$ 35 - R$ 15)
+        return acc + (qty * fees.water); // Diferencia vasilhame galão 20L (tarifa vigente en system_config)
       } else {
-        return acc + (qty * 170.00); // Diferencia botijão GLP 13kg (R$ 280 - R$ 110)
+        return acc + (qty * fees.gas); // Diferencia botijão GLP 13kg (tarifa vigente en system_config)
       }
     }, 0);
   };
@@ -290,10 +313,27 @@ export default function DriverApp() {
     
     const amountToRecord = finalTotal();
     const wasCylinderReceived = cylinderReceived();
+    const orderId = order().id;
+    const needsRouteStep = order().status === 'asignado';
     setIsFinishing(true);
-    
+
+    // El servidor valida el grafo de transiciones: 'asignado' sólo puede pasar a
+    // 'en_camino'. Si el entregador nunca pulsó INICIAR ROTA, se registra ese paso
+    // antes de cerrar la entrega en vez de fallar con un error de transición.
+    if (needsRouteStep) {
+      const { error: routeError } = await supabase.rpc('update_order_status', {
+        p_order_id: orderId,
+        p_new_status: 'en_camino',
+      });
+      if (routeError) {
+        setIsFinishing(false);
+        setModalError("Falha de conexão ao salvar: " + routeError.message + ". Toque novamente para tentar.");
+        return;
+      }
+    }
+
     const { error } = await supabase.rpc('update_order_status', { 
-        p_order_id: order().id,
+        p_order_id: orderId,
         p_new_status: 'entregado',
         p_cylinder_returned: wasCylinderReceived
     });
@@ -311,12 +351,24 @@ export default function DriverApp() {
     setCompleted(true);
   };
 
-  const mapsUrl = () => order() && order().customer?.address_line 
-    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(order().customer.address_line + ', Pinheirinho, Curitiba')}`
+  // customers.phone ya se guarda con el DDI 55 (es el JID de WhatsApp), así que
+  // anteponerlo otra vez generaba números inexistentes tipo 555541999990001.
+  const customerPhoneDigits = () => {
+    const digits = (order()?.customer?.phone || '').replace(/\D/g, '');
+    if (!digits) return '';
+    return digits.startsWith('55') && digits.length >= 12 ? digits : `55${digits}`;
+  };
+
+  // La dirección de ESTE pedido manda; la ficha del cliente sólo sirve de respaldo
+  // porque puede haber cambiado después del pedido.
+  const deliveryAddress = () => order() && (order().delivery_address || order().customer?.address_line);
+
+  const mapsUrl = () => deliveryAddress()
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(deliveryAddress() + ', Pinheirinho, Curitiba')}`
     : '#';
 
-  const wazeUrl = () => order() && order().customer?.address_line
-    ? `https://waze.com/ul?q=${encodeURIComponent(order().customer.address_line + ', Pinheirinho, Curitiba')}&navigate=yes`
+  const wazeUrl = () => deliveryAddress()
+    ? `https://waze.com/ul?q=${encodeURIComponent(deliveryAddress() + ', Pinheirinho, Curitiba')}&navigate=yes`
     : '#';
 
   const orderItemsText = () => {
@@ -492,7 +544,7 @@ export default function DriverApp() {
                 
                 <div class="grid grid-cols-2 gap-2 mt-2.5">
                   <a 
-                    href={`https://wa.me/55${order().customer?.phone?.replace(/\D/g, '')}?text=${encodeURIComponent(`Olá ${order().customer?.name || ''}! Sou o entregador da Center Gás com seu pedido #${order().display_id}.`)}`} 
+                    href={`https://wa.me/${customerPhoneDigits()}?text=${encodeURIComponent(`Olá ${order().customer?.name || ''}! Sou o entregador da Center Gás com seu pedido #${order().display_id}.`)}`} 
                     target="_blank" 
                     rel="noopener noreferrer"
                     class="min-h-[48px] bg-emerald-50 hover:bg-emerald-100 active:bg-emerald-200 text-emerald-800 border border-emerald-300 font-bold text-xs px-3 py-2 rounded-xl flex items-center justify-center gap-2 shadow-xs transition-colors"
@@ -501,7 +553,7 @@ export default function DriverApp() {
                     <span>WhatsApp</span>
                   </a>
                   <a 
-                    href={`tel:${order().customer?.phone?.replace(/\D/g, '')}`} 
+                    href={`tel:+${customerPhoneDigits()}`} 
                     class="min-h-[48px] bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-800 border border-slate-300 font-bold text-xs px-3 py-2 rounded-xl flex items-center justify-center gap-2 shadow-xs transition-colors"
                   >
                     <IconPhone class="w-4 h-4 text-slate-600 shrink-0" />
@@ -517,7 +569,7 @@ export default function DriverApp() {
                   <span class="text-xs font-black text-slate-700 uppercase tracking-wider">Endereço de Entrega</span>
                 </div>
                 <p class="text-lg font-black text-slate-950 leading-snug mb-3.5 select-all">
-                  {order().customer?.address_line}
+                  {deliveryAddress()}
                 </p>
                 
                 <div class="grid grid-cols-2 gap-2">

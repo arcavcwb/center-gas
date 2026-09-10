@@ -19,6 +19,31 @@
         "conditions": {
           "string": [
             {
+              "value1": "={{ $json.headers.authorization }}",
+              "operation": "equal",
+              "value2": "=Bearer {{ $env.EVOLUTION_WEBHOOK_TOKEN }}"
+            }
+          ]
+        }
+      },
+      "id": "if-validate-webhook-token",
+      "name": "Validate Token",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [ 450, 300 ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.body.data.key?.fromMe === true }}",
+              "operation": "equal",
+              "value2": false
+            }
+          ],
+          "string": [
+            {
               "value1": "={{ $json.body.data.message?.conversation || $json.body.data.message?.extendedTextMessage?.text }}",
               "operation": "isNotEmpty"
             }
@@ -29,7 +54,7 @@
       "name": "Es mensaje válido?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
-      "position": [ 450, 300 ]
+      "position": [ 650, 300 ]
     },
     {
       "parameters": {
@@ -63,11 +88,18 @@
       "name": "Generate Catalog Token",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [ 650, 300 ]
+      "position": [ 850, 300 ]
     },
     {
       "parameters": {
         "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.rate_limited }}",
+              "operation": "equal",
+              "value2": false
+            }
+          ],
           "string": [
             {
               "value1": "={{ $json.token }}",
@@ -80,7 +112,7 @@
       "name": "Token generado? (Rate Limit Check)",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
-      "position": [ 850, 300 ]
+      "position": [ 1050, 300 ]
     },
     {
       "parameters": {
@@ -91,7 +123,7 @@
       "name": "Delay Anti-Robot (4-9s)",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1,
-      "position": [ 1050, 280 ]
+      "position": [ 1250, 280 ]
     },
     {
       "parameters": {
@@ -125,7 +157,7 @@
       "name": "Enviar Auto-Respuesta",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [ 1250, 280 ],
+      "position": [ 1450, 280 ],
       "retryOnFail": true,
       "maxTries": 3,
       "waitBetweenTries": 2000
@@ -133,6 +165,17 @@
   ],
   "connections": {
     "Webhook Evolution API": {
+      "main": [
+        [
+          {
+            "node": "Validate Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Token": {
       "main": [
         [
           {
